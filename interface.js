@@ -24,9 +24,7 @@ module.exports = function (log) {
 			audioPolling: {
 				type: 'integer',
 				defaultValue: 200
-			}
-		},
-		settings: {
+			},
 			muted: {
 				type: 'boolean',
 				defaultValue: false

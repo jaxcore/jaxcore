@@ -1,0 +1,9 @@
+node_modules/
+*.out
+npm-debug.log
+.DS_STORE
+.idea
+.node_history
+public/
+.log
+yarn.lock

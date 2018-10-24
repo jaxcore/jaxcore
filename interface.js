@@ -142,7 +142,7 @@ module.exports = function (log) {
 					},
 					muted: function (muted) {
 						if (muted) this.audioDevice.mute();
-						else audioDevice.audio.umute();
+						else this.audioDevice.unmute();
 					}
 				}
 				

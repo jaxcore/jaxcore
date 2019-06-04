@@ -3,12 +3,7 @@
   "version": "0.0.0",
   "description": "",
   "author": "Jaxcore",
-  "dependencies": {
-    "chalk": "^2.4.1",
-    "jaxcore-spin": "0.0.1",
-    "jaxcore-plugin": "0.0.1",
-    "win-audio": "^1.2.0"
-  },
+  "dependencies": {},
   "devDependencies": {},
   "scripts": {},
   "license": "MIT"

@@ -71,22 +71,18 @@ VolumeService.prototype.disconnect = function (options) {
 };
 
 VolumeService.prototype.startMonitor = function () {
+	this.readInterval = 500;
+	
 	this.stopMonitor();
 	var me = this;
 	
 	this.monitor = setInterval(function () {
-		console.log('interval');
-		
-		if (me.lastSetVolume && new Date().getTime() - me.lastSetVolume.getTime() < 2000) {
-			// ignore
+		if (me.lastSetVolume && new Date().getTime() - me.lastSetVolume.getTime() < me.readInterval) {
 			console.log('ignore 1');
 			return;
 		}
-		
-		//console.log('volumeInterval...');
-		
 		me._getVolume(function (volume, volumePercent) {
-			if (me.lastSetVolume && new Date().getTime() - me.lastSetVolume.getTime() < 2000) {
+			if (me.lastSetVolume && new Date().getTime() - me.lastSetVolume.getTime() < me.readInterval*2) {
 				// ignore
 				console.log('ignore 2');
 				return;
@@ -96,13 +92,9 @@ VolumeService.prototype.startMonitor = function () {
 				console.log('volume was changed externally', volume);
 				me._setVolume(volume);
 			}
-			
 		});
-		
 		me.getMuted();
-		
-	}, 2000);
-	
+	}, me.readInterval);
 };
 
 VolumeService.prototype.stopMonitor = function () {
@@ -129,14 +121,10 @@ VolumeService.prototype._getVolume = function (callback) {
 		if (error) {
 			throw error;
 		}
-		
-		//console.log('RAW:', stdout);
-		
 		var data = stdout.toString();
 		var m = data.match(/output volume:(\d+),/);
 		if (m) {
 			var volume = parseInt(m[1]);
-			//console.log('_getVolume', volume);
 			callback(volume);
 		} else {
 			console.log('_getVolume error, no volume');
@@ -149,7 +137,7 @@ VolumeService.prototype._getVolume = function (callback) {
 VolumeService.prototype.getVolume = function (callback) {
 	var me = this;
 	this._getVolume(function (volume) {
-		if (volume != me.state.volume) {
+		if (volume !== me.state.volume) {
 			me._setVolume(volume);
 		}
 		if (callback) callback(me.state.volume, me.state.volumePercent);
@@ -166,8 +154,8 @@ VolumeService.prototype._setVolume = function (volume) {
 };
 
 VolumeService.prototype.setVolume = function (volume) {
-	if (volume<this.state.minVolume) volume = this.state.minVolume;
-	if (volume>this.state.maxVolume) volume = this.state.maxVolume;
+	if (volume < this.state.minVolume) volume = this.state.minVolume;
+	if (volume > this.state.maxVolume) volume = this.state.maxVolume;
 	
 	if (volume !== this.state.volume) {
 		this._setVolume(volume);
@@ -182,10 +170,7 @@ VolumeService.prototype._writeVolume = function () {
 	}
 	
 	this.isSettingVolume = true;
-	
-	// volume = parseInt(volume);
 	var me = this;
-	//var volume = this._volumeQueued;
 	var volume = this.state.volume;
 	console.log('_writeVolume', volume);
 	this.isSettingVolume = true;
@@ -198,19 +183,6 @@ VolumeService.prototype._writeVolume = function () {
 			console.log('_writeVolume and wroteVolume do NOT MATCH');
 			me._writeVolume();
 		}
-		
-		//
-		// var diff = Math.abs(me.state.volume - volume);
-		//
-		// if (diff >= 2) {
-		// 	console.log('DIFF IS GREATER THAN 2 !!!! sending again !!!!!');
-		// 	me._writeVolume();
-		// }
-		// else {
-		// 	me.state.volumePercent = volume / 100;
-		// 	me.state.volume = volume;
-		// }
-		
 		me.lastSetVolume = new Date();
 	});
 };
@@ -242,9 +214,7 @@ VolumeService.prototype.getMuted = function (callback) {
 			console.log('getMuted error: [[' + data + ']]');
 			return;
 		}
-		if (muted !== null) {
-			me._muteChanged(muted);
-		}
+		me._muteChanged(muted);
 		if (callback) callback(muted);
 	});
 };

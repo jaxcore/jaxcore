@@ -53,7 +53,7 @@ Desktop.connect(function (desktop) {
 	// desktop.audio.unmute();
 	// desktop.audio.toggleMuted();
 
-	Spin.connectAll(function (spin) {
+	Spin.connect(function (spin) {
 		// adapter.emit('spin-connected', spin);
 		console.log('spin connected', spin);
 

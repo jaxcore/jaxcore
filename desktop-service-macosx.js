@@ -1,8 +1,9 @@
 var plugin = require('jaxcore-plugin');
 var Client = plugin.Client;
 var child_process = require('child_process');
+var robot = require("robotjs");
 
-function VolumeService(defaults) {
+function DesktopService(defaults) {
 	this.constructor();
 	this.createStore('System Volume Store', true);
 	this.setStates({
@@ -41,17 +42,16 @@ function VolumeService(defaults) {
 			defaultValue: 1
 		}
 	}, defaults);
-	
 }
 
-VolumeService.prototype = new Client();
-VolumeService.prototype.constructor = Client;
+DesktopService.prototype = new Client();
+DesktopService.prototype.constructor = Client;
 
-VolumeService.id = function (config) {
+DesktopService.id = function (config) {
 	return config.host; //+':'+config.port;
 };
 
-VolumeService.prototype.connect = function () {
+DesktopService.prototype.connect = function () {
 	var me = this;
 	this.lastSetVolume = new Date();
 	this.getVolume(function () {
@@ -66,11 +66,11 @@ VolumeService.prototype.connect = function () {
 	});
 };
 
-VolumeService.prototype.disconnect = function (options) {
+DesktopService.prototype.disconnect = function (options) {
 	this.log('disconnecting...');
 };
 
-VolumeService.prototype.startMonitor = function () {
+DesktopService.prototype.startMonitor = function () {
 	this.readInterval = 500;
 	
 	this.stopMonitor();
@@ -97,25 +97,25 @@ VolumeService.prototype.startMonitor = function () {
 	}, me.readInterval);
 };
 
-VolumeService.prototype.stopMonitor = function () {
+DesktopService.prototype.stopMonitor = function () {
 	clearInterval(this.monitor);
 };
 
 // -- VOLUME ------------
 
-VolumeService.prototype.setMinVolume = function (v) {
+DesktopService.prototype.setMinVolume = function (v) {
 	this.setState({
 		minVolume: v
 	});
 };
 
-VolumeService.prototype.setMaxVolume = function (v) {
+DesktopService.prototype.setMaxVolume = function (v) {
 	this.setState({
 		maxVolume: v
 	});
 };
 
-VolumeService.prototype._getVolume = function (callback) {
+DesktopService.prototype._getVolume = function (callback) {
 	var me = this;
 	child_process.execFile('/usr/bin/osascript', ['-e', 'get volume settings'], function (error, stdout, stderr) {
 		if (error) {
@@ -134,7 +134,7 @@ VolumeService.prototype._getVolume = function (callback) {
 	});
 };
 
-VolumeService.prototype.getVolume = function (callback) {
+DesktopService.prototype.getVolume = function (callback) {
 	var me = this;
 	this._getVolume(function (volume) {
 		if (volume !== me.state.volume) {
@@ -143,7 +143,7 @@ VolumeService.prototype.getVolume = function (callback) {
 		if (callback) callback(me.state.volume, me.state.volumePercent);
 	});
 };
-VolumeService.prototype._setVolume = function (volume) {
+DesktopService.prototype._setVolume = function (volume) {
 	var volumePercent = volume / 100;
 	this.setState({
 		volumePercent: volumePercent,
@@ -153,7 +153,7 @@ VolumeService.prototype._setVolume = function (volume) {
 	this.emit('volume', this.state.volumePercent, this.state.volume);
 };
 
-VolumeService.prototype.setVolume = function (volume) {
+DesktopService.prototype.setVolume = function (volume) {
 	if (volume < this.state.minVolume) volume = this.state.minVolume;
 	if (volume > this.state.maxVolume) volume = this.state.maxVolume;
 	
@@ -163,7 +163,7 @@ VolumeService.prototype.setVolume = function (volume) {
 	}
 };
 
-VolumeService.prototype._writeVolume = function () {
+DesktopService.prototype._writeVolume = function () {
 	if (this.isSettingVolume) {
 		console.log('already isSettingVolume');
 		return;
@@ -187,20 +187,22 @@ VolumeService.prototype._writeVolume = function () {
 	});
 };
 
-VolumeService.prototype.changeVolume = function (diff) {
+DesktopService.prototype.changeVolume = function (diff) {
+	// if (diff > 0) desktopService.volumeUp();
+	// else desktopService.volumeDown();
 	var v = this.state.volume + diff;
 	console.log('changing volume ...', this.state.volume, v);
 	this.setVolume(v);
 };
 
-VolumeService.prototype.volumeUp = function () {
+DesktopService.prototype.volumeUp = function () {
 	this.changeVolume(this.state.volumeIncrement);
 };
-VolumeService.prototype.volumeDown = function () {
+DesktopService.prototype.volumeDown = function () {
 	this.changeVolume(-this.state.volumeIncrement);
 };
 
-VolumeService.prototype.getMuted = function (callback) {
+DesktopService.prototype.getMuted = function (callback) {
 	var me = this;
 	child_process.execFile('/usr/bin/osascript', ['-e', 'output muted of (get volume settings)'], function (error, stdout, stderr) {
 		var data = stdout.toString().trim();
@@ -219,7 +221,7 @@ VolumeService.prototype.getMuted = function (callback) {
 	});
 };
 
-VolumeService.prototype._muteChanged = function (muted) {
+DesktopService.prototype._muteChanged = function (muted) {
 	if (muted !== this.state.muted) {
 		this.setState({
 			muted: muted
@@ -227,7 +229,7 @@ VolumeService.prototype._muteChanged = function (muted) {
 		this.emit('muted', this.state.muted);
 	}
 };
-VolumeService.prototype.setMuted = function (muted) {
+DesktopService.prototype.setMuted = function (muted) {
 	muted = !!muted;
 	var me = this;
 	child_process.execFile('/usr/bin/osascript', ['-e', 'set volume output muted ' + (muted ? 'true' : 'false')], function (error, stdout, stderr) {
@@ -235,8 +237,35 @@ VolumeService.prototype.setMuted = function (muted) {
 	});
 };
 
-VolumeService.prototype.toggleMuted = function () {
+DesktopService.prototype.toggleMuted = function () {
 	this.setMuted(!this.state.muted);
 };
 
-module.exports = VolumeService;
+DesktopService.prototype.keypress = function (key) {
+	robot.keyTap(key);
+};
+
+DesktopService.prototype.scroll = function (diff, timeSinceLastSpin) {
+	let adiff = Math.abs(diff);
+	let dy;
+	if (timeSinceLastSpin <= 61) {
+		if (adiff === 1) dy = 40;
+		else if (adiff === 2) dy = 45;
+		else if (adiff === 3) dy = 50;
+		else if (adiff === 4) dy = 55;
+		else dy = 60;
+	} else if (timeSinceLastSpin <= 100) dy = 30;
+	else if (timeSinceLastSpin <= 150) dy = 25;
+	else if (timeSinceLastSpin <= 200) dy = 20;
+	else if (timeSinceLastSpin <= 300) dy = 15;
+	else if (timeSinceLastSpin <= 400) dy = 10;
+	else dy = 5;
+	
+	if (diff > 0) {
+		robot.scrollMouse(0, -dy * diff);
+	} else {
+		robot.scrollMouse(0, -dy * diff);
+	}
+};
+
+module.exports = DesktopService;

@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "description": "",
   "author": "Jaxcore",
-  "dependencies": {},
+  "dependencies": {
+    "robotjs": "^0.5.1"
+  },
   "devDependencies": {},
   "scripts": {},
   "license": "MIT"

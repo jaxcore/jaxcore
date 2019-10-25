@@ -1,84 +1,92 @@
 var Spin = require('jaxcore-spin');
+var DesktopService = require('./desktop-service-macosx');
 
-var Desktop = require('./service');
-
-// Desktop.connect();
-// Desktop.on('connect', function (desktop) {
-
-Desktop.connect(function (desktop) {
-	console.log('connected!', desktop.state);
-	
-	desktop.audio.on('volume', function (volumePercent, volume) {
-		console.log('volume', volumePercent, volume, desktop.state);
+function startSpinService() {
+	Spin.connectBLE(function (spin) {
+		console.log('connected BLE', spin.id);
+		spin.setBrightness(2);
+		startVolumeService(spin);
 	});
+}
 
-	desktop.audio.on('muted', function (muted) {
+function startVolumeService(spin) {
+	var desktopService = new DesktopService({
+		minVolume: 0,
+		maxVolume: 100
+	});
+	
+	desktopService.on('connect', function () {
+		console.log('volume connected ', this.state.maxVolume);
+		
+		spinDesktopAdapter(spin, desktopService);
+	});
+	
+	desktopService.connect();
+}
+
+function spinDesktopAdapter(spin, desktopService) {
+	
+	spin.flash([0, 255, 0]);
+	
+	desktopService.on('volume', function (volumePercent, volume) {
+		console.log('desktopService ON volume', volumePercent, volume);
+		spin.scale(volumePercent, [0, 0, 255], [255, 0, 0], [255, 255, 255]);
+	});
+	
+	desktopService.on('muted', function (muted) {
 		console.log('muted', muted);
+		if (muted) {
+			// spin.flash([255,255,0]);
+			spin.scale(desktopService.state.volumePercent, [100, 100, 0], [255, 255, 0], [255, 255, 255]);
+		} else {
+			spin.scale(desktopService.state.volumePercent, [0, 0, 255], [255, 0, 0], [255, 255, 255]);
+		}
 	});
 	
-	// desktop.audio.volume(10);
-
-	// desktop.audio.maxVolume(13);
-	
-	// desktop.audio.volumeUp();
-
-	// setTimeout(function() {
-	// 	desktop.audio.volumeUp();
-
-	// 	setTimeout(function() {
-	// 		desktop.audio.volumeUp();
-
-	// 		setTimeout(function() {
-	// 			desktop.audio.volumeUp();
-
-	// 			setTimeout(function() {
-	// 				desktop.audio.volumeUp();
-	// 			},1000);
-	// 		},1000);
-	// 	},1000);
-	// },1000);
-	
-
-	// desktop.audio.minVolume(10);
-	// desktop.audio.maxVolume(99);
-	
-	// desktop.audio.volumeDown(20);
-
-	// desktop.audio.volumeUp();
-	// desktop.audio.volumeDown();
-	// desktop.audio.volume(10);
-	// desktop.audio.muted(true);
-	// desktop.audio.muted(false);
-	// desktop.audio.mute();
-	// desktop.audio.unmute();
-	// desktop.audio.toggleMuted();
-
-	Spin.connect(function (spin) {
-		// adapter.emit('spin-connected', spin);
-		console.log('spin connected', spin);
-
-		spin.on('spin', function (direction, position) {
-			console.log('spin', direction, position);
-			if (spin.buffer(direction, 0, 1)) {
-				if (direction === 1) desktop.audio.volumeUp();
-				else desktop.audio.volumeDown();
+	spin.on('rotate', function (diff, spinTime) {
+		console.log('spin rotate', diff);
+		
+		if (spin.state.knobPushed) {
+			
+		}
+		else if (spin.state.buttonPushed) {
+			if (desktopService.state.muted) {
+				// spin.dial(desktopService.state.volumePercent, [100, 100, 0], [255, 255, 0], [255, 255, 0]);
+				spin.scale(desktopService.state.volumePercent, [100, 100, 0], [100, 100, 0], [255, 255, 255]);
+			} else {
+				desktopService.changeVolume(diff, spinTime);
 			}
-		});
-
-		spin.on('button', function (pushed) {
-			console.log('button', pushed);
-			//if (!pushed) desktop.audio.toggleMuted();
-		});
-
-		spin.on('knob', function (pushed) {
-			console.log('knob', pushed);
-			if (!pushed) desktop.audio.toggleMuted();
-		});
-
-
+		}
+		else {
+			desktopService.scroll(diff, spinTime);
+			
+			if (diff > 0) {
+				spin.rotate(1, [255, 0, 0], [255,0,0]);
+			}
+			else {
+				spin.rotate(-1, [0,0,255], [0,0,255]);
+			}
+		}
 	});
+	
+	spin.on('knob', function (pushed) {
+		console.log('knob !!', pushed);
+		if (pushed) {
+			desktopService.toggleMuted();
+		}
+	});
+	
+	spin.on('button', function (pushed) {
+		console.log('button !!', pushed);
+	});
+}
+
+startSpinService();
 
 
-});
-
-
+if (process.env.NODE_ENV === 'prod') {
+	console.log = function () {
+	};
+	process.on('uncaughtException', function (err) {
+	});
+}

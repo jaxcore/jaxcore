@@ -3,60 +3,18 @@ const DesktopService = require('./desktop-service-macosx');
 const MomentumScroll = DesktopService.MomentumScroll;
 global.window = {};
 
+function startInterval(fn,t) {
+	fn();
+	return setInterval(fn,t);
+}
+
 function startSpinService() {
 	Spin.connectBLE(function (spin) {
 		console.log('connected BLE', spin.id);
 		spin.setBrightness(2);
 		startDesktopService(spin);
-		// startScrollService(spin);
 	});
 }
-
-function startScrollService(spin) {
-	
-	
-	// var c = 0;
-	// setInterval(function() {
-	// 	console.log(c++, momentumScroll.scroller.position.y);
-	// },100);
-	//
-	// momentumScroll.scroller.frictionAir = 0.05;
-	// setTimeout(function() {
-	// 	momentumScroll.applyForce(0, 0.005);
-	// },5000);
-	
-	// let adapter = this;
-	//
-	// adapter.state = {
-	// 	scrollSettings: {
-	// 		scrollForce: 0.004,
-	// 		scrollFriction: 0.05,
-	// 		shuttleFriction: 0.05,
-	// 		shuttleForce: 0.001,
-	// 		shuttleIntervalTime: 30,
-	// 		shuttlePositionH: 0,
-	// 		shuttlePositionV: 0
-	// 	}
-	// };
-	// momentumScroll.on('scroll', (scrollX, scrollY) => {
-	// 	console.log('scrollY', scrollY);
-	// });
-	
-	// momentumScroll.scrollVertical(1, 1 * adapter.state.scrollForce, adapter.state.scrollFriction);
-	
-	// spinScrollAdapter(spin, momentumScroll);
-}
-
-function spinScrollAdapter(spin, momentumScroll) {
-	spin.flash([0, 255, 0]);
-	
-	
-}
-
-// var desktopService = new DesktopService({
-// 	minVolume: 0,
-// 	maxVolume: 100
-// });
 
 function startDesktopService(spin) {
 	var desktopService = new DesktopService({
@@ -95,6 +53,8 @@ function spinDesktopAdapter(spin, desktopService) {
 		didKnobButtonPush: false
 	};
 	
+	let balanceInterval;
+	
 	adapter.momentumScroll.on('scroll', (scrollX, scrollY) => {
 		// console.log('scroll', 'X', scrollX, 'Y', scrollY);
 		if (scrollX !== 0) desktopService.scrollHorizontal(scrollX);
@@ -103,6 +63,7 @@ function spinDesktopAdapter(spin, desktopService) {
 	
 	spin.on('rotate', (diff, spinTime) => {
 		console.log('rotate', 'diff='+diff, 'time='+spinTime, 'button='+spin.state.buttonPushed, 'knob='+spin.state.knobPushed);
+		let dir = diff>0?1:-1;
 		
 		let scrollForce, scrollFriction;
 		if (spinTime > 170) {
@@ -112,16 +73,16 @@ function spinDesktopAdapter(spin, desktopService) {
 			scrollFriction = adapter.state.scrollFriction;
 		}
 		else if (spinTime > 70) {
-			let d = diff > 0? 1 : -1;
+			// let d = diff > 0? 1 : -1;
 			// scrollForce = diff * adapter.state.scrollForce * 2;
-			scrollForce = d * Math.pow(Math.abs(diff * 1), 1.2) * adapter.state.scrollForce;
+			scrollForce = dir * Math.pow(Math.abs(diff * 1), 1.2) * adapter.state.scrollForce;
 			// let d = diff > 0? 1 : -1;
 			// scrollForce = d * Math.pow(Math.abs(diff), 1.1) * adapter.state.scrollForce;
 			scrollFriction = adapter.state.scrollFriction;
 		}
 		else {
-			let d = diff > 0? 1 : -1;
-			scrollForce = d * Math.pow(Math.abs(diff * 1.1), 1.5) * adapter.state.scrollForce;
+			// let d = diff > 0? 1 : -1;
+			scrollForce = dir * Math.pow(Math.abs(diff * 1.1), 1.5) * adapter.state.scrollForce;
 			scrollFriction = adapter.state.scrollFriction;
 		}
 		
@@ -148,18 +109,35 @@ function spinDesktopAdapter(spin, desktopService) {
 			}
 			
 		} else if (spin.state.buttonPushed) {
+			
 			adapter.momentumScroll.scrollHorizontal(diff, scrollForce, scrollFriction);
+			
+			if (dir === 1) spin.rotate(dir, [0, 0, 0], [255, 0, 0], [255, 255, 255]);
+			else spin.rotate(dir, [0, 0, 0], [0, 0, 255], [255, 255, 255]);
+			
 		} else if (spin.state.knobPushed) {
 			let shuttleDiff = spin.state.spinPosition - adapter.state.shuttlePositionV;
 			if (shuttleDiff === 0) {
 				adapter.momentumScroll.stopShuttleVertical();
+				spin.balance(0, [0, 0, 255], [255, 0, 0], [255, 255, 255]);
 			} else {
 				let d = shuttleDiff > 0? 1 : -1;
 				let shuttleForce = d * Math.pow(Math.abs(shuttleDiff), 1.5) * adapter.state.shuttleForce;
 				adapter.momentumScroll.startShuttleVertical(shuttleDiff, shuttleForce, adapter.state.shuttleFriction, adapter.state.shuttleIntervalTime);
+				
+				let balance = d * Math.min(Math.abs(shuttleDiff), 24) / 24;
+				console.log('shuttleDiff', shuttleDiff, 'balance', balance);
+				
+				spin.balance(balance, [0, 0, 255], [255, 0, 0], [255, 255, 255]);
+				
+				// balanceInterval = startInterval(function() {
+				// 	spin.balance(balance, [0, 0, 255], [255, 0, 0], [255, 255, 255]);
+				// },500);
 			}
 		} else {
 			adapter.momentumScroll.scrollVertical(diff, scrollForce, scrollFriction);
+			if (dir === 1) spin.rotate(dir, [0, 0, 0], [255, 0, 0], [255, 255, 255]);
+			else spin.rotate(dir, [0, 0, 0], [0, 0, 255], [255, 255, 255]);
 		}
 		
 	});
@@ -204,6 +182,8 @@ function spinDesktopAdapter(spin, desktopService) {
 		} else {
 			console.log('stopShuttleVertical =======');
 			adapter.momentumScroll.stopShuttleVertical();
+			
+			clearInterval(balanceInterval);
 			
 			if (adapter.state.didKnobButtonPush) {
 				adapter.state.didKnobButtonPush = false;

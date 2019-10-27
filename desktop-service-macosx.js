@@ -3,6 +3,8 @@ var Client = plugin.Client;
 var child_process = require('child_process');
 var robot = require("robotjs");
 
+var MomentumScroll = require('./scrolltest/lib/src/momentumscroll/momentumscroll.js').default;
+
 function DesktopService(defaults) {
 	this.constructor();
 	this.createStore('System Volume Store', true);
@@ -241,11 +243,15 @@ DesktopService.prototype.toggleMuted = function () {
 	this.setMuted(!this.state.muted);
 };
 
-DesktopService.prototype.keypress = function (key) {
-	robot.keyTap(key);
+DesktopService.prototype.keyPress = function (key, modifiers) {
+	robot.keyTap(key, modifiers);
+};
+DesktopService.prototype.keyToggle = function (key, updown, modifiers) {
+	console.log('keytoggle', key, updown);
+	robot.keyToggle(key, updown, modifiers);
 };
 
-DesktopService.prototype.scroll = function (diff, timeSinceLastSpin) {
+DesktopService.prototype.scroll = function (diff, timeSinceLastSpin) { // precision scroll
 	let adiff = Math.abs(diff);
 	let dy;
 	if (timeSinceLastSpin <= 61) {
@@ -268,4 +274,16 @@ DesktopService.prototype.scroll = function (diff, timeSinceLastSpin) {
 	}
 };
 
+DesktopService.prototype.scrollVertical = function (diff) {
+	// console.log('scrollVertical', diff);
+	robot.scrollMouse(0, -diff);
+};
+DesktopService.prototype.scrollHorizontal = function (diff) {
+	// console.log('scrollHorizontal', diff);
+	robot.scrollMouse(-diff, 0);
+};
+
+DesktopService.MomentumScroll = MomentumScroll;
+
 module.exports = DesktopService;
+

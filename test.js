@@ -80,14 +80,14 @@ function spinDesktopAdapter(spin, desktopService) {
 	let adapter = {};
 	
 	adapter.momentumScroll = new MomentumScroll({
-		intervalTime: 10
+		intervalTime: 1
 	});
 	
 	adapter.state = {
-		scrollForce: 0.008,
+		scrollForce: 0.01,
 		scrollFriction: 0.05,
-		shuttleFriction: 0.05,
 		shuttleForce: 0.001,
+		shuttleFriction: 0.05,
 		shuttleIntervalTime: 30,
 		shuttlePositionH: 0,
 		shuttlePositionV: 0,
@@ -105,16 +105,24 @@ function spinDesktopAdapter(spin, desktopService) {
 		console.log('rotate', 'diff='+diff, 'time='+spinTime, 'button='+spin.state.buttonPushed, 'knob='+spin.state.knobPushed);
 		
 		let scrollForce, scrollFriction;
-		if (spinTime > 80) {
-			// scrollForce = diff * adapter.state.scrollForce;
+		if (spinTime > 170) {
+			scrollForce = diff * adapter.state.scrollForce;
+			// let d = diff > 0? 1 : -1;
+			// scrollForce = d * Math.pow(Math.abs(diff), 1.1) * adapter.state.scrollForce;
+			scrollFriction = adapter.state.scrollFriction;
+		}
+		else if (spinTime > 70) {
 			let d = diff > 0? 1 : -1;
-			scrollForce = d * Math.pow(Math.abs(diff), 1.1) * adapter.state.scrollForce;
+			// scrollForce = diff * adapter.state.scrollForce * 2;
+			scrollForce = d * Math.pow(Math.abs(diff * 1), 1.2) * adapter.state.scrollForce;
+			// let d = diff > 0? 1 : -1;
+			// scrollForce = d * Math.pow(Math.abs(diff), 1.1) * adapter.state.scrollForce;
 			scrollFriction = adapter.state.scrollFriction;
 		}
 		else {
 			let d = diff > 0? 1 : -1;
-			scrollForce = d * Math.pow(Math.abs(diff * 1.3), 1.3) * adapter.state.scrollForce;
-			scrollFriction = adapter.state.scrollFriction * 2;
+			scrollForce = d * Math.pow(Math.abs(diff * 1.1), 1.5) * adapter.state.scrollForce;
+			scrollFriction = adapter.state.scrollFriction;
 		}
 		
 		if (spin.state.buttonPushed && spin.state.knobPushed) {

@@ -241,7 +241,13 @@ DesktopService.prototype.toggleMuted = function () {
 	this.setMuted(!this.state.muted);
 };
 
-// DesktopService.prototype.keyPress = robot.keyTap.bind(robot);
+DesktopService.prototype.moveMouse = robot.moveMouse.bind(robot);
+DesktopService.prototype.dragMouse = robot.dragMouse.bind(robot);
+DesktopService.prototype.mouseToggle = robot.mouseToggle.bind(robot);
+DesktopService.prototype.mouseClick = robot.mouseClick.bind(robot);
+DesktopService.prototype.getMousePos = robot.getMousePos.bind(robot);
+DesktopService.prototype.getScreenSize = robot.getScreenSize.bind(robot);
+
 DesktopService.prototype.keyPress = function(k, modifiers) {
 	console.log('keyPress', k, modifiers);
 	if (modifiers && modifiers.length) robot.keyTap(k, modifiers);

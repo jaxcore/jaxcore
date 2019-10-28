@@ -129,7 +129,6 @@ function momentumScrollAdapter(spin, desktopService) {
 		} else {
 			
 			if (!adapter.state.didButtonSpin) {
-				
 				desktopService.keyPress('home');
 			}
 			

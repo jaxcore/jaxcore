@@ -241,7 +241,19 @@ DesktopService.prototype.toggleMuted = function () {
 	this.setMuted(!this.state.muted);
 };
 
-DesktopService.prototype.keyPress = robot.keyTap.bind(robot);
+// DesktopService.prototype.keyPress = robot.keyTap.bind(robot);
+DesktopService.prototype.keyPress = function(k, modifiers) {
+	console.log('keyPress', k, modifiers);
+	if (modifiers && modifiers.length) robot.keyTap(k, modifiers);
+	else robot.keyTap(k);
+};
+DesktopService.prototype.keyPressMultiple = function(spin, number, k, modifiers) {
+	console.log('keyPressMultiple', 'number', number, 'key', k, 'modifiers', modifiers);
+	for (let i=0;i<number;i++) {
+		if (modifiers && modifiers.length) robot.keyTap(k, modifiers);
+		else robot.keyTap(k);
+	}
+};
 
 DesktopService.prototype.keyToggle = robot.keyToggle.bind(robot);
 

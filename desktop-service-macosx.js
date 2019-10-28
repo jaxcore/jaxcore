@@ -3,8 +3,6 @@ var Client = plugin.Client;
 var child_process = require('child_process');
 var robot = require("robotjs");
 
-var MomentumScroll = require('./scrolltest/lib/src/momentumscroll/momentumscroll.js').default;
-
 function DesktopService(defaults) {
 	this.constructor();
 	this.createStore('System Volume Store', true);
@@ -181,7 +179,7 @@ DesktopService.prototype._writeVolume = function () {
 		
 		console.log('wroteVolume ' + volume + ' _volumeQueued = ' + me.state.volume, stdout.toString());
 		
-		if (volume != me.state.volume) {
+		if (volume !== me.state.volume) {
 			console.log('_writeVolume and wroteVolume do NOT MATCH');
 			me._writeVolume();
 		}
@@ -243,47 +241,39 @@ DesktopService.prototype.toggleMuted = function () {
 	this.setMuted(!this.state.muted);
 };
 
-DesktopService.prototype.keyPress = function (key, modifiers) {
-	robot.keyTap(key, modifiers);
-};
-DesktopService.prototype.keyToggle = function (key, updown, modifiers) {
-	console.log('keytoggle', key, updown);
-	robot.keyToggle(key, updown, modifiers);
-};
+DesktopService.prototype.keyPress = robot.keyTap.bind(robot);
 
-DesktopService.prototype.scroll = function (diff, timeSinceLastSpin) { // precision scroll
-	let adiff = Math.abs(diff);
-	let dy;
-	if (timeSinceLastSpin <= 61) {
-		if (adiff === 1) dy = 40;
-		else if (adiff === 2) dy = 45;
-		else if (adiff === 3) dy = 50;
-		else if (adiff === 4) dy = 55;
-		else dy = 60;
-	} else if (timeSinceLastSpin <= 100) dy = 30;
-	else if (timeSinceLastSpin <= 150) dy = 25;
-	else if (timeSinceLastSpin <= 200) dy = 20;
-	else if (timeSinceLastSpin <= 300) dy = 15;
-	else if (timeSinceLastSpin <= 400) dy = 10;
-	else dy = 5;
-	
-	if (diff > 0) {
-		robot.scrollMouse(0, -dy * diff);
-	} else {
-		robot.scrollMouse(0, -dy * diff);
-	}
+DesktopService.prototype.keyToggle = robot.keyToggle.bind(robot);
+
+	// let adiff = Math.abs(diff);
+	// 	// let dy;
+	// 	// if (time <= 61) {
+	// 	// 	if (adiff === 1) dy = 40;
+	// 	// 	else if (adiff === 2) dy = 45;
+	// 	// 	else if (adiff === 3) dy = 50;
+	// 	// 	else if (adiff === 4) dy = 55;
+	// 	// 	else dy = 60;
+	// 	// } else if (time <= 100) dy = 30;
+	// 	// else if (time <= 150) dy = 25;
+	// 	// else if (time <= 200) dy = 20;
+	// 	// else if (time <= 300) dy = 15;
+	// 	// else if (time <= 400) dy = 10;
+	// 	// else dy = 5;
+	// 	// return dy;
+
+DesktopService.prototype.precisionScrollX = function (distance) { // precision scroll
+	robot.scrollMouse(-distance, 0);
+};
+DesktopService.prototype.precisionScrollY = function (distance) { // precision scroll
+	robot.scrollMouse(0, -distance);
 };
 
 DesktopService.prototype.scrollVertical = function (diff) {
-	// console.log('scrollVertical', diff);
 	robot.scrollMouse(0, -diff);
 };
 DesktopService.prototype.scrollHorizontal = function (diff) {
-	// console.log('scrollHorizontal', diff);
 	robot.scrollMouse(-diff, 0);
 };
-
-DesktopService.MomentumScroll = MomentumScroll;
 
 module.exports = DesktopService;
 

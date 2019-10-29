@@ -5,9 +5,10 @@ function startInterval(fn,t) {
 	return setInterval(fn,t);
 }
 
-function momentumScrollAdapter(spin, desktopService) {
-	
-	spin.flash([0, 255, 0]);
+function momentumScrollAdapter(theme, devices) {
+	const {spin, desktop} = devices;
+	spin.rotateRainbow(1);
+	spin.lightsOff();
 	
 	let adapter = {};
 	
@@ -33,8 +34,8 @@ function momentumScrollAdapter(spin, desktopService) {
 	
 	adapter.momentumScroll.on('scroll', (scrollX, scrollY) => {
 		// console.log('scroll', 'X', scrollX, 'Y', scrollY);
-		if (scrollX !== 0) desktopService.scrollHorizontal(scrollX);
-		if (scrollY !== 0) desktopService.scrollVertical(scrollY);
+		if (scrollX !== 0) desktop.scrollHorizontal(scrollX);
+		if (scrollY !== 0) desktop.scrollVertical(scrollY);
 	});
 	
 	spin.on('rotate', (diff, spinTime) => {
@@ -74,28 +75,28 @@ function momentumScrollAdapter(spin, desktopService) {
 			// }
 			
 			if (diff > 0) {
-				desktopService.keyPress('+', ['command']);
-				// desktopService.keyToggle('a', 'down');
-				// desktopService.keyPress('+');
-				// desktopService.keyToggle('command', 'up');
+				desktop.keyPress('+', ['command']);
+				// desktop.keyToggle('a', 'down');
+				// desktop.keyPress('+');
+				// desktop.keyToggle('command', 'up');
 			} else {
-				desktopService.keyPress('-', ['command']);
-				// desktopService.keyToggle('a', 'up');
-				// desktopService.keyPress('-');
-				// desktopService.keyToggle('command', 'up');
+				desktop.keyPress('-', ['command']);
+				// desktop.keyToggle('a', 'up');
+				// desktop.keyPress('-');
+				// desktop.keyToggle('command', 'up');
 			}
 		} else if (spin.state.buttonPushed) {
 			
 			adapter.momentumScroll.scrollHorizontal(diff, scrollForce, scrollFriction);
 			
-			if (dir === 1) spin.rotate(dir, [0, 0, 0], [255, 0, 0], [255, 255, 255]);
-			else spin.rotate(dir, [0, 0, 0], [0, 0, 255], [255, 255, 255]);
+			if (dir === 1) spin.rotate(dir, theme.high);
+			else spin.rotate(dir, theme.low);
 			
 		} else if (spin.state.knobPushed) {
 			let shuttleDiff = spin.state.spinPosition - adapter.state.shuttlePositionV;
 			if (shuttleDiff === 0) {
 				adapter.momentumScroll.stopShuttleVertical();
-				spin.balance(0, [0, 0, 255], [255, 0, 0], [255, 255, 255]);
+				spin.balance(0, theme.low, theme.high, theme.middle);
 			} else {
 				let d = shuttleDiff > 0 ? 1 : -1;
 				let shuttleForce = d * Math.pow(Math.abs(shuttleDiff), 1.5) * adapter.state.shuttleForce;
@@ -104,16 +105,16 @@ function momentumScrollAdapter(spin, desktopService) {
 				let balance = d * Math.min(Math.abs(shuttleDiff), 24) / 24;
 				console.log('shuttleDiff', shuttleDiff, 'balance', balance);
 				
-				spin.balance(balance, [0, 0, 255], [255, 0, 0], [255, 255, 255]);
+				spin.balance(balance, theme.low, theme.high, theme.middle);
 				
 				// balanceInterval = startInterval(function() {
-				// 	spin.balance(balance, [0, 0, 255], [255, 0, 0], [255, 255, 255]);
+				// 	spin.balance(balance, theme.low, theme.high, theme.middle);
 				// },500);
 			}
 		} else {
 			adapter.momentumScroll.scrollVertical(diff, scrollForce, scrollFriction);
-			if (dir === 1) spin.rotate(dir, [0, 0, 0], [255, 0, 0], [255, 255, 255]);
-			else spin.rotate(dir, [0, 0, 0], [0, 0, 255], [255, 255, 255]);
+			if (dir === 1) spin.rotate(dir, theme.high);
+			else spin.rotate(dir, theme.low);
 		}
 		
 	});
@@ -129,7 +130,7 @@ function momentumScrollAdapter(spin, desktopService) {
 		} else {
 			
 			if (!adapter.state.didButtonSpin) {
-				desktopService.keyPress('home');
+				desktop.keyPress('home');
 			}
 			
 			// adapter.momentumScroll.stopShuttleHorizontal();
@@ -137,13 +138,13 @@ function momentumScrollAdapter(spin, desktopService) {
 			if (adapter.state.didBothSpin) {
 				adapter.state.didBothSpin = false;
 				// console.log('hi 1 ============');
-				// desktopService.scrollVertical(100);
+				// desktop.scrollVertical(100);
 			}
 			
 			if (spin.state.knobPushed) {
 				// console.log('hi 1');
-				// desktopService.scrollVertical(100);
-				// desktopService.keyToggle('command', 'up');
+				// desktop.scrollVertical(100);
+				// desktop.keyToggle('command', 'up');
 			}
 		}
 		
@@ -159,13 +160,13 @@ function momentumScrollAdapter(spin, desktopService) {
 			}
 		} else {
 			if (!adapter.state.didKnobSpin) {
-				desktopService.keyPress('end');
+				desktop.keyPress('end');
 			}
 			
 			adapter.momentumScroll.stopShuttleVertical();
 			
 			if (spin.state.buttonPushed) {
-				// desktopService.keyToggle('command', 'up');
+				// desktop.keyToggle('command', 'up');
 			}
 			
 			// adapter.momentumScroll.stopShuttleHorizontal();

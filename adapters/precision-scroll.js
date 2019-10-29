@@ -1,4 +1,8 @@
-function precisionScrollAdapter(spin, desktopService) {
+function precisionScrollAdapter(theme, devices) {
+	const {spin, desktop} = devices;
+	spin.rotateRainbow(1);
+	spin.lightsOff();
+	
 	var adapter = {
 		state: {
 			distanceSlow: 20,
@@ -23,58 +27,58 @@ function precisionScrollAdapter(spin, desktopService) {
 		
 		if (spin.state.knobPushed) {
 			adapter.state.didKnobSpin = true;
-			desktopService.precisionScrollX(distance);
-			if (diff > 0) {
-				spin.rotate(1, [255, 0, 0], [255,0,0]);
-			}
-			else {
-				spin.rotate(-1, [0,0,255], [0,0,255]);
-			}
-		}
-		else if (spin.state.buttonPushed) {
-			adapter.state.didButtonbSpin = true;
 			if (diff > 0) {
 				for (let i=0;i<diff;i++) {
-					desktopService.keyPress('pagedown');
+					desktop.keyPress('pagedown');
 				}
 			}
 			else {
 				for (let i=0;i>diff;i--) {
-					desktopService.keyPress('pageup');
+					desktop.keyPress('pageup');
 				}
 			}
 		}
-		else {
-			desktopService.precisionScrollY(distance);
+		else if (spin.state.buttonPushed) {
+			adapter.state.didButtonbSpin = true;
+			desktop.precisionScrollX(distance);
 			if (diff > 0) {
-				spin.rotate(1, [255, 0, 0], [255,0,0]);
+				spin.rotate(1, theme.high, theme.high);
 			}
 			else {
-				spin.rotate(-1, [0,0,255], [0,0,255]);
+				spin.rotate(-1, theme.low, theme.low);
+			}
+		}
+		else {
+			desktop.precisionScrollY(distance);
+			if (diff > 0) {
+				spin.rotate(1, theme.high, theme.high);
+			}
+			else {
+				spin.rotate(-1, theme.low, theme.low);
 			}
 		}
 	});
 	
 	spin.on('knob', function (pushed) {
-		console.log('knob !!', pushed);
+		console.log('knob', pushed);
 		if (pushed) {
 			adapter.state.didKnobSpin = false;
 		}
 		else {
 			if (!adapter.state.didKnobSpin) {
-				desktopService.keyPress('end');
+				desktop.keyPress('end');
 			}
 		}
 	});
 	
 	spin.on('button', function (pushed) {
-		console.log('button !!', pushed);
+		console.log('button', pushed);
 		if (pushed) {
 			adapter.state.didButtonbSpin = false;
 		}
 		else {
 			if (!adapter.state.didButtonbSpin) {
-				desktopService.keyPress('home');
+				desktop.keyPress('home');
 			}
 		}
 	});

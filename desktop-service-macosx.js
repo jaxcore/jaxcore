@@ -137,8 +137,10 @@ DesktopService.prototype._getVolume = function (callback) {
 DesktopService.prototype.getVolume = function (callback) {
 	var me = this;
 	this._getVolume(function (volume) {
-		if (volume !== me.state.volume) {
-			me._setVolume(volume);
+		if (this.lastVolumeTime && new Date().getTime() - this.lastVolumeTime > 500) {
+			if (volume !== me.state.volume) {
+				me._setVolume(volume);
+			}
 		}
 		if (callback) callback(me.state.volume, me.state.volumePercent);
 	});
@@ -158,6 +160,7 @@ DesktopService.prototype.setVolume = function (volume) {
 	if (volume > this.state.maxVolume) volume = this.state.maxVolume;
 	
 	if (volume !== this.state.volume) {
+		this.lastVolumeTime = new Date().getTime();
 		this._setVolume(volume);
 		this._writeVolume();
 	}
@@ -205,19 +208,22 @@ DesktopService.prototype.volumeDown = function () {
 DesktopService.prototype.getMuted = function (callback) {
 	var me = this;
 	child_process.execFile('/usr/bin/osascript', ['-e', 'output muted of (get volume settings)'], function (error, stdout, stderr) {
-		var data = stdout.toString().trim();
-		
-		var muted = null;
-		if (data === 'true') {
-			muted = true;
-		} else if (data === 'false') {
-			muted = false;
-		} else {
-			console.log('getMuted error: [[' + data + ']]');
-			return;
+		if (this.lastVolumeTime && new Date().getTime() - this.lastVolumeTime > 500) {
+			var data = stdout.toString().trim();
+			
+			var muted = null;
+			if (data === 'true') {
+				muted = true;
+			} else if (data === 'false') {
+				muted = false;
+			} else {
+				console.log('getMuted error: [[' + data + ']]');
+				return;
+			}
+			me._muteChanged(muted);
+			if (callback) callback(muted);
 		}
-		me._muteChanged(muted);
-		if (callback) callback(muted);
+		else if (callback) callback(me.state.muted);
 	});
 };
 

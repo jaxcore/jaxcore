@@ -1,17 +1,6 @@
 
-function keyboardAdapter(spin, desktopService) {
-	
-	const theme = {
-		right: [0,0,255], // right
-		left: [255,0,0], // left
-		middle: [255,255,255], // middle
-		primary: [255,0,255], // primary
-		secondary: [0,255,255], // secondary
-		tertiary: [255,255,0], // tertiary
-		black: [0,0,0],
-		white: [255,255,255]
-	};
-	
+function keyboardAdapter(theme, devices) {
+	const {spin, desktop} = devices;
 	spin.rotateRainbow(1);
 	spin.lightsOff();
 	
@@ -129,44 +118,35 @@ function keyboardAdapter(spin, desktopService) {
 	spin.on('rotate', function (diff, spinTime) {
 		console.log('spin rotate', diff);
 		
-		
-		
 		const number = Math.abs(diff);
-		// const dir = diff > 0? 1:-1;
 		if (spin.state.knobPushed && spin.state.buttonPushed) {
-			
 			if (!adapter.state.didKnobHold && !adapter.state.didButtonHold && !adapter.state.didBothHold) {
-				
 				adapter.state.didBothSpin = true;
-				
 				const settings = diff > 0 ? adapter.state.settings.bothSpinRight : adapter.state.settings.bothSpinLeft;
-				// if (spin.buffer(diff, )) {
-				desktopService.keyPressMultiple(spin, number, settings.key, settings.modifiers);
-				spin.rotate(diff, theme.middle, theme.middle, theme.middle);
+				desktop.keyPressMultiple(spin, number, settings.key, settings.modifiers);
+				spin.rotate(diff, theme.middle, theme.middle);
 			}
 		}
 		else if (spin.state.knobPushed) {
 			if (!adapter.state.didKnobHold) {
 				adapter.state.didKnobSpin = true;
-				
 				const settings = diff > 0 ? adapter.state.settings.knobSpinRight : adapter.state.settings.knobSpinLeft;
-				desktopService.keyPressMultiple(spin, number, settings.key, settings.modifiers);
-				spin.rotate(diff, theme.right);
+				desktop.keyPressMultiple(spin, number, settings.key, settings.modifiers);
+				spin.rotate(diff, theme.low);
 			}
 		}
 		else if (spin.state.buttonPushed) {
 			if (!adapter.state.didButtonHold) {
 				adapter.state.didButtonSpin = true;
-				
 				const settings = diff > 0 ? adapter.state.settings.buttonSpinRight : adapter.state.settings.buttonSpinLeft;
-				desktopService.keyPressMultiple(spin, number, settings.key, settings.modifiers);
-				spin.rotate(diff, theme.black, theme.left);
+				desktop.keyPressMultiple(spin, number, settings.key, settings.modifiers);
+				spin.rotate(diff, theme.high);
 			}
 		}
 		else {
 			const settings = diff > 0 ? adapter.state.settings.spinRight : adapter.state.settings.spinLeft;
-			desktopService.keyPressMultiple(spin, number, settings.key, settings.modifiers);
-			spin.rotate(diff, theme.black, theme.right);
+			desktop.keyPressMultiple(spin, number, settings.key, settings.modifiers);
+			spin.rotate(diff, theme.low);
 		}
 	});
 	
@@ -195,11 +175,11 @@ function keyboardAdapter(spin, desktopService) {
 			}
 			if (settings.repeat && !adapter.state.isBothRepeating) {
 				adapter.state.isBothRepeating = true;
-				desktopService.keyPress(settings.key, settings.modifiers);
+				desktop.keyPress(settings.key, settings.modifiers);
 				adapter.bothRepeatTimeout = setTimeout(function () {
 					adapter.bothRepeatInterval = setInterval(function () {
 						console.log('repeat both....');
-						desktopService.keyPress(settings.key, settings.modifiers);
+						desktop.keyPress(settings.key, settings.modifiers);
 						spin.flash(theme.tertiary);
 					}, settings.repeatSpeed);
 				}, settings.repeatDelay);
@@ -231,7 +211,7 @@ function keyboardAdapter(spin, desktopService) {
 			else {
 				adapter.state.bothPushed = false;
 				console.log('RELEASED BOTH');
-				desktopService.keyPress(adapter.state.settings.bothPress.key, adapter.state.settings.bothPress.modifiers);
+				desktop.keyPress(adapter.state.settings.bothPress.key, adapter.state.settings.bothPress.modifiers);
 				spin.flash(theme.tertiary);
 			}
 		}
@@ -263,7 +243,7 @@ function keyboardAdapter(spin, desktopService) {
 			else {
 				if (!adapter.state.didKnobSpin && !adapter.state.bothReleased) {
 					if (adapter.state.settings.knobPress.key) {
-						desktopService.keyPress(adapter.state.settings.knobPress.key, adapter.state.settings.knobPress.modifiers);
+						desktop.keyPress(adapter.state.settings.knobPress.key, adapter.state.settings.knobPress.modifiers);
 						spin.flash(theme.primary);
 					}
 				}
@@ -297,7 +277,7 @@ function keyboardAdapter(spin, desktopService) {
 			else {
 				if (!adapter.state.didButtonSpin && !adapter.state.bothReleased) {
 					if (adapter.state.settings.buttonPress.key) {
-						desktopService.keyPress(adapter.state.settings.buttonPress.key, adapter.state.settings.buttonPress.modifiers);
+						desktop.keyPress(adapter.state.settings.buttonPress.key, adapter.state.settings.buttonPress.modifiers);
 						spin.flash(theme.secondary);
 					}
 				}
@@ -315,12 +295,12 @@ function keyboardAdapter(spin, desktopService) {
 			console.log('knob HOLD');
 			adapter.state.didKnobHold = true;
 			const settings = adapter.state.settings.knobHold;
-			desktopService.keyPress(settings.key, settings.modifiers);
+			desktop.keyPress(settings.key, settings.modifiers);
 			spin.flash(theme.primary);
 			if (settings.repeat) {
 				adapter.knobRepeatTimeout = setTimeout(function () {
 					adapter.knobRepeatInterval = setInterval(function () {
-						desktopService.keyPress(settings.key, settings.modifiers);
+						desktop.keyPress(settings.key, settings.modifiers);
 						spin.flash(theme.primary);
 					}, settings.repeatSpeed);
 				}, settings.repeatDelay);
@@ -339,12 +319,12 @@ function keyboardAdapter(spin, desktopService) {
 			console.log('button HOLD');
 			adapter.state.didButtonHold = true;
 			const settings = adapter.state.settings.buttonHold;
-			desktopService.keyPress(settings.key, settings.modifiers);
+			desktop.keyPress(settings.key, settings.modifiers);
 			spin.flash(theme.secondary);
 			if (settings.repeat) {
 				adapter.buttonRepeatTimeout = setTimeout(function () {
 					adapter.buttonRepeatInterval = setInterval(function () {
-						desktopService.keyPress(settings.key, settings.modifiers);
+						desktop.keyPress(settings.key, settings.modifiers);
 						spin.flash(theme.secondary);
 					}, settings.repeatSpeed);
 				}, settings.repeatDelay);

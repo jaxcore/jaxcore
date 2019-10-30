@@ -60,52 +60,60 @@ function keyboardAdapter(theme, devices) {
 					// key: 'u',
 					key: 'up',
 					modifiers: [],
-					bufferKinetic: 0,
-					bufferStatic: 1
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
 				},
 				spinRight: {
 					// key: 'd',
 					key: 'down',
 					modifiers: [],
-					bufferKinetic: 0,
-					bufferStatic: 1
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
 				},
 				knobSpinLeft: {
 					// key: 'u',
 					key: 'pageup',
 					modifiers: [],
 					bufferKinetic: 1,
-					bufferStatic: 1
+					bufferStatic: 1,
+					momentumTimeout: 300
 				},
 				knobSpinRight: {
 					key: 'pagedown',
 					modifiers: [],
 					bufferKinetic: 1,
-					bufferStatic: 1
+					bufferStatic: 1,
+					momentumTimeout: 300
 				},
 				buttonSpinLeft: {
 					key: 'left',
 					modifiers: [],
-					bufferKinetic: 0,
-					bufferStatic: 1
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
 				},
 				buttonSpinRight: {
 					key: 'right',
 					modifiers: [],
-					bufferKinetic: 0,
-					bufferStatic: 1
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
 				},
 				bothSpinLeft: {
 					key: 'left',
 					modifiers: ['command'],
 					bufferKinetic: 1,
-					bufferStatic: 1
+					bufferStatic: 1,
+					momentumTimeout: 300
 				},
 				bothSpinRight: {
 					key: 'right',
 					modifiers: ['command'],
 					bufferKinetic: 1,
-					bufferStatic: 1
+					bufferStatic: 1,
+					momentumTimeout: 300
 				}
 			}
 		}
@@ -119,30 +127,38 @@ function keyboardAdapter(theme, devices) {
 			if (!adapter.state.didKnobHold && !adapter.state.didButtonHold && !adapter.state.didBothHold) {
 				adapter.state.didBothSpin = true;
 				const settings = diff > 0 ? adapter.state.settings.bothSpinRight : adapter.state.settings.bothSpinLeft;
-				desktop.keyPressMultiple(spin, number, settings.key, settings.modifiers);
-				spin.rotate(diff, theme.middle, theme.middle);
+				spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout, function(bdiff) {
+					desktop.keyPressMultiple(spin, Math.abs(bdiff), settings.key, settings.modifiers);
+					spin.rotate(diff, theme.secondary, theme.secondary);
+				});
 			}
 		}
 		else if (spin.state.knobPushed) {
 			if (!adapter.state.didKnobHold) {
 				adapter.state.didKnobSpin = true;
 				const settings = diff > 0 ? adapter.state.settings.knobSpinRight : adapter.state.settings.knobSpinLeft;
-				desktop.keyPressMultiple(spin, number, settings.key, settings.modifiers);
-				spin.rotate(diff, theme.low);
+				spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout, function(bdiff) {
+					desktop.keyPressMultiple(spin, Math.abs(bdiff), settings.key, settings.modifiers);
+					spin.rotate(diff, theme.primary, theme.primary);
+				});
 			}
 		}
 		else if (spin.state.buttonPushed) {
 			if (!adapter.state.didButtonHold) {
 				adapter.state.didButtonSpin = true;
 				const settings = diff > 0 ? adapter.state.settings.buttonSpinRight : adapter.state.settings.buttonSpinLeft;
-				desktop.keyPressMultiple(spin, number, settings.key, settings.modifiers);
-				spin.rotate(diff, theme.high);
+				spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout, function(bdiff) {
+					desktop.keyPressMultiple(spin, Math.abs(bdiff), settings.key, settings.modifiers);
+					spin.rotate(diff, theme.high);
+				});
 			}
 		}
 		else {
 			const settings = diff > 0 ? adapter.state.settings.spinRight : adapter.state.settings.spinLeft;
-			desktop.keyPressMultiple(spin, number, settings.key, settings.modifiers);
-			spin.rotate(diff, theme.low);
+			spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout, function(bdiff) {
+				desktop.keyPressMultiple(spin, Math.abs(bdiff), settings.key, settings.modifiers);
+				spin.rotate(diff, theme.low);
+			});
 		}
 	});
 	

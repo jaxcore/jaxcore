@@ -80,21 +80,25 @@ function volumeAdapter(theme, devices) {
 		}
 	}
 	
-	spin.on('rotate', function (diff, spinTime) {
+	spin.on('spin', function (diff, spinTime) {
 		console.log('spin rotate', diff);
 		
 		if (spin.state.knobPushed) {
 			if (!desktop.state.muted) {
 				adapter.state.didKnobSpin = true;
-				let posDiff = spin.state.spinPosition - adapter.state.knobPushPosition;
-				if (posDiff === 0) {
-					stopFastForward();
-					stopRewind();
-				} else if (posDiff > 0) {
-					startFastForward();
-				} else if (posDiff < 0) {
-					startRewind();
-				}
+				
+				spin.buffer(diff, 0, 1, function(bdiff) {
+					let posDiff = spin.state.spinPosition - adapter.state.knobPushPosition;
+					if (posDiff === 0) {
+						stopFastForward();
+						stopRewind();
+					} else if (posDiff > 0) {
+						startFastForward();
+					} else if (posDiff < 0) {
+						startRewind();
+					}
+				});
+				
 			}
 		}
 		else if (spin.state.buttonPushed) {

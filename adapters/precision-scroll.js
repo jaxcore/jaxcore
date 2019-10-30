@@ -11,13 +11,10 @@ function precisionScrollAdapter(theme, devices) {
 			didButtonbSpin: false
 		}
 	};
-	spin.on('rotate', function (diff, time) {
+	spin.on('spin', function (diff, time) {
 		console.log('precisionScroll rotate', diff, time);
 		
 		let distance = 0;
-		// if (time > 200) {
-		// 	distance = adapter.state.distanceSlow * diff;
-		// }
 		if (time > 80) {
 			distance = adapter.state.distanceSlow * diff;
 		}

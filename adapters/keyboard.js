@@ -21,101 +21,97 @@ function keyboardAdapter(theme, devices) {
 			
 			settings: {
 				bothPress: {
-					key: 'z',
+					// key: 'z',
+					key: 'escape',
 					modifiers: []
 				},
 				bothHold: {
-					key: 'z',
-					modifiers: ['shift'],
-					repeat: true,
-					repeatDelay: 600,
-					repeatSpeed: 100
+					// key: 'z',
+					// modifiers: ['shift'],
+					// repeat: true,
+					// repeatDelay: 600,
+					// repeatSpeed: 100
 				},
 				knobPress: {
-					key: 'k',
+					// key: 'k',
+					key: 'enter',
 					modifiers: []
 				},
 				knobHold: {
-					key: 'k',
-					modifiers: ['shift'],
+					key: 'enter',
+					// modifiers: ['shift'],
+					modifiers: [],
 					repeat: true,
 					repeatDelay: 600,
 					repeatSpeed: 100
 				},
 				buttonPress: {
-					key: 'b',
+					key: 'backspace',
 					modifiers: []
 				},
 				buttonHold: {
-					key: 'b',
-					modifiers: ['shift'],
-					repeat: true,
-					repeatDelay: 600,
-					repeatSpeed: 100
+					// key: 'b',
+					// modifiers: ['shift'],
+					// repeat: true,
+					// repeatDelay: 600,
+					// repeatSpeed: 100
 				},
 				spinLeft: {
-					key: 'u',
+					// key: 'u',
+					key: 'up',
 					modifiers: [],
 					bufferKinetic: 0,
-					bufferStatic: 1,
-					bufferMomentum: 100
+					bufferStatic: 1
 				},
 				spinRight: {
-					key: 'd',
+					// key: 'd',
+					key: 'down',
 					modifiers: [],
 					bufferKinetic: 0,
-					bufferStatic: 1,
-					bufferMomentum: 100
+					bufferStatic: 1
 				},
 				knobSpinLeft: {
-					key: 'u',
-					modifiers: ['shift'],
+					// key: 'u',
+					key: 'pageup',
+					modifiers: [],
 					bufferKinetic: 1,
-					bufferStatic: 1,
-					bufferMomentum: 100
+					bufferStatic: 1
 				},
 				knobSpinRight: {
-					key: 'd',
-					modifiers: ['shift'],
+					key: 'pagedown',
+					modifiers: [],
 					bufferKinetic: 1,
-					bufferStatic: 1,
-					bufferMomentum: 100
+					bufferStatic: 1
 				},
 				buttonSpinLeft: {
-					key: 'l',
+					key: 'left',
 					modifiers: [],
 					bufferKinetic: 0,
-					bufferStatic: 1,
-					bufferMomentum: 100
+					bufferStatic: 1
 				},
 				buttonSpinRight: {
-					key: 'r',
+					key: 'right',
 					modifiers: [],
 					bufferKinetic: 0,
-					bufferStatic: 1,
-					bufferMomentum: 100
+					bufferStatic: 1
 				},
 				bothSpinLeft: {
-					key: 'x',
-					modifiers: ['shift'],
+					key: 'left',
+					modifiers: ['command'],
 					bufferKinetic: 1,
-					bufferStatic: 1,
-					bufferMomentum: 100
+					bufferStatic: 1
 				},
 				bothSpinRight: {
-					key: 'y',
-					modifiers: ['shift'],
+					key: 'right',
+					modifiers: ['command'],
 					bufferKinetic: 1,
-					bufferStatic: 1,
-					bufferMomentum: 100
+					bufferStatic: 1
 				}
 			}
 		}
 	};
 	
-	
-	
-	spin.on('rotate', function (diff, spinTime) {
+	spin.on('spin', function (diff, spinTime) {
 		console.log('spin rotate', diff);
 		
 		const number = Math.abs(diff);

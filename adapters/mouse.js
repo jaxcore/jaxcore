@@ -8,12 +8,13 @@ function mouseAdapter(theme, devices) {
 		state: {
 			settings: {
 				didKnobHold: false,
-				didBothHold: false
+				didBothHold: false,
+				didButtonSpin: false
 			}
 		}
 	};
 	
-	spin.on('rotate', function (diff, spinTime) {
+	spin.on('spin', function (diff, spinTime) {
 		if (adapter.state.didBothHold) {
 			return;
 		}
@@ -30,6 +31,8 @@ function mouseAdapter(theme, devices) {
 		
 		
 		if (spin.state.buttonPushed) {
+			adapter.state.didButtonSpin = true;
+			
 			let y = mouse.y + distance;
 			if (y < 1) y = 1;
 			if (y > size.height) y = size.height;
@@ -67,7 +70,7 @@ function mouseAdapter(theme, devices) {
 		if (pushed) {
 			if (adapter.state.didKnobHold) {
 				desktop.mouseToggle('up','left');
-				spin.flash(theme.low, 1);
+				spin.quickFlash(theme.low, 2);
 				adapter.state.didKnobHold = false;
 			}
 			else {
@@ -79,8 +82,8 @@ function mouseAdapter(theme, devices) {
 		else {
 			
 			if (adapter.state.didKnobHold) {
-				// spin.quickFlash(theme.primary, 1);
-				spin.flash(theme.primary, 1);
+				// spin.quickFlash(theme.primary, 3);
+				// spin.flash(theme.primary, 1);
 			}
 			else {
 				if (adapter.state.didBothHold) {
@@ -98,9 +101,9 @@ function mouseAdapter(theme, devices) {
 	adapter.pushBoth = function(spin) {
 		console.log('PUSH BOTH');
 		adapter.state.didBothHold = true;
-		console.log('CLICK RIGHT');
-		desktop.mouseClick('right');
-		spin.flash(theme.secondary);
+		console.log('CLICK MIDDLE');
+		desktop.mouseClick('middle');
+		spin.flash(theme.tertiary);
 	};
 	adapter.releaseBoth = function() {
 		adapter.state.didBothHold = false;
@@ -109,6 +112,9 @@ function mouseAdapter(theme, devices) {
 	
 	spin.on('button', function (pushed) {
 		console.log('button', pushed);
+		if (pushed) {
+			adapter.state.didButtonSpin = false;
+		}
 		if (!adapter.state.didKnobHold) {
 			if (pushed) {
 				if (spin.state.knobPushed) {
@@ -118,17 +124,23 @@ function mouseAdapter(theme, devices) {
 				if (adapter.state.didBothHold) {
 					adapter.releaseBoth();
 				}
+				else if (!adapter.state.didButtonSpin) {
+					console.log('CLICK RIGHT');
+					desktop.mouseClick('right');
+					spin.flash(theme.secondary);
+				}
 			}
 		}
 	});
 	
 	spin.on('knob-hold', function () {
+		console.log('KNOB HOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOLLLDD');
 		if (!adapter.state.didBothHold) {
 			console.log('knob hold');
 			adapter.state.didKnobHold = true;
 			desktop.mouseToggle('down', 'left');
 			// spin.quickFlash(theme.low, 3);
-			spin.flash(theme.low);
+			spin.quickFlash(theme.white, 5);
 		}
 	});
 }

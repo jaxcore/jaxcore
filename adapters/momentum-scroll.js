@@ -38,7 +38,7 @@ function momentumScrollAdapter(theme, devices) {
 		if (scrollY !== 0) desktop.scrollVertical(scrollY);
 	});
 	
-	spin.on('rotate', (diff, spinTime) => {
+	spin.on('spin', (diff, spinTime) => {
 		console.log('rotate', 'diff=' + diff, 'time=' + spinTime, 'button=' + spin.state.buttonPushed, 'knob=' + spin.state.knobPushed);
 		let dir = diff > 0 ? 1 : -1;
 		

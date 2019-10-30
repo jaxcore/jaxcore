@@ -6,6 +6,8 @@ var robot = require("robotjs");
 function DesktopService(defaults) {
 	this.constructor();
 	this.createStore('System Volume Store', true);
+	this.id = 'desktop';
+	
 	this.setStates({
 		connected: {
 			type: 'boolean',
@@ -47,10 +49,6 @@ function DesktopService(defaults) {
 DesktopService.prototype = new Client();
 DesktopService.prototype.constructor = Client;
 
-DesktopService.id = function (config) {
-	return config.host; //+':'+config.port;
-};
-
 DesktopService.prototype.connect = function () {
 	var me = this;
 	this.lastSetVolume = new Date();
@@ -60,6 +58,9 @@ DesktopService.prototype.connect = function () {
 			console.log('systemaudio: muted', me.state.muted);
 			
 			me.startMonitor();
+			me.setState({
+				connected: true
+			});
 			console.log('systemaudio: connected');
 			me.emit('connect');
 		});
@@ -88,7 +89,7 @@ DesktopService.prototype.startMonitor = function () {
 				return;
 			}
 			var diff = Math.abs(me.state.volume - volume);
-			if (diff > 1) {
+			if (diff > 100) {
 				console.log('volume was changed externally', volume);
 				me._setVolume(volume);
 			}
@@ -297,6 +298,9 @@ DesktopService.prototype.scrollVertical = function (diff) {
 };
 DesktopService.prototype.scrollHorizontal = function (diff) {
 	robot.scrollMouse(-diff, 0);
+};
+
+DesktopService.prototype.destroy = function () {
 };
 
 module.exports = DesktopService;

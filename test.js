@@ -6,7 +6,11 @@ const mediaVolumeAdapter = require('./adapters/media-volume');
 const momentumScrollAdapter = require('./adapters/momentum-scroll');
 const precisionScrollAdapter = require('./adapters/precision-scroll');
 
+const Adapter = require('./adapter');
+const testAdapter = require('./adapters/test');
+
 function startSpinService(callback) {
+	console.log('waiting for spin');
 	Spin.connectBLE(function (spin) {
 		console.log('connected BLE', spin.id);
 		spin.setBrightness(2);
@@ -40,26 +44,118 @@ const theme = {
 	white: [255,255,255]
 };
 
+var adapterInitializers = {
+	test: testAdapter
+};
+
+var adapters = {};
+
 startSpinService(function(spin, desktop) {
-	if (!process.argv[2]) {
-		process.exit();
-	}
+	// if (!process.argv[2]) {
+	// 	process.exit();
+	// }
 	console.log('starting', process.argv[2]);
 	
-	const devices = {
+	var adapterType = 'test';
+	var deviceIds = {
+		spin: spin.id,
+		desktop: desktop.id
+	};
+	
+	var adapterConfig = createOrGetAdapter(adapterType, deviceIds);
+	
+	var devices = {
 		spin,
 		desktop
 	};
 	
-	switch(process.argv[2]) {
-		case 'mouse': mouseAdapter(theme, devices); break;
-		case 'keyboard': keyboardAdapter(theme, devices); break;
-		case 'media': mediaVolumeAdapter(theme, devices); break;
-		case 'momentum': momentumScrollAdapter(theme, devices); break;
-		case 'precision': precisionScrollAdapter(theme, devices); break;
+	console.log('ADAPTER:', adapterConfig);
+	
+	startTestAdapter(adapterConfig, devices);
+	
+	// startTestAdapter(spin, desktop);
+});
+
+function getAdapterSettings(type, id, deviceIds) {
+	var adapterSettings = {}; // persistent adapter state
+	return adapterSettings;
+}
+
+
+
+function createOrGetAdapter(adapterType, deviceIds) {
+	var adapterId;
+	for (var id in adapters) {
+		var allMatch = true;
+		for (var deviceType in adapters[id]) {
+			if (!(adapters[id][deviceType].id in deviceIds)) {
+				continue;
+			}
+		}
+		if (allMatch) {
+			adapterId = id;
+			break;
+		}
 	}
 	
-});
+	if (adapterId) {
+		console.log('FOUND ADAPTER', adapterId);
+	}
+	else {
+		console.log('DID NOT FIND ADAPTER', adapterType, deviceIds);
+		adapterId = Math.random().toString().substring(2);
+	}
+	
+	var adapterSettings = getAdapterSettings(adapterType, adapterId, deviceIds);
+	
+	adapters[adapterId] = {
+		id: adapterId,
+		type: adapterType,
+		deviceIds,
+		settings: adapterSettings
+	};
+	
+	return adapters[adapterId];
+}
+
+
+function startTestAdapter(adapterConfig, devices) {
+	console.log('startTestAdapter', adapterConfig);
+	
+	var adapterInitializer = adapterInitializers[adapterConfig.type];
+	
+	const adapterInstance = new Adapter(adapterConfig, theme, devices, adapterInitializer);
+	
+	
+	adapterInstance.on('connect', function() {
+		console.log('testAdapter connected');
+	});
+	adapterInstance.on('destroy', function() {
+		console.log('testAdapter destroyed');
+	});
+	
+	for (var i in devices) {
+		(function(name) {
+			devices[i].on('connect', function() {
+				console.log('device',name,'connected');
+			});
+			devices[i].on('disconnect', function() {
+				console.log('device',name,'disconnected');
+				adapterInstance.destroy();
+			});
+		})(i);
+	}
+	
+	// switch(process.argv[2]) {
+	// 	case 'mouse': mouseAdapter(theme, devices); break;
+	// 	case 'keyboard': keyboardAdapter(theme, devices); break;
+	// 	case 'media': mediaVolumeAdapter(theme, devices); break;
+	// 	case 'momentum': momentumScrollAdapter(theme, devices); break;
+	// 	case 'precision': precisionScrollAdapter(theme, devices); break;
+	// }
+	
+	return adapterInstance;
+}
 
 if (process.env.NODE_ENV === 'prod') {
 	console.log = function () {

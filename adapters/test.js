@@ -6,8 +6,8 @@ function getDefaultState() {
 	};
 }
 
-function testAdapter(devices) {
-	const {spin, desktop} = devices;
+function testAdapter() {
+	const {spin, desktop} = this.devices;
 	spin.rotateRainbow(1);
 	spin.lightsOff();
 	desktop.setVolume(30);

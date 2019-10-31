@@ -2,23 +2,37 @@ const Spin = require('jaxcore-spin');
 const DesktopService = require('./desktop-service-macosx');
 const mouseAdapter = require('./adapters/mouse');
 const keyboardAdapter = require('./adapters/keyboard');
-const mediaVolumeAdapter = require('./adapters/media-volume');
+const mediaAdapter = require('./adapters/media-volume');
 const momentumScrollAdapter = require('./adapters/momentum-scroll');
 const precisionScrollAdapter = require('./adapters/precision-scroll');
-
 const Adapter = require('./adapter');
 const testAdapter = require('./adapters/test');
 
-function startSpinService(callback) {
-	console.log('waiting for spin');
-	Spin.connectBLE(function (spin) {
-		console.log('connected BLE', spin.id);
-		spin.setBrightness(2);
-		startDesktopService(spin, callback);
-	});
-}
+const themes = {
+	cyber: {
+		low: [0,0,255],
+		high: [255,0,0],
+		middle: [255,255,255],
+		primary: [255,0,255],
+		secondary: [0,255,255],
+		tertiary: [255,255,0],
+		black: [0,0,0],
+		white: [255,255,255]
+	}
+};
 
-function startDesktopService(spin, callback) {
+var adapterInitializers = {
+	test: testAdapter,
+	mouse: mouseAdapter,
+	keyboard: keyboardAdapter,
+	media: mediaAdapter,
+	momentum: momentumScrollAdapter,
+	precision: precisionScrollAdapter
+};
+
+var adapters = {};
+
+function startDesktopService(callback) {
 	var desktopService = new DesktopService({
 		minVolume: 0,
 		maxVolume: 100
@@ -27,105 +41,159 @@ function startDesktopService(spin, callback) {
 	desktopService.on('connect', function () {
 		console.log('volume connected ', this.state.maxVolume);
 		
-		callback(spin, desktopService);
+		callback(desktopService);
 	});
 	
 	desktopService.connect();
 }
 
-const theme = {
-	low: [0,0,255],
-	high: [255,0,0],
-	middle: [255,255,255],
-	primary: [255,0,255],
-	secondary: [0,255,255],
-	tertiary: [255,255,0],
-	black: [0,0,0],
-	white: [255,255,255]
+var services = {
+	desktop: null
 };
 
-var adapterInitializers = {
-	test: testAdapter
-};
-
-var adapters = {};
-
-startSpinService(function(spin, desktop) {
-	// if (!process.argv[2]) {
-	// 	process.exit();
-	// }
-	console.log('starting', process.argv[2]);
+startDesktopService(function(desktop) {
+	console.log('DESKTOP SERVICE');
+	services.desktop = desktop;
 	
-	var adapterType = 'test';
-	var deviceIds = {
-		spin: spin.id,
-		desktop: desktop.id
-	};
-	
-	var adapterConfig = createOrGetAdapter(adapterType, deviceIds);
-	
-	var devices = {
-		spin,
-		desktop
-	};
-	
-	console.log('ADAPTER:', adapterConfig);
-	
-	startTestAdapter(adapterConfig, devices);
-	
-	// startTestAdapter(spin, desktop);
+	beginSpinService();
 });
 
-function getAdapterSettings(type, id, deviceIds) {
-	var adapterSettings = {}; // persistent adapter state
-	return adapterSettings;
+function beginSpinService() {
+	console.log('waiting for spin');
+	Spin.connectBLE(function (spin) {
+		console.log('connected BLE', spin.id);
+		
+		// spinSettings[id].brightness
+		
+		spin.setBrightness(5);
+		
+		// if (!process.argv[2]) {
+		// 	process.exit();
+		// }
+		// console.log('starting', process.argv[2]);
+		
+		var adapterConfig = findSpinAdapter(spin);
+		if (adapterConfig) {
+			relaunchAdapter(adapterConfig, spin);
+		}
+		else {
+			console.log('DID NOT FIND ADAPTER FOR:', spin.id);
+			
+			createAdapter(spin, 'precision', {});
+			
+		}
+		
+		// startTestAdapter(spin, desktop);
+	});
 }
 
-
-
-function createOrGetAdapter(adapterType, deviceIds) {
+function findSpinAdapter(spin) {
 	var adapterId;
 	for (var id in adapters) {
-		var allMatch = true;
-		for (var deviceType in adapters[id]) {
-			if (!(adapters[id][deviceType].id in deviceIds)) {
-				continue;
-			}
-		}
-		if (allMatch) {
+		if (adapters[id].deviceIds.spin === spin.id) {
 			adapterId = id;
-			break;
+			console.log('FOUND ADAPTER', adapterId);
+			return adapters[id];
+		}
+		
+		// for (var deviceType in adapters[id]) {
+		// 	if (!(adapters[id][deviceType].id in deviceIds)) {
+		// 		continue;
+		// 	}
+		// }
+		// if (allMatch) {
+		// 	adapterId = id;
+		// 	break;
+		// }
+	}
+	
+}
+
+// function getAdapterSettings(type, id, deviceIds) {
+// 	var adapterSettings = {}; // persistent adapter state
+// 	return adapterSettings;
+// }
+
+function getServiceForAdapter(adapterConfig) {
+	if (adapterConfig.type === 'desktop' ||
+		adapterConfig.type === 'mouse' ||
+		adapterConfig.type === 'keyboard' ||
+		adapterConfig.type === 'media' ||
+		adapterConfig.type === 'momentum' ||
+		adapterConfig.type === 'precision' ||
+		adapterConfig.type === 'test') {
+		return {
+			desktop: services.desktop
 		}
 	}
+}
+
+function relaunchAdapter(adapterConfig, spin) {
+	console.log('relaunchAdapter', adapterConfig);
 	
-	if (adapterId) {
-		console.log('FOUND ADAPTER', adapterId);
+	var devices = {
+		spin
+	};
+	
+	var service = getServiceForAdapter(adapterConfig);
+	if (!service) {
+		console.log('no service for adapter', adapterConfig);
+		process.exit();
 	}
-	else {
-		console.log('DID NOT FIND ADAPTER', adapterType, deviceIds);
-		adapterId = Math.random().toString().substring(2);
+	for (var i in service) {
+		devices[i] = service[i];
 	}
 	
-	var adapterSettings = getAdapterSettings(adapterType, adapterId, deviceIds);
-	
+	console.log('RELAUNCH ADAPTER:', adapterConfig);
+	startAdapter(adapterConfig, devices);
+}
+
+function createAdapter(spin, adapterType, adapterSettings) {
+	console.log('CREATING ADAPTER:', spin.id, adapterType, adapterSettings);
+	var adapterId = Math.random().toString().substring(2);
 	adapters[adapterId] = {
 		id: adapterId,
 		type: adapterType,
-		deviceIds,
-		settings: adapterSettings
+		deviceIds: {
+			spin: spin.id
+		},
+		settings: adapterSettings,
+		theme: 'cyber'
+		// settings: adapterSettings
 	};
 	
-	return adapters[adapterId];
+	var devices = {
+		spin
+	};
+	
+	var service = getServiceForAdapter(adapters[adapterId]);
+	if (!service) {
+		console.log('no service for adapter', adapterConfig);
+		process.exit();
+	}
+	for (var i in service) {
+		if (adapters[adapterId].deviceIds) {
+			adapters[adapterId].deviceIds[i] = service[i].id;
+		}
+		else {
+			console.log('no deviceIds');
+			process.exit();
+		}
+		devices[i] = service[i];
+	}
+	
+	console.log('CREATED ADAPTER:', adapters[adapterId], Object.keys(devices));
+	startAdapter(adapters[adapterId], devices);
 }
 
-
-function startTestAdapter(adapterConfig, devices) {
-	console.log('startTestAdapter', adapterConfig);
+function startAdapter(adapterConfig, devices) {
+	console.log('Starting Adapter:', adapterConfig);
 	
 	var adapterInitializer = adapterInitializers[adapterConfig.type];
 	
-	const adapterInstance = new Adapter(adapterConfig, theme, devices, adapterInitializer);
+	const adapterInstance = new Adapter(adapterConfig, themes[adapterConfig.theme], devices, adapterInitializer);
 	
+	adapterConfig.instance = adapterInstance;
 	
 	adapterInstance.on('connect', function() {
 		console.log('testAdapter connected');
@@ -142,18 +210,10 @@ function startTestAdapter(adapterConfig, devices) {
 			devices[i].on('disconnect', function() {
 				console.log('device',name,'disconnected');
 				adapterInstance.destroy();
+				delete adapterConfig.instance;
 			});
 		})(i);
 	}
-	
-	// switch(process.argv[2]) {
-	// 	case 'mouse': mouseAdapter(theme, devices); break;
-	// 	case 'keyboard': keyboardAdapter(theme, devices); break;
-	// 	case 'media': mediaVolumeAdapter(theme, devices); break;
-	// 	case 'momentum': momentumScrollAdapter(theme, devices); break;
-	// 	case 'precision': precisionScrollAdapter(theme, devices); break;
-	// }
-	
 	return adapterInstance;
 }
 

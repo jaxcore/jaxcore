@@ -7,6 +7,7 @@ function DesktopService(defaults) {
 	this.constructor();
 	this.createStore('System Volume Store', true);
 	this.id = 'desktop';
+	this.log = plugin.createLogger('Desktop');
 	
 	this.setStates({
 		connected: {
@@ -50,19 +51,18 @@ DesktopService.prototype = new Client();
 DesktopService.prototype.constructor = Client;
 
 DesktopService.prototype.connect = function () {
-	var me = this;
-	this.lastSetVolume = new Date();
-	this.getVolume(function () {
-		console.log('systemaudio: volume', me.state.volume);
-		me.getMuted(function () {
-			console.log('systemaudio: muted', me.state.muted);
+	// this.lastSetVolume = new Date();
+	this.getVolume(() => {
+		this.log('systemaudio: volume', this.state.volume);
+		this.getMuted(() => {
+			this.log('systemaudio: muted', this.state.muted);
 			
-			me.startMonitor();
-			me.setState({
+			this.startMonitor();
+			this.setState({
 				connected: true
 			});
-			console.log('systemaudio: connected');
-			me.emit('connect');
+			this.log('systemaudio: connected');
+			this.emit('connect');
 		});
 	});
 };
@@ -75,27 +75,35 @@ DesktopService.prototype.startMonitor = function () {
 	this.readInterval = 500;
 	
 	this.stopMonitor();
-	var me = this;
 	
-	this.monitor = setInterval(function () {
-		if (me.lastSetVolume && new Date().getTime() - me.lastSetVolume.getTime() < me.readInterval) {
-			console.log('ignore 1');
+	this.monitor = setInterval(() => {
+		if (this.lastSetVolume && new Date().getTime() - this.lastSetVolume.getTime() < this.readInterval) {
+			this.log('ignore 1');
 			return;
 		}
-		me._getVolume(function (volume, volumePercent) {
-			if (me.lastSetVolume && new Date().getTime() - me.lastSetVolume.getTime() < me.readInterval*2) {
-				// ignore
-				console.log('ignore 2');
-				return;
-			}
-			var diff = Math.abs(me.state.volume - volume);
-			if (diff > 100) {
-				console.log('volume was changed externally', volume);
-				me._setVolume(volume);
-			}
+		this.getVolume((volume, volumePercent) => {
+			// this.log('monitor volume', volume);
+			// if (this.lastSetVolume && new Date().getTime() - this.lastSetVolume.getTime() < this.readInterval*2) {
+			// 	// ignore
+			// 	this.log('ignore 2');
+			// 	return;
+			// }
+			//
+			// this._setVolume(volume);
+			
+			// if (!this.lastSetVolume) {
+			//
+			// 	return;
+			// }
+			//
+			// var diff = Math.abs(this.state.volume - volume);
+			// if (diff > 100) {
+			// 	this.log('volume was changed externally', volume);
+			// 	this._setVolume(volume);
+			// }
 		});
-		me.getMuted();
-	}, me.readInterval);
+		this.getMuted();
+	}, this.readInterval);
 };
 
 DesktopService.prototype.stopMonitor = function () {
@@ -117,8 +125,7 @@ DesktopService.prototype.setMaxVolume = function (v) {
 };
 
 DesktopService.prototype._getVolume = function (callback) {
-	var me = this;
-	child_process.execFile('/usr/bin/osascript', ['-e', 'get volume settings'], function (error, stdout, stderr) {
+	child_process.execFile('/usr/bin/osascript', ['-e', 'get volume settings'], (error, stdout, stderr) => {
 		if (error) {
 			throw error;
 		}
@@ -128,7 +135,7 @@ DesktopService.prototype._getVolume = function (callback) {
 			var volume = parseInt(m[1]);
 			callback(volume);
 		} else {
-			console.log('_getVolume error, no volume');
+			this.log('_getVolume error, no volume');
 			callback();
 		}
 		
@@ -136,14 +143,13 @@ DesktopService.prototype._getVolume = function (callback) {
 };
 
 DesktopService.prototype.getVolume = function (callback) {
-	var me = this;
-	this._getVolume(function (volume) {
-		if (this.lastVolumeTime && new Date().getTime() - this.lastVolumeTime > 500) {
-			if (volume !== me.state.volume) {
-				me._setVolume(volume);
+	this._getVolume((volume) => {
+		if (!this.lastVolumeTime || new Date().getTime() - this.lastVolumeTime > 500) {
+			if (volume !== this.state.volume) {
+				this._setVolume(volume);
 			}
 		}
-		if (callback) callback(me.state.volume, me.state.volumePercent);
+		if (callback) callback(this.state.volume, this.state.volumePercent);
 	});
 };
 DesktopService.prototype._setVolume = function (volume) {
@@ -152,8 +158,10 @@ DesktopService.prototype._setVolume = function (volume) {
 		volumePercent: volumePercent,
 		volume: volume
 	});
-	console.log('e v _setVolume', this.state.volumePercent, this.state.volume);
-	this.emit('volume', this.state.volumePercent, this.state.volume);
+	this.log('_setVolume', this.state.volume, this.state.volumePercent);
+	if (!this.state.muted) {
+		this.emit('volume', this.state.volumePercent, this.state.volume);
+	}
 };
 
 DesktopService.prototype.setVolume = function (volume) {
@@ -169,25 +177,24 @@ DesktopService.prototype.setVolume = function (volume) {
 
 DesktopService.prototype._writeVolume = function () {
 	if (this.isSettingVolume) {
-		console.log('already isSettingVolume');
+		this.log('already isSettingVolume');
 		return;
 	}
 	
 	this.isSettingVolume = true;
-	var me = this;
 	var volume = this.state.volume;
-	console.log('_writeVolume', volume);
+	this.log('_writeVolume', volume);
 	this.isSettingVolume = true;
-	child_process.execFile('/usr/bin/osascript', ['-e', 'set volume output volume ' + volume.toString()], function (error, stdout, stderr) {
-		me.isSettingVolume = false;
+	child_process.execFile('/usr/bin/osascript', ['-e', 'set volume output volume ' + volume.toString()], (error, stdout, stderr) => {
+		this.isSettingVolume = false;
 		
-		console.log('wroteVolume ' + volume + ' _volumeQueued = ' + me.state.volume, stdout.toString());
+		this.log('wroteVolume ' + volume + ' _volumeQueued = ' + this.state.volume, stdout.toString());
 		
-		if (volume !== me.state.volume) {
-			console.log('_writeVolume and wroteVolume do NOT MATCH');
-			me._writeVolume();
+		if (volume !== this.state.volume) {
+			this.log('_writeVolume and wroteVolume do NOT MATCH');
+			this._writeVolume();
 		}
-		me.lastSetVolume = new Date();
+		this.lastSetVolume = new Date();
 	});
 };
 
@@ -195,7 +202,7 @@ DesktopService.prototype.changeVolume = function (diff) {
 	// if (diff > 0) desktopService.volumeUp();
 	// else desktopService.volumeDown();
 	var v = this.state.volume + diff;
-	console.log('changing volume ...', this.state.volume, v);
+	this.log('changing volume ...', this.state.volume, v);
 	this.setVolume(v);
 };
 
@@ -207,8 +214,7 @@ DesktopService.prototype.volumeDown = function () {
 };
 
 DesktopService.prototype.getMuted = function (callback) {
-	var me = this;
-	child_process.execFile('/usr/bin/osascript', ['-e', 'output muted of (get volume settings)'], function (error, stdout, stderr) {
+	child_process.execFile('/usr/bin/osascript', ['-e', 'output muted of (get volume settings)'], (error, stdout, stderr) => {
 		if (this.lastVolumeTime && new Date().getTime() - this.lastVolumeTime > 500) {
 			var data = stdout.toString().trim();
 			
@@ -218,13 +224,13 @@ DesktopService.prototype.getMuted = function (callback) {
 			} else if (data === 'false') {
 				muted = false;
 			} else {
-				console.log('getMuted error: [[' + data + ']]');
+				this.log('getMuted error: [[' + data + ']]');
 				return;
 			}
-			me._muteChanged(muted);
+			this._muteChanged(muted);
 			if (callback) callback(muted);
 		}
-		else if (callback) callback(me.state.muted);
+		else if (callback) callback(this.state.muted);
 	});
 };
 
@@ -238,9 +244,8 @@ DesktopService.prototype._muteChanged = function (muted) {
 };
 DesktopService.prototype.setMuted = function (muted) {
 	muted = !!muted;
-	var me = this;
-	child_process.execFile('/usr/bin/osascript', ['-e', 'set volume output muted ' + (muted ? 'true' : 'false')], function (error, stdout, stderr) {
-		me._muteChanged(muted);
+	child_process.execFile('/usr/bin/osascript', ['-e', 'set volume output muted ' + (muted ? 'true' : 'false')], (error, stdout, stderr) => {
+		this._muteChanged(muted);
 	});
 };
 
@@ -256,12 +261,12 @@ DesktopService.prototype.getMousePos = robot.getMousePos.bind(robot);
 DesktopService.prototype.getScreenSize = robot.getScreenSize.bind(robot);
 
 DesktopService.prototype.keyPress = function(k, modifiers) {
-	console.log('keyPress', k, modifiers);
+	this.log('keyPress', k, modifiers);
 	if (modifiers && modifiers.length) robot.keyTap(k, modifiers);
 	else robot.keyTap(k);
 };
 DesktopService.prototype.keyPressMultiple = function(spin, number, k, modifiers) {
-	console.log('keyPressMultiple', 'number', number, 'key', k, 'modifiers', modifiers);
+	this.log('keyPressMultiple', 'number', number, 'key', k, 'modifiers', modifiers);
 	for (let i=0;i<number;i++) {
 		if (modifiers && modifiers.length) robot.keyTap(k, modifiers);
 		else robot.keyTap(k);
@@ -270,26 +275,10 @@ DesktopService.prototype.keyPressMultiple = function(spin, number, k, modifiers)
 
 DesktopService.prototype.keyToggle = robot.keyToggle.bind(robot);
 
-	// let adiff = Math.abs(diff);
-	// 	// let dy;
-	// 	// if (time <= 61) {
-	// 	// 	if (adiff === 1) dy = 40;
-	// 	// 	else if (adiff === 2) dy = 45;
-	// 	// 	else if (adiff === 3) dy = 50;
-	// 	// 	else if (adiff === 4) dy = 55;
-	// 	// 	else dy = 60;
-	// 	// } else if (time <= 100) dy = 30;
-	// 	// else if (time <= 150) dy = 25;
-	// 	// else if (time <= 200) dy = 20;
-	// 	// else if (time <= 300) dy = 15;
-	// 	// else if (time <= 400) dy = 10;
-	// 	// else dy = 5;
-	// 	// return dy;
-
-DesktopService.prototype.precisionScrollX = function (distance) { // precision scroll
+DesktopService.prototype.precisionScrollX = function (distance) {
 	robot.scrollMouse(-distance, 0);
 };
-DesktopService.prototype.precisionScrollY = function (distance) { // precision scroll
+DesktopService.prototype.precisionScrollY = function (distance) {
 	robot.scrollMouse(0, -distance);
 };
 
@@ -301,6 +290,7 @@ DesktopService.prototype.scrollHorizontal = function (diff) {
 };
 
 DesktopService.prototype.destroy = function () {
+	this.removeAllListners();
 };
 
 module.exports = DesktopService;

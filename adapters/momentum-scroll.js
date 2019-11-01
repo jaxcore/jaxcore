@@ -21,19 +21,18 @@ function startInterval(fn,t) {
 }
 
 function momentumScrollAdapter() {
-	const {spin, desktop} = this.devices;
-	const theme = this.theme;
+	const {spin} = this.devices;
+	const {desktop} = this.services;
+	const {theme} = this;
 	spin.rotateRainbow(2);
 	spin.lightsOff();
-	
-	let balanceInterval;
 	
 	this.momentumScroll = new MomentumScroll({
 		intervalTime: 1
 	});
 	
 	this.momentumScroll.on('scroll', (scrollX, scrollY) => {
-		// console.log('scroll', 'X', scrollX, 'Y', scrollY);
+		this.log('momentumScroll', 'X', scrollX, 'Y', scrollY);
 		if (scrollX !== 0) desktop.scrollHorizontal(scrollX);
 		if (scrollY !== 0) desktop.scrollVertical(scrollY);
 	});

@@ -3,11 +3,14 @@ var Client = plugin.Client;
 var child_process = require('child_process');
 var robot = require("robotjs");
 
+// var instances = {};
+
 function DesktopService(defaults) {
 	this.constructor();
 	this.createStore('System Volume Store', true);
 	this.id = 'desktop';
 	this.log = plugin.createLogger('Desktop');
+	this.log('created');
 	
 	this.setStates({
 		connected: {
@@ -49,6 +52,29 @@ function DesktopService(defaults) {
 
 DesktopService.prototype = new Client();
 DesktopService.prototype.constructor = Client;
+
+DesktopService.id = function() {
+	return 'desktop';
+};
+
+var desktopInstance = null;
+
+DesktopService.getOrCreateInstance = function(serviceId, serviceConfig) {
+	if (!desktopInstance) {
+		console.log('CREATE DESKTOP');
+		desktopInstance = new DesktopService(serviceConfig);
+	}
+	else {
+		console.log('RECONNECT DESKTOP');
+	}
+	
+	return desktopInstance;
+};
+DesktopService.destroyInstance = function(serviceId, serviceConfig) {
+	if (desktopInstance) {
+		desktopInstance.destroy();
+	}
+};
 
 DesktopService.prototype.connect = function () {
 	// this.lastSetVolume = new Date();
@@ -107,6 +133,7 @@ DesktopService.prototype.startMonitor = function () {
 };
 
 DesktopService.prototype.stopMonitor = function () {
+	console.log('stop monitor');
 	clearInterval(this.monitor);
 };
 
@@ -290,7 +317,10 @@ DesktopService.prototype.scrollHorizontal = function (diff) {
 };
 
 DesktopService.prototype.destroy = function () {
-	this.removeAllListners();
+	this.emit('teardown');
+	this.stopMonitor();
+	desktopInstance = null;
+	// this.removeAllListeners();
 };
 
 module.exports = DesktopService;

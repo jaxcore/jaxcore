@@ -7,7 +7,10 @@ function getDefaultState() {
 }
 
 function testAdapter() {
-	const {spin, desktop} = this.devices;
+	const {spin} = this.devices;
+	const {desktop} = this.services;
+	const {theme} = this;
+	
 	spin.rotateRainbow(1);
 	spin.lightsOff();
 	desktop.setVolume(30);

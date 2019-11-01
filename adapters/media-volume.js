@@ -9,8 +9,9 @@ function getDefaultState() {
 }
 
 function mediaAdapter() {
-	const {spin, desktop} = this.devices;
-	const theme = this.theme;
+	const {spin} = this.devices;
+	const {desktop} = this.services;
+	const {theme} = this;
 	spin.rotateRainbow(2);
 	spin.scale(desktop.state.volumePercent, theme.low, theme.high, theme.middle);
 	

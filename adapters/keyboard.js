@@ -108,8 +108,9 @@ function getDefaultState() {
 }
 
 function keyboardAdapter() {
-	const {spin, desktop} = this.devices;
-	const theme = this.theme;
+	const {spin} = this.devices;
+	const {desktop} = this.services;
+	const {theme} = this;
 	spin.rotateRainbow(2);
 	spin.lightsOff();
 	

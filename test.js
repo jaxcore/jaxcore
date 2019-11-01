@@ -1,12 +1,15 @@
 const Spin = require('jaxcore-spin');
+
 const DesktopService = require('./desktop-service-macosx');
+
 const mouseAdapter = require('./adapters/mouse');
 const keyboardAdapter = require('./adapters/keyboard');
 const mediaAdapter = require('./adapters/media-volume');
 const momentumScrollAdapter = require('./adapters/momentum-scroll');
 const precisionScrollAdapter = require('./adapters/precision-scroll');
-const Adapter = require('./adapter');
 const testAdapter = require('./adapters/test');
+
+const Adapter = require('./adapter');
 
 const themes = {
 	cyber: {
@@ -20,8 +23,37 @@ const themes = {
 		white: [255,255,255]
 	}
 };
+const defaultTheme = 'cyber';
 
-var adapterInitializers = {
+const adapters = {};
+// {
+// 	id: adapterId,
+// 	type: adapterType,
+// 	deviceIds: {
+// 		spin: spin.id
+// 	},
+// 	serviceIds: {
+//		desktop: 'desktop'
+// 	},
+// 	settings: {},
+// 	theme: 'cyber'
+// }
+
+const allServices = {};
+// {
+// 	desktop: {
+// 		desktop {
+// 			instance,
+// 			adapters:[]
+// 		}
+// 	}
+// }
+
+const serviceClasses = {
+	desktop: DesktopService
+};
+
+const adapterInitializers = {
 	test: testAdapter,
 	mouse: mouseAdapter,
 	keyboard: keyboardAdapter,
@@ -30,191 +62,277 @@ var adapterInitializers = {
 	precision: precisionScrollAdapter
 };
 
-var adapters = {};
-
-function startDesktopService(callback) {
-	var desktopService = new DesktopService({
-		minVolume: 0,
-		maxVolume: 100
-	});
-	
-	desktopService.on('connect', function () {
-		console.log('volume connected ', this.state.maxVolume);
-		
-		callback(desktopService);
-	});
-	
-	desktopService.connect();
-}
-
-var services = {
-	desktop: null
-};
-
-startDesktopService(function(desktop) {
-	console.log('DESKTOP SERVICE');
-	services.desktop = desktop;
-	
-	beginSpinService();
-});
+let defaultAdapter = process.argv[2];
 
 function beginSpinService() {
 	console.log('waiting for spin');
 	Spin.connectBLE(function (spin) {
 		console.log('connected BLE', spin.id);
-		
-		// spinSettings[id].brightness
-		
 		spin.setBrightness(5);
 		
-		// if (!process.argv[2]) {
-		// 	process.exit();
-		// }
-		// console.log('starting', process.argv[2]);
-		
-		var adapterConfig = findSpinAdapter(spin);
+		const adapterConfig = findSpinAdapter(spin);
 		if (adapterConfig) {
 			relaunchAdapter(adapterConfig, spin);
 		}
 		else {
 			console.log('DID NOT FIND ADAPTER FOR:', spin.id);
 			
-			createAdapter(spin, 'precision', {});
-			
+			if (defaultAdapter) {
+				createAdapter(spin, defaultAdapter, {});
+			}
 		}
-		
-		// startTestAdapter(spin, desktop);
 	});
 }
 
 function findSpinAdapter(spin) {
-	var adapterId;
-	for (var id in adapters) {
-		if (adapters[id].deviceIds.spin === spin.id) {
-			adapterId = id;
-			console.log('FOUND ADAPTER', adapterId);
-			return adapters[id];
+	let adapterId;
+	for (let id in adapters) {
+		if (adapters[id]) {
+			if (adapters[id].destroyed) {
+				console.log('adapter', id, 'was destroyed');
+				// process.exit();
+				delete adapters[id].destroyed;
+			}
+			if (adapters[id].deviceIds.spin === spin.id) {
+				adapterId = id;
+				console.log('FOUND ADAPTER', adapterId);
+				return adapters[id];
+			}
 		}
-		
-		// for (var deviceType in adapters[id]) {
-		// 	if (!(adapters[id][deviceType].id in deviceIds)) {
-		// 		continue;
-		// 	}
-		// }
-		// if (allMatch) {
-		// 	adapterId = id;
-		// 	break;
-		// }
 	}
-	
 }
 
-// function getAdapterSettings(type, id, deviceIds) {
-// 	var adapterSettings = {}; // persistent adapter state
-// 	return adapterSettings;
-// }
+function getOrCreateService(adapterConfig, serviceType, serviceConfig, callback) {
+	console.log('start/get '+serviceType + ' service', 'serviceConfig:', serviceConfig);
+	// process.exit();
+	
+	const serviceClass = serviceClasses[serviceType];
+	const serviceId = serviceClass.id(serviceConfig);
+	
+	if (!allServices[serviceType]) allServices[serviceType] = {};
+	
+	console.log('start/get');
+	
+	if (serviceId && allServices[serviceType][serviceId] && allServices[serviceType][serviceId].instance) {
+		allServices[serviceType][serviceId].adapters.push(adapterConfig.id);
+		adapterConfig.serviceIds[serviceType] = serviceId;
+		
+		callback(allServices[serviceType][serviceId].instance);
+	}
+	else {
+		console.log('service does not exist', serviceId, serviceType);
+		console.log(allServices[serviceType][serviceId]);
+		
+		let serviceInstance = serviceClass.getOrCreateInstance(serviceId, serviceConfig);
+		
+		console.log('got serviceInstance', serviceInstance);
+		
+		if (serviceInstance && serviceInstance.id === serviceId) {
+			if (!allServices[serviceType][serviceId]) {
+				allServices[serviceType][serviceId] = {
+					serviceConfig,
+					instance: serviceInstance,
+					adapters: []
+				};
+			}
+			allServices[serviceType][serviceId].adapters.push(adapterConfig.id);
+			adapterConfig.serviceIds[serviceType] = serviceId;
+			
+		}
+		else {
+			console.log('no service instance found', serviceType, serviceId);
+			process.exit();
+		}
+		
+		if (serviceInstance.state.connected) {
+			console.log('service already connected', serviceType, serviceId);
+			process.exit();
+			callback(serviceInstance);
+		} else {
+			console.log('waiting for service to connect', serviceType, serviceId);
+			serviceInstance.on('connect', function () {
+				console.log(serviceType + ' service connected');
+				callback(serviceInstance);
+			});
+			serviceInstance.on('disconnect', function () {
+				console.log(serviceType + ' service disconnected');
+				destroyService(serviceType, serviceId);
+			});
+			serviceInstance.connect();
+		}
+	}
+}
 
-function getServiceForAdapter(adapterConfig) {
-	if (adapterConfig.type === 'desktop' ||
-		adapterConfig.type === 'mouse' ||
+function getServicesForAdapter(adapterConfig, callback) {
+	if (adapterConfig.type === 'mouse' ||
 		adapterConfig.type === 'keyboard' ||
 		adapterConfig.type === 'media' ||
 		adapterConfig.type === 'momentum' ||
 		adapterConfig.type === 'precision' ||
 		adapterConfig.type === 'test') {
-		return {
-			desktop: services.desktop
-		}
+		
+		let serviceConfig = {
+			minVolume: 0,
+			maxVolume: 100
+		};
+		
+		console.log('getOrCreateService');
+		getOrCreateService(adapterConfig, 'desktop', serviceConfig, function(serviceInstance) {
+			if (serviceInstance) {
+				console.log('serviceInstance');
+				callback({
+					desktop: serviceInstance
+				});
+			}
+			else {
+				console.log('no service for', adapterConfig, serviceConfig);
+				callback()
+			}
+		});
+	}
+	else {
+		console.log('no service for adapter', adapterConfig);
+		callback();
 	}
 }
 
 function relaunchAdapter(adapterConfig, spin) {
-	console.log('relaunchAdapter', adapterConfig);
+	console.log('RELAUNCHING ADAPTER', adapterConfig, spin.id);
 	
-	var devices = {
-		spin
-	};
-	
-	var service = getServiceForAdapter(adapterConfig);
-	if (!service) {
-		console.log('no service for adapter', adapterConfig);
-		process.exit();
-	}
-	for (var i in service) {
-		devices[i] = service[i];
-	}
-	
-	console.log('RELAUNCH ADAPTER:', adapterConfig);
-	startAdapter(adapterConfig, devices);
+	getServicesForAdapter(adapterConfig, function(services) {
+		if (!services) {
+			console.log('relaunchAdapter: no service for adapter', adapterConfig);
+			process.exit();
+		}
+		
+		console.log('RELAUNCH ADAPTER:', adapterConfig);
+		startSpinAdapter(adapterConfig, spin, services);
+	});
 }
 
 function createAdapter(spin, adapterType, adapterSettings) {
 	console.log('CREATING ADAPTER:', spin.id, adapterType, adapterSettings);
-	var adapterId = Math.random().toString().substring(2);
+	const adapterId = Math.random().toString().substring(2);
 	adapters[adapterId] = {
 		id: adapterId,
 		type: adapterType,
 		deviceIds: {
 			spin: spin.id
 		},
+		serviceIds: {},
 		settings: adapterSettings,
-		theme: 'cyber'
+		theme: defaultTheme
 		// settings: adapterSettings
 	};
 	
-	var devices = {
+	const adapterConfig = adapters[adapterId];
+	
+	getServicesForAdapter(adapterConfig, function(services) {
+		if (!services) {
+			console.log('createAdapter: no service for adapter', adapterConfig);
+			process.exit();
+		}
+		
+		let serviceTypes = Object.keys(services);
+		
+		console.log('CREATED ADAPTER:', adapterConfig, 'services:', serviceTypes);
+		
+		startSpinAdapter(adapters[adapterId], spin, services);
+	});
+}
+
+function startSpinAdapter(adapterConfig, spin, services) {
+	console.log('Starting Adapter:', adapterConfig);
+	
+	const devices = {
 		spin
 	};
 	
-	var service = getServiceForAdapter(adapters[adapterId]);
-	if (!service) {
-		console.log('no service for adapter', adapterConfig);
-		process.exit();
-	}
-	for (var i in service) {
-		if (adapters[adapterId].deviceIds) {
-			adapters[adapterId].deviceIds[i] = service[i].id;
+	for (let serviceType in services) {
+		if (adapterConfig.serviceIds) {
+			adapterConfig.serviceIds[serviceType] = services[serviceType].id
 		}
 		else {
-			console.log('no deviceIds');
+			console.log('no service serviceIds');
 			process.exit();
 		}
-		devices[i] = service[i];
 	}
 	
-	console.log('CREATED ADAPTER:', adapters[adapterId], Object.keys(devices));
-	startAdapter(adapters[adapterId], devices);
-}
-
-function startAdapter(adapterConfig, devices) {
-	console.log('Starting Adapter:', adapterConfig);
+	console.log('adapterConfig', adapterConfig);
+	console.log('adapter devices', Object.keys(devices));
+	console.log('adapter services', Object.keys(services));
 	
-	var adapterInitializer = adapterInitializers[adapterConfig.type];
+	const adapterInitializer = adapterInitializers[adapterConfig.type];
 	
-	const adapterInstance = new Adapter(adapterConfig, themes[adapterConfig.theme], devices, adapterInitializer);
+	const adapterInstance = new Adapter(adapterConfig, themes[adapterConfig.theme], devices, services, adapterInitializer);
 	
 	adapterConfig.instance = adapterInstance;
 	
-	adapterInstance.on('connect', function() {
-		console.log('testAdapter connected');
-	});
-	adapterInstance.on('destroy', function() {
-		console.log('testAdapter destroyed');
-	});
+	let onDisconnect = function() {
+		console.log('device disconnected, destroying adapter....', adapterConfig);
+		destroyAdapter(adapterConfig);
+		this.removeListener('disconnect', onDisconnect);
+	};
 	
-	for (var i in devices) {
-		(function(name) {
-			devices[i].on('connect', function() {
-				console.log('device',name,'connected');
-			});
-			devices[i].on('disconnect', function() {
-				console.log('device',name,'disconnected');
-				adapterInstance.destroy();
-				delete adapterConfig.instance;
-			});
+	// adapterInstance.on('teardown', function() {
+	// 	console.log('adapter teardown');
+	// 	// device.removeListener('disconnect', onDisconnect);
+	// });
+	
+	for (let i in devices) {
+		(function(id) {
+			devices[id].addListener('disconnect', onDisconnect);
 		})(i);
 	}
 	return adapterInstance;
+}
+
+function destroyService(serviceType, serviceId) {
+	
+	if (allServices[serviceType][serviceId]) {
+		console.log('destroying service', serviceType, serviceId);
+		
+		let onDestroyService = function () {
+			allServices[serviceType][serviceId].adapters.forEach(function (adapterId) {
+				const adapterConfig = adapters[adapterId];
+				destroyAdapter(adapterConfig);
+			});
+			console.log('clearout', allServices[serviceType][serviceId]);
+			
+			allServices[serviceType][serviceId].instance.removeListener('teardown', onDestroyService);
+			delete allServices[serviceType][serviceId].instance;
+			delete allServices[serviceType][serviceId].adapters;
+			delete allServices[serviceType][serviceId];
+		};
+		
+		allServices[serviceType][serviceId].instance.addListener('teardown', onDestroyService);
+		
+		allServices[serviceType][serviceId].instance.destroy();
+	}
+	else console.log('destroyService failed, not found', serviceType, serviceId);
+}
+
+function destroyAdapter(adapterConfig) {
+	if (adapterConfig.destroyed) {
+		console.log('adapter destroyed');
+		return;
+	}
+	
+	const adapterId = adapterConfig.id;
+	console.log('destroyAdapter', adapterId, adapterConfig);
+	
+	if (adapterConfig.instance) {
+		adapterConfig.instance.destroy();
+		delete adapterConfig.instance;
+		adapterConfig.destroyed = true;
+		
+		for (let serviceType in adapterConfig.serviceIds) {
+			let serviceId = adapterConfig.serviceIds[serviceType];
+			let index = allServices[serviceType][serviceId].adapters.indexOf(adapterId);
+			allServices[serviceType][serviceId].adapters.splice(index, 1);
+			console.log('service adapter Ids', allServices[serviceType][serviceId].adapters);
+		}
+	}
 }
 
 if (process.env.NODE_ENV === 'prod') {
@@ -223,3 +341,5 @@ if (process.env.NODE_ENV === 'prod') {
 	process.on('uncaughtException', function (err) {
 	});
 }
+
+beginSpinService();

@@ -41,14 +41,14 @@ function precisionScrollAdapter() {
 					}
 				} else if (spin.state.buttonPushed) {
 					this.state.didButtonbSpin = true;
-					desktop.precisionScrollX(distance);
+					desktop.scrollHorizontal(distance);
 					if (diff > 0) {
 						spin.rotate(1, theme.high, theme.high);
 					} else {
 						spin.rotate(-1, theme.low, theme.low);
 					}
 				} else {
-					desktop.precisionScrollY(distance);
+					desktop.scrollVertical(distance);
 					if (diff > 0) {
 						spin.rotate(1, theme.high, theme.high);
 					} else {

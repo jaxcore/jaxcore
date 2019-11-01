@@ -10,10 +10,10 @@ function getDefaultState() {
 
 function mediaAdapter() {
 	const {spin} = this.devices;
-	const {desktop} = this.services;
+	const {keyboard,volume} = this.services;
 	const {theme} = this;
 	spin.rotateRainbow(2);
-	spin.scale(desktop.state.volumePercent, theme.low, theme.high, theme.middle);
+	spin.scale(volume.state.volumePercent, theme.low, theme.high, theme.middle);
 	
 	this.startRewind = function () {
 		if (this.state.isFastForwarding) {
@@ -23,7 +23,7 @@ function mediaAdapter() {
 			this.state.isRewinding = true;
 			this.state.rewindTime = new Date().getTime();
 			this.log('audio_prev', 'down');
-			desktop.keyToggle('audio_prev', 'down');
+			keyboard.keyToggle('audio_prev', 'down');
 			spin.orbit(-1, 150, theme.low, theme.low);
 			this.rewindInterval = setInterval(() => {
 				let time = (new Date().getTime() - this.state.rewindTime) / 1000;
@@ -36,7 +36,7 @@ function mediaAdapter() {
 	this.stopRewind = function () {
 		if (this.state.isRewinding) {
 			this.state.isRewinding = false;
-			desktop.keyToggle('audio_prev', 'up');
+			keyboard.keyToggle('audio_prev', 'up');
 			clearInterval(this.rewindInterval);
 			spin.lightsOff();
 		}
@@ -48,7 +48,7 @@ function mediaAdapter() {
 		if (!this.state.isFastForwarding) {
 			this.state.isFastForwarding = true;
 			this.state.fastForwardTime = new Date().getTime();
-			desktop.keyToggle('audio_next', 'down');
+			keyboard.keyToggle('audio_next', 'down');
 			spin.orbit(1, 150, theme.high, theme.high);
 			this.fastForwardInterval = setInterval(() => {
 				let time = (new Date().getTime() - this.state.fastForwardTime) / 1000;
@@ -61,7 +61,7 @@ function mediaAdapter() {
 	this.stopFastForward = function () {
 		if (this.state.isFastForwarding) {
 			this.state.isFastForwarding = false;
-			desktop.keyToggle('audio_next', 'up');
+			keyboard.keyToggle('audio_next', 'up');
 			clearInterval(this.fastForwardInterval);
 			spin.lightsOff();
 		}
@@ -76,9 +76,9 @@ function mediaAdapter() {
 			muted: function (muted) {
 				this.log('muted', muted);
 				if (muted) {
-					spin.scale(desktop.state.volumePercent, theme.tertiary, theme.tertiary, theme.middle);
+					spin.scale(volume.state.volumePercent, theme.tertiary, theme.tertiary, theme.middle);
 				} else {
-					spin.scale(desktop.state.volumePercent, theme.low, theme.high, theme.middle);
+					spin.scale(volume.state.volumePercent, theme.low, theme.high, theme.middle);
 				}
 			}
 		},
@@ -87,7 +87,7 @@ function mediaAdapter() {
 				this.log('spin rotate', diff);
 				
 				if (spin.state.knobPushed) {
-					if (!desktop.state.muted) {
+					if (!volume.state.muted) {
 						this.state.didKnobSpin = true;
 						
 						spin.buffer(diff, 0, 1, (bdiff) => {
@@ -106,13 +106,13 @@ function mediaAdapter() {
 				
 				} else {
 					if (desktop.state.muted) {
-						if (desktop.state.volumePercent < 0.04) {
-							desktop.changeVolume(diff, spinTime);
+						if (volume.state.volumePercent < 0.04) {
+							volume.changeVolume(diff, spinTime);
 						} else {
-							spin.scale(desktop.state.volumePercent, theme.tertiary, theme.tertiary, theme.middle);
+							spin.scale(volume.state.volumePercent, theme.tertiary, theme.tertiary, theme.middle);
 						}
 					} else {
-						desktop.changeVolume(diff, spinTime);
+						volume.changeVolume(diff, spinTime);
 					}
 				}
 			},
@@ -127,16 +127,16 @@ function mediaAdapter() {
 						this.stopFastForward();
 					} else {
 						// optional? if (state.useMediaKeys)
-						desktop.toggleMuted();
+						volume.toggleMuted();
 					}
 				}
 			},
 			button: function (pushed) {
 				this.log('button !!', pushed);
 				if (pushed) {
-					desktop.keyPress('audio_play');
+					keyboard.keyPress('audio_play');
 					spin.flash(theme.secondary);
-					// // optional? use Next or Play  desktop.keyPress('audio_next');
+					// // optional? use Next or Play  keyboard.keyPress('audio_next');
 				}
 			}
 		}

@@ -99,15 +99,19 @@ Jaxcore.prototype.findSpinAdapter = function(spin) {
 };
 
 Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serviceConfig, callback) {
-	console.log('start/get '+serviceType + ' service', 'serviceConfig:', serviceConfig);
+	this.log('start/get '+serviceType + ' service', 'serviceConfig:', serviceConfig);
 	// process.exit();
 	
 	const serviceClass = this.serviceClasses[serviceType];
+	if (!serviceClass) {
+		console.log('no service class for', serviceType);
+		process.exit();
+	}
 	const serviceId = serviceClass.id(serviceConfig);
 	
 	if (!this.state.services[serviceType]) this.state.services[serviceType] = {};
 	
-	console.log('start/get');
+	this.log('start/get service', serviceId);
 	
 	if (serviceId && this.state.services[serviceType][serviceId] && this.serviceInstances[serviceId].instance) {
 		console.log('usage 2');
@@ -174,32 +178,66 @@ Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serv
 };
 
 Jaxcore.prototype.getServicesForAdapter = function(adapterConfig, callback) {
-	if (adapterConfig.type === 'mouse' ||
-		adapterConfig.type === 'keyboard' ||
-		adapterConfig.type === 'media' ||
-		adapterConfig.type === 'momentum' ||
-		adapterConfig.type === 'precision' ||
-		adapterConfig.type === 'test') {
+	if (adapterConfig.type === 'volume' ||
+		adapterConfig.type === 'mouse' ||
+		adapterConfig.type === 'scroll' ||
+		adapterConfig.type === 'keyboard') {
+		const adapterInstance = this.adapterInitializers[adapterConfig.type];
+		const servicesConfig = adapterInstance.getServicesConfig(adapterConfig);
+		this.log('getServicesForAdapter servicesConfig', adapterConfig, servicesConfig);
 		
-		let serviceConfig = {
-			minVolume: 0,
-			maxVolume: 100
-		};
-		
-		console.log('getOrCreateService');
-		this.getOrCreateService(adapterConfig, 'desktop', serviceConfig, function(serviceInstance) {
-			if (serviceInstance) {
-				console.log('serviceInstance');
-				callback({
-					desktop: serviceInstance
+		for (let serviceType in servicesConfig) {
+			this.log('loop serviceType', serviceType);
+			for (let serviceId in servicesConfig[serviceType]) {
+				this.log('loop serviceId', serviceId, servicesConfig[serviceType]);
+				const serviceConfig = servicesConfig[serviceType];
+				
+				this.log('serviceType', serviceType, 'serviceId', 'serviceConfig', servicesConfig);
+				
+				this.getOrCreateService(adapterConfig, serviceType, serviceConfig, function(serviceInstance) {
+					// console.log('hi', serviceInstance);
+					
+					if (serviceInstance) {
+						console.log('getServicesForAdapter callback');
+						const serviceInstances = {};
+						serviceInstances[serviceType] = serviceInstance;
+						callback(serviceInstances);
+					}
+					else {
+						console.log('no service for', adapterConfig, serviceConfig);
+						callback()
+					}
 				});
+				return;
+				break;
 			}
-			else {
-				console.log('no service for', adapterConfig, serviceConfig);
-				callback()
-			}
-		});
+			break;
+		}
 	}
+	// else if (adapterConfig.type === 'media' ||
+	// 	adapterConfig.type === 'momentum' ||
+	// 	adapterConfig.type === 'precision' ||
+	// 	adapterConfig.type === 'test') {
+	//
+	// 	let serviceConfig = {
+	// 		minVolume: 0,
+	// 		maxVolume: 100
+	// 	};
+	//
+	//
+	// 	this.getOrCreateService(adapterConfig, 'desktop', serviceConfig, function(serviceInstance) {
+	// 		if (serviceInstance) {
+	// 			console.log('serviceInstance');
+	// 			callback({
+	// 				desktop: serviceInstance
+	// 			});
+	// 		}
+	// 		else {
+	// 			console.log('no service for', adapterConfig, serviceConfig);
+	// 			callback()
+	// 		}
+	// 	});
+	// }
 	else {
 		console.log('no service for adapter', adapterConfig);
 		callback();
@@ -238,6 +276,8 @@ Jaxcore.prototype.createAdapter = function(spin, adapterType, adapterSettings, c
 	const adapterConfig = this.state.adapters[adapterId];
 	
 	this.getServicesForAdapter(adapterConfig, (services) => {
+		// console.log('services:', services);
+		
 		if (!services) {
 			console.log('createAdapter: no service for adapter', adapterConfig);
 			process.exit();

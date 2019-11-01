@@ -210,7 +210,7 @@ function relaunchAdapter(adapterConfig, spin) {
 	});
 }
 
-function createAdapter(spin, adapterType, adapterSettings) {
+function createAdapter(spin, adapterType, adapterSettings, callback) {
 	console.log('CREATING ADAPTER:', spin.id, adapterType, adapterSettings);
 	const adapterId = Math.random().toString().substring(2);
 	adapters[adapterId] = {
@@ -237,11 +237,13 @@ function createAdapter(spin, adapterType, adapterSettings) {
 		
 		console.log('CREATED ADAPTER:', adapterConfig, 'services:', serviceTypes);
 		
-		startSpinAdapter(adapters[adapterId], spin, services);
+		startSpinAdapter(adapters[adapterId], spin, services, callback);
 	});
+	
+	return adapterId;
 }
 
-function startSpinAdapter(adapterConfig, spin, services) {
+function startSpinAdapter(adapterConfig, spin, services, callback) {
 	console.log('Starting Adapter:', adapterConfig);
 	
 	const devices = {
@@ -284,6 +286,8 @@ function startSpinAdapter(adapterConfig, spin, services) {
 			devices[id].addListener('disconnect', onDisconnect);
 		})(i);
 	}
+	
+	if (callback) callback(adapterConfig);
 	return adapterInstance;
 }
 
@@ -343,3 +347,78 @@ if (process.env.NODE_ENV === 'prod') {
 }
 
 beginSpinService();
+
+function createMouse(spin) {
+	createAdapter(spin, 'mouse', {}, function(adapterConfig) {
+		console.log('created mouse adapter', adapterConfig);
+		setTimeout(function() {
+			console.log('destroying');
+			destroyAdapter(adapterConfig);
+			console.log('creating media in 5');
+			setTimeout(function() {
+				createMedia(spin)
+			},5000);
+		},5000);
+	});
+}
+
+function createMedia(spin) {
+	createAdapter(spin, 'media', {}, function(adapterConfig) {
+		console.log('created media adapter', adapterConfig);
+		setTimeout(function() {
+			console.log('destroying');
+			destroyAdapter(adapterConfig);
+			setTimeout(function() {
+				createKeyboard(spin);
+			},5000);
+		},5000);
+	});
+}
+
+function createKeyboard(spin) {
+	createAdapter(spin, 'keyboard', {}, function(adapterConfig) {
+		console.log('created keyboard adapter', adapterConfig);
+		setTimeout(function() {
+			console.log('destroying');
+			destroyAdapter(adapterConfig);
+			setTimeout(function() {
+				createMomentum(spin)
+			},5000);
+		},5000);
+	});
+}
+
+function createMomentum(spin) {
+	createAdapter(spin, 'momentum', {}, function(adapterConfig) {
+		console.log('created momentum adapter', adapterConfig);
+		setTimeout(function() {
+			console.log('destroying');
+			destroyAdapter(adapterConfig);
+			setTimeout(function() {
+				createPrecision(spin);
+			},5000);
+		},5000);
+	});
+}
+
+function createPrecision(spin) {
+	createAdapter(spin, 'precision', {}, function(adapterConfig) {
+		console.log('created precision adapter', adapterConfig);
+		// setTimeout(function() {
+		// 	console.log('destroying');
+		// 	destroyAdapter(adapterConfig);
+		// 	setTimeout(function() {
+		//
+		// 	},5000);
+		// },5000);
+	});
+}
+
+setTimeout(function() {
+	for (let id in Spin.spinIds) {
+		let spin = Spin.spinIds[id];
+		// console.log(spin);
+		createMouse(spin);
+		break;
+	}
+},3000);

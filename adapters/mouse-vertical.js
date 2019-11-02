@@ -111,7 +111,7 @@ function verticalMouseAdapter() {
 				} else {
 					let y = mousePos.y + distance;
 					if (y < 1) y = 1;
-					if (y > size.width) y = size.width;
+					if (y > size.height) y = size.height;
 					if (this.state.didKnobHold) {
 						// this.log('drag mouse Y', y);
 						// mouse.moveMouse(mousePos.x, y);

@@ -1,42 +1,43 @@
 const Jaxcore = require('./jaxcore');
 const jaxcore = new Jaxcore();
 
+// DEVICES
+
 const Spin = require('jaxcore-spin');
 jaxcore.addDevice('spin', Spin);
 
-// const DesktopService = require('./desktop-service-macosx');
-// jaxcore.addService('desktop', DesktopService);
+// SERVICES
 
-const KeyboardService = require('./keyboard-service');
+const KeyboardService = require('./services/keyboard-service');
 jaxcore.addService('keyboard', KeyboardService);
-const VolumeService = require('./volume-service');
+const VolumeService = require('./services/volume-service');
 jaxcore.addService('volume', VolumeService);
-const MouseService = require('./mouse-service');
+const MouseService = require('./services/mouse-service');
 jaxcore.addService('mouse', MouseService);
-const ScrollService = require('./scroll-service');
+const ScrollService = require('./services/scroll-service');
 jaxcore.addService('scroll', ScrollService);
+
+// ADAPTERS
 
 const volumeAdapter = require('./adapters/volume');
 jaxcore.addAdapter('volume', volumeAdapter);
-
 const mouseAdapter = require('./adapters/mouse');
 jaxcore.addAdapter('mouse', mouseAdapter);
-
+const horizontalMouseAdapter = require('./adapters/mouse-horizontal');
+jaxcore.addAdapter('hmouse', horizontalMouseAdapter);
+const verticalMouseAdapter = require('./adapters/mouse-vertical');
+jaxcore.addAdapter('vmouse', verticalMouseAdapter);
 const keyboardAdapter = require('./adapters/keyboard');
 jaxcore.addAdapter('keyboard', keyboardAdapter);
-
 const scrollAdapter = require('./adapters/scroll');
 jaxcore.addAdapter('scroll', scrollAdapter);
 
 // const mediaAdapter = require('./adapters/media-volume');
 // jaxcore.addAdapter('media', mediaAdapter);
-
 // const momentumScrollAdapter = require('./adapters/momentum-scroll');
 // jaxcore.addAdapter('momentum', momentumScrollAdapter);
-//
 // const precisionScrollAdapter = require('./adapters/precision-scroll');
 // jaxcore.addAdapter('precision', precisionScrollAdapter);
-
 // const testAdapter = require('./adapters/test');
 // const Adapter = require('./adapter');
 
@@ -47,11 +48,7 @@ if (process.env.NODE_ENV === 'prod') {
 	});
 }
 
-let spinIds = [
-	'4a2cee65c67f4fdd9784da6af2bf57cf',
-	'025e6331f4b34bd2bf50d0e9f11f808e'
-];
-jaxcore.beginSpinService(spinIds);
+
 
 
 function createScroll(spin) {
@@ -81,6 +78,17 @@ function createMouse(spin) {
 		// },10000);
 	});
 }
+function createHorizontalMouse(spin) {
+	jaxcore.createAdapter(spin, 'hmouse', {}, function (adapterConfig) {
+		console.log('created mouse adapter', adapterConfig);
+	});
+}
+function createVerticalMouse(spin) {
+	jaxcore.createAdapter(spin, 'vmouse', {}, function (adapterConfig) {
+		console.log('created vmouse adapter', adapterConfig);
+	});
+}
+
 function createKeyboard(spin) {
 	jaxcore.createAdapter(spin, 'keyboard', {}, function(adapterConfig) {
 		console.log('created keyboard adapter', adapterConfig);
@@ -134,16 +142,38 @@ function createMomentum(spin) {
 // 	});
 // }
 
+// let spinIds = [
+// 	'4a2cee65c67f4fdd9784da6af2bf57cf',
+// 	'025e6331f4b34bd2bf50d0e9f11f808e'
+// ];
+// jaxcore.beginSpinService(spinIds);
+// setTimeout(function() {
+// 	var first = true;
+// 	for (let id in Spin.spinIds) {
+// 		let spin = Spin.spinIds[id];
+// 		if (first) {
+// 			first = false;
+// 			createVerticalMouse(spin);
+// 		}
+// 		else {
+// 			createHorizontalMouse(spin);
+// 		}
+// 	}
+// },6000);
+
+
+jaxcore.beginSpinService();
 setTimeout(function() {
+	var first = true;
 	for (let id in Spin.spinIds) {
 		let spin = Spin.spinIds[id];
 		// console.log(spin);
 		// createMedia(spin);
 		// createVolume(spin);
 		// createKeyboard(spin);
-		// createMouse(spin);
-		createScroll(spin);
+		createMouse(spin);
+		// createScroll(spin);
 	}
-},15000);
+},6000);
 
 // createMouse(spin);

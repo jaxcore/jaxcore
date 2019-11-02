@@ -1,7 +1,7 @@
 var plugin = require('jaxcore-plugin');
 var Client = plugin.Client;
 var robot = require("robotjs");
-var MomentumScroll = require('./scrolltest/lib/src/momentumscroll/momentumscroll.js').default;
+var MomentumScroll = require('../scrolltest/lib/src/momentumscroll/momentumscroll.js').default;
 
 function ScrollService(defaults) {
 	this.constructor();

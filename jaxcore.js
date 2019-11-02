@@ -60,6 +60,7 @@ Jaxcore.prototype.addAdapter = function(adapterType, adapterInitializer) {
 Jaxcore.prototype.beginSpinService = function(spinIds) {
 	console.log('waiting for spin');
 	const Spin = this.deviceClasses.spin;
+	if (!spinIds || spinIds.length===0) spinIds = [];
 	Spin.connectBLE(spinIds, (spin) => {
 		console.log('connected BLE', spin.id);
 		spin.setBrightness(5);
@@ -180,6 +181,8 @@ Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serv
 Jaxcore.prototype.getServicesForAdapter = function(adapterConfig, callback) {
 	if (adapterConfig.type === 'volume' ||
 		adapterConfig.type === 'mouse' ||
+		adapterConfig.type === 'hmouse' ||
+		adapterConfig.type === 'vmouse' ||
 		adapterConfig.type === 'scroll' ||
 		adapterConfig.type === 'keyboard') {
 		const adapterInstance = this.adapterInitializers[adapterConfig.type];

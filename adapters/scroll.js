@@ -1,15 +1,8 @@
-var MomentumScroll = require('../scrolltest/lib/src/momentumscroll/momentumscroll.js').default;
 
 function getDefaultState() {
 	return {
-		scrollForce: 0.01,
-		scrollFriction: 0.05,
-		shuttleForce: 0.001,
-		shuttleFriction: 0.05,
-		shuttleIntervalTime: 30,
-		shuttlePositionH: 0,
-		shuttlePositionV: 0,
 		didBothSpin: false,
+		didBothPush: false,
 		didKnobSpin: false,
 		didButtonSpin: false
 	};
@@ -27,174 +20,120 @@ function scrollAdapter() {
 	spin.rotateRainbow(2);
 	spin.lightsOff();
 	
-	this.momentumScroll = new MomentumScroll({
-		intervalTime: 1
-	});
-	
-	this.momentumScroll.on('scroll', (scrollX, scrollY) => {
-		this.log('momentumScroll', 'X', scrollX, 'Y', scrollY);
-		// if (scrollX !== 0) scroll.scrollHorizontal(scrollX);
-		// if (scrollY !== 0) scroll.scrollVertical(scrollY);
-		scroll.scroll(scrollX, scrollY);
-	});
-	
 	this.setEvents({
 		spin: {
-			spin: function(diff, spinTime) {
-				console.log('rotate', 'diff=' + diff, 'time=' + spinTime, 'button=' + spin.state.buttonPushed, 'knob=' + spin.state.knobPushed);
+			spin: function(diff, time) {
+				console.log('rotate', 'diff=' + diff, 'time=' + time, 'button=' + spin.state.buttonPushed, 'knob=' + spin.state.knobPushed);
 				let dir = diff > 0 ? 1 : -1;
-				
-				let scrollForce, scrollFriction;
-				if (spinTime > 170) {
-					scrollForce = diff * this.state.scrollForce;
-					// let d = diff > 0? 1 : -1;
-					// scrollForce = d * Math.pow(Math.abs(diff), 1.1) * this.state.scrollForce;
-					scrollFriction = this.state.scrollFriction;
-				} else if (spinTime > 70) {
-					// let d = diff > 0? 1 : -1;
-					// scrollForce = diff * this.state.scrollForce * 2;
-					scrollForce = dir * Math.pow(Math.abs(diff * 1), 1.2) * this.state.scrollForce;
-					// let d = diff > 0? 1 : -1;
-					// scrollForce = d * Math.pow(Math.abs(diff), 1.1) * this.state.scrollForce;
-					scrollFriction = this.state.scrollFriction;
-				} else {
-					// let d = diff > 0? 1 : -1;
-					scrollForce = dir * Math.pow(Math.abs(diff * 1.1), 1.5) * this.state.scrollForce;
-					scrollFriction = this.state.scrollFriction;
-				}
 				
 				if (spin.state.knobPushed) this.state.didKnobSpin = true;
 				if (spin.state.buttonPushed) this.state.didButtonSpin = true;
 				if (spin.state.buttonPushed && spin.state.knobPushed) this.state.didBothSpin = true;
 				
 				if (spin.state.buttonPushed && spin.state.knobPushed) {
-					// let shuttleDiff = spin.state.spinPosition - this.state.shuttlePositionH;
-					// if (shuttleDiff === 0) {
-					// 	this.momentumScroll.stopShuttleHorizontal();
-					// } else {
-					// 	let shuttleForce = shuttleDiff * this.state.shuttleForce;
-					// 	this.momentumScroll.startShuttleHorizontal(shuttleDiff, shuttleForce, this.state.shuttleFriction, this.state.shuttleIntervalTime);
-					// }
+					this.state.didBothSpin = true;
+					clearInterval(this.balanceInterval);
+					let shuttleDiff = scroll.shuttleHorizontal(spin.state.spinPosition);
+					let balance = 0;
+					if (shuttleDiff !== 0) {
+						let d = shuttleDiff > 0 ? 1 : -1;
+						balance = d * Math.min(Math.abs(shuttleDiff), 24) / 24;
+					}
+					this.balanceInterval = startInterval(function() {
+						spin.balance(balance, theme.primary, theme.secondary, theme.tertiary);
+					},500);
 					
-					// if (diff > 0) {
-					// 	scroll.keyPress('+', ['command']);
-					// 	// scroll.keyToggle('a', 'down');
-					// 	// scroll.keyPress('+');
-					// 	// scroll.keyToggle('command', 'up');
-					// } else {
-					// 	scroll.keyPress('-', ['command']);
-					// 	// scroll.keyToggle('a', 'up');
-					// 	// scroll.keyPress('-');
-					// 	// scroll.keyToggle('command', 'up');
-					// }
 				} else if (spin.state.buttonPushed) {
-					
-					this.momentumScroll.scrollHorizontal(diff, scrollForce, scrollFriction);
-					
-					if (dir === 1) spin.rotate(dir, theme.high);
-					else spin.rotate(dir, theme.low);
+					scroll.scrollHorizontal(diff, time);
+					if (diff > 0) spin.rotate(dir, theme.primary);
+					else spin.rotate(dir, theme.secondary);
 					
 				} else if (spin.state.knobPushed) {
 					clearInterval(this.balanceInterval);
-					let shuttleDiff = spin.state.spinPosition - this.state.shuttlePositionV;
-					if (shuttleDiff === 0) {
-						this.momentumScroll.stopShuttleVertical();
-						spin.balance(0, theme.low, theme.high, theme.middle);
-					} else {
+					let shuttleDiff = scroll.shuttleVertical(spin.state.spinPosition);
+					let balance = 0;
+					if (shuttleDiff !== 0) {
 						let d = shuttleDiff > 0 ? 1 : -1;
-						let shuttleForce = d * Math.pow(Math.abs(shuttleDiff), 1.5) * this.state.shuttleForce;
-						this.momentumScroll.startShuttleVertical(shuttleDiff, shuttleForce, this.state.shuttleFriction, this.state.shuttleIntervalTime);
-						
-						let balance = d * Math.min(Math.abs(shuttleDiff), 24) / 24;
-						console.log('shuttleDiff', shuttleDiff, 'balance', balance);
-						
-						spin.balance(balance, theme.low, theme.high, theme.middle);
-						
-						this.balanceInterval = startInterval(function() {
-							spin.balance(balance, theme.low, theme.high, theme.middle);
-						},500);
+						balance = d * Math.min(Math.abs(shuttleDiff), 24) / 24;
 					}
+					this.balanceInterval = startInterval(function() {
+						spin.balance(balance, theme.low, theme.high, theme.middle);
+					},500);
 				} else {
-					this.momentumScroll.scrollVertical(diff, scrollForce, scrollFriction);
+					scroll.scrollVertical(diff, time);
 					if (dir === 1) spin.rotate(dir, theme.high);
 					else spin.rotate(dir, theme.low);
 				}
-				
 			},
 			button: function(pushed) {
 				console.log('button', pushed, 'knob=' + spin.state.knobPushed);
 				if (pushed) {
 					this.state.didButtonSpin = false;
-					
 					if (spin.state.knobPushed) {
-						// this.state.didKnobButtonPush = true;
-						// this.state.shuttlePositionH = spin.state.spinPosition;
+						clearInterval(this.balanceInterval);
+						scroll.stopShuttleVertical();
+						
+						scroll.startShuttleHorizontal(spin.state.spinPosition);
+						this.state.didBothSpin = false;
+						this.state.didBothPush = true;
 					}
 				} else {
-					
-					if (!this.state.didButtonSpin) {
-						// scroll.keyPress('home');
+					if (this.state.didBothPush) {
+						this.state.didBothPush = false;
+						clearInterval(this.balanceInterval);
+						scroll.stopShuttleHorizontal();
 					}
-					
-					// this.momentumScroll.stopShuttleHorizontal();
 					
 					if (this.state.didBothSpin) {
 						this.state.didBothSpin = false;
-						// console.log('hi 1 ============');
-						// scroll.scrollVertical(100);
-					}
-					
-					if (spin.state.knobPushed) {
-						// console.log('hi 1');
-						// scroll.scrollVertical(100);
-						// scroll.keyToggle('command', 'up');
 					}
 				}
 			},
 			knob: function(pushed) {
 				console.log('knob', pushed, 'button=' + spin.state.buttonPushed);
 				if (pushed) {
-					this.state.shuttlePositionV = spin.state.spinPosition;
-					this.state.didKnobSpin = false;
-					
 					if (spin.state.buttonPushed) {
-						// this.state.shuttlePositionH = spin.state.spinPosition;
+						scroll.startShuttleHorizontal(spin.state.spinPosition);
+						this.state.didBothSpin = false;
+						this.state.didBothPush = true;
+					}
+					else {
+						scroll.startShuttleVertical(spin.state.spinPosition);
+						this.state.didKnobSpin = false;
 					}
 				} else {
-					if (!this.state.didKnobSpin) {
-						// scroll.keyPress('end');
+					if (this.state.didBothPush) {
+						this.state.didBothPush = false;
+						clearInterval(this.balanceInterval);
+						scroll.stopShuttleHorizontal();
 					}
-					
-					clearInterval(this.balanceInterval);
-					this.momentumScroll.stopShuttleVertical();
-					
-					if (spin.state.buttonPushed) {
-						// scroll.keyToggle('command', 'up');
+					else {
+						clearInterval(this.balanceInterval);
+						scroll.stopShuttleVertical();
+						
 					}
-					
-					// this.momentumScroll.stopShuttleHorizontal();
 				}
+			}
+		},
+		scroll: {
+			scroll: function(scrollX, scrollY) {
+				this.log('scroll', scrollX, scrollY);
 			}
 		}
 	});
 	
 	this.on('teardown', () => {
-		this.momentumScroll.stop();
-		this.momentumScroll.removeAllListeners();
+		scroll.stop();
 	});
 }
 
-
 scrollAdapter.getServicesConfig = function(adapterConfig) {
 	console.log('scrollAdapter getServicesConfig', adapterConfig);
-	
 	let servicesConfig = {
 		scroll: {
-			// scroll: 'precision'
 			type: 'momentum'
 		}
 	};
-	
 	return servicesConfig;
 };
 

@@ -57,10 +57,10 @@ Jaxcore.prototype.addAdapter = function(adapterType, adapterInitializer) {
 	this.adapterInitializers[adapterType] = adapterInitializer;
 };
 
-Jaxcore.prototype.beginSpinService = function() {
+Jaxcore.prototype.beginSpinService = function(spinIds) {
 	console.log('waiting for spin');
 	const Spin = this.deviceClasses.spin;
-	Spin.connectBLE((spin) => {
+	Spin.connectBLE(spinIds, (spin) => {
 		console.log('connected BLE', spin.id);
 		spin.setBrightness(5);
 		

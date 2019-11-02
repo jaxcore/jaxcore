@@ -47,7 +47,11 @@ if (process.env.NODE_ENV === 'prod') {
 	});
 }
 
-jaxcore.beginSpinService();
+let spinIds = [
+	'4a2cee65c67f4fdd9784da6af2bf57cf',
+	'025e6331f4b34bd2bf50d0e9f11f808e'
+];
+jaxcore.beginSpinService(spinIds);
 
 
 function createScroll(spin) {
@@ -139,8 +143,7 @@ setTimeout(function() {
 		// createKeyboard(spin);
 		// createMouse(spin);
 		createScroll(spin);
-		break;
 	}
-},6000);
+},15000);
 
 // createMouse(spin);

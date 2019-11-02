@@ -173,7 +173,7 @@ function momentumScrollAdapter() {
 					
 					// this.momentumScroll.stopShuttleHorizontal();
 				}
-			}
+			} 
 		}
 	});
 	

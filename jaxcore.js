@@ -2,6 +2,7 @@ const plugin = require('jaxcore-plugin');
 var Client = plugin.Client;
 const Adapter = require('./adapter');
 const themes = require('./themes');
+const async = require('async');
 
 const defaultAdapter = null; //process.argv[2];
 const defaultTheme = 'cyber';
@@ -179,44 +180,76 @@ Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serv
 };
 
 Jaxcore.prototype.getServicesForAdapter = function(adapterConfig, callback) {
-	if (adapterConfig.type === 'volume' ||
-		adapterConfig.type === 'mouse' ||
-		adapterConfig.type === 'hmouse' ||
-		adapterConfig.type === 'vmouse' ||
-		adapterConfig.type === 'scroll' ||
-		adapterConfig.type === 'keyboard') {
+	// if (adapterConfig.type === 'volume' ||
+	// 	adapterConfig.type === 'mouse' ||
+	// 	adapterConfig.type === 'hmouse' ||
+	// 	adapterConfig.type === 'vmouse' ||
+	// 	adapterConfig.type === 'scroll' ||
+	// 	adapterConfig.type === 'keyboard') {
+		
 		const adapterInstance = this.adapterInitializers[adapterConfig.type];
 		const servicesConfig = adapterInstance.getServicesConfig(adapterConfig);
 		this.log('getServicesForAdapter servicesConfig', adapterConfig, servicesConfig);
 		
+		const serviceConfigFns = [];
+		
 		for (let serviceType in servicesConfig) {
 			this.log('loop serviceType', serviceType);
-			for (let serviceId in servicesConfig[serviceType]) {
-				this.log('loop serviceId', serviceId, servicesConfig[serviceType]);
-				const serviceConfig = servicesConfig[serviceType];
+			// for (let serviceId in servicesConfig[serviceType]) {
+			// 	this.log('loop serviceId', serviceId, servicesConfig[serviceType]);
 				
-				this.log('serviceType', serviceType, 'serviceId', 'serviceConfig', servicesConfig);
-				
-				this.getOrCreateService(adapterConfig, serviceType, serviceConfig, function(serviceInstance) {
-					// console.log('hi', serviceInstance);
+			const serviceConfig = servicesConfig[serviceType];
+			let fn = ((type, config) => {
+				return (asyncCallback) => {
+					this.getOrCreateService(adapterConfig, type, config, function(serviceInstance) {
+						// console.log('hi', serviceInstance);
+						
+						if (serviceInstance) {
+							console.log('getServicesForAdapter callback');
+							const serviceInstances = {};
+							serviceInstances[type] = serviceInstance;
+							asyncCallback(null, serviceInstances);
+						}
+						else {
+							console.log('no service for', adapterConfig, config);
+							asyncCallback({
+								noServiceInstance: config
+							});
+						}
+					});
 					
-					if (serviceInstance) {
-						console.log('getServicesForAdapter callback');
-						const serviceInstances = {};
-						serviceInstances[serviceType] = serviceInstance;
-						callback(serviceInstances);
-					}
-					else {
-						console.log('no service for', adapterConfig, serviceConfig);
-						callback()
+				}
+			})(serviceType, serviceConfig);
+			
+			serviceConfigFns.push(fn);
+			// }
+		}
+		
+		console.log('serviceConfigFns', serviceConfigFns.length, serviceConfigFns);
+		
+		async.series(serviceConfigFns, function(err, results) {
+			if (err) {
+				console.log('err', err);
+				process.exit();
+			}
+			if (results) {
+				const combinedServices = {};
+				results.forEach(function(serviceInstance) {
+					for (let type in serviceInstance) {
+						combinedServices[type] = serviceInstance[type];
 					}
 				});
-				return;
-				break;
+				console.log('serviceInstances combinedServices', combinedServices);
+				callback(combinedServices);
 			}
-			break;
-		}
-	}
+		});
+		
+		// this.log('serviceType', serviceType, 'serviceId', 'serviceConfig', servicesConfig);
+		
+		// return;
+		
+		// process.exit();
+	// }
 	// else if (adapterConfig.type === 'media' ||
 	// 	adapterConfig.type === 'momentum' ||
 	// 	adapterConfig.type === 'precision' ||
@@ -241,10 +274,10 @@ Jaxcore.prototype.getServicesForAdapter = function(adapterConfig, callback) {
 	// 		}
 	// 	});
 	// }
-	else {
-		console.log('no service for adapter', adapterConfig);
-		callback();
-	}
+	// else {
+	// 	console.log('no service for adapter', adapterConfig);
+	// 	callback();
+	// }
 };
 
 Jaxcore.prototype.relaunchAdapter = function(adapterConfig, spin) {
@@ -262,6 +295,7 @@ Jaxcore.prototype.relaunchAdapter = function(adapterConfig, spin) {
 };
 
 Jaxcore.prototype.createAdapter = function(spin, adapterType, adapterSettings, callback) {
+	if (!adapterSettings) adapterSettings = {};
 	console.log('CREATING ADAPTER:', spin.id, adapterType, adapterSettings);
 	const adapterId = Math.random().toString().substring(2);
 	console.log('usage 4');

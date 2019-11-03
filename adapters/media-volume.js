@@ -68,7 +68,7 @@ function mediaAdapter() {
 	};
 	
 	this.setEvents({
-		desktop: {
+		volume: {
 			volume: function (volumePercent, volume) {
 				this.log('desktop started vol=', volumePercent, volume);
 				spin.scale(volumePercent, theme.low, theme.high, theme.middle);
@@ -105,7 +105,7 @@ function mediaAdapter() {
 				} else if (spin.state.buttonPushed) {
 				
 				} else {
-					if (desktop.state.muted) {
+					if (volume.state.muted) {
 						if (volume.state.volumePercent < 0.04) {
 							volume.changeVolume(diff, spinTime);
 						} else {
@@ -142,6 +142,13 @@ function mediaAdapter() {
 		}
 	});
 }
+
+mediaAdapter.getServicesConfig = function(adapterConfig) {
+	return {
+		keyboard: true,
+		volume: true
+	};
+};
 
 mediaAdapter.getDefaultState = getDefaultState;
 

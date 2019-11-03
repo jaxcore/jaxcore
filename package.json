@@ -4,6 +4,7 @@
   "description": "",
   "author": "Jaxcore",
   "dependencies": {
+    "async": "^3.1.0",
     "robotjs": "^0.5.1"
   },
   "devDependencies": {},

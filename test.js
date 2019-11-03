@@ -1,5 +1,8 @@
 const Jaxcore = require('./jaxcore');
 const jaxcore = new Jaxcore();
+const cyber = require('./themes/cyber');
+jaxcore.addTheme('cyber', cyber);
+jaxcore.setDefaultTheme('cyber');
 
 // DEVICES
 
@@ -66,17 +69,34 @@ if (process.env.NODE_ENV === 'prod') {
 // 	}
 // },6000);
 
-
-jaxcore.beginSpinService();
-setTimeout(function() {
-	for (let id in Spin.spinIds) {
-		let spin = Spin.spinIds[id];
-		// jaxcore.createAdapter(spin, 'scroll');
-		// jaxcore.createAdapter(spin, 'keyboard');
-		// jaxcore.createAdapter(spin, 'volume');
-		// jaxcore.createAdapter(spin, 'mouse');
-		jaxcore.createAdapter(spin, 'media');
-		// jaxcore.createAdapter(spin, 'mouseScroll');
+jaxcore.on('device-connected', function(type, device, adapterConfig) {
+	if (type === 'spin') {
+		const spin = device;
+		console.log('connected', spin.id);
+		if (!adapterConfig) {
+			console.log('spin adapter:', adapterConfig);
+			
+			// 	jaxcore.createAdapter(spin, 'scroll');
+			// jaxcore.createAdapter(spin, 'keyboard');
+			// jaxcore.createAdapter(spin, 'volume');
+			// jaxcore.createAdapter(spin, 'mouse');
+			jaxcore.createAdapter(spin, 'media');
+			// jaxcore.createAdapter(spin, 'mouseScroll');
+			
+		}
+		else {
+			console.log('no adapter for spin', spin.id);
+			process.exit();
+		}
 	}
-},6000);
+});
+
+jaxcore.startDevice('spin');
+
+// setTimeout(function() {
+// 	for (let id in Spin.spinIds) {
+// 		let spin = Spin.spinIds[id];
+
+// 	}
+// },6000);
 

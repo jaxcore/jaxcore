@@ -27,7 +27,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 // const EventEmitter = require('events');
 
-global.Body = _matterJs.Body;
+// global.Body = Body;
 
 var MomentumScroll = function (_EventEmitter) {
 	_inherits(MomentumScroll, _EventEmitter);

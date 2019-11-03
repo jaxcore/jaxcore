@@ -69,24 +69,25 @@ if (process.env.NODE_ENV === 'prod') {
 // 	}
 // },6000);
 
-jaxcore.on('device-connected', function(type, device, adapterConfig) {
+jaxcore.on('device-connected', function(type, device) {
 	if (type === 'spin') {
 		const spin = device;
 		console.log('connected', spin.id);
-		if (!adapterConfig) {
-			console.log('spin adapter:', adapterConfig);
-			
+		const adapterConfig = jaxcore.findSpinAdapter(spin);
+		if (adapterConfig) {
+			console.log('found adapter', adapterConfig);
+			jaxcore.relaunchAdapter(adapterConfig, spin);
+			// jaxcore.emit('device-connected', 'spin', spin, adapterConfig);
+		}
+		else {
+			console.log('DID NOT FIND ADAPTER FOR:', spin.id);
+			// jaxcore.emit('device-connected', 'spin', spin, null);
 			// 	jaxcore.createAdapter(spin, 'scroll');
 			// jaxcore.createAdapter(spin, 'keyboard');
 			// jaxcore.createAdapter(spin, 'volume');
 			// jaxcore.createAdapter(spin, 'mouse');
 			jaxcore.createAdapter(spin, 'media');
 			// jaxcore.createAdapter(spin, 'mouseScroll');
-			
-		}
-		else {
-			console.log('no adapter for spin', spin.id);
-			process.exit();
 		}
 	}
 });

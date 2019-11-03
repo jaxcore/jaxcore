@@ -72,27 +72,9 @@ Jaxcore.prototype.setDefaultTheme = function(themeName) {
 };
 
 Jaxcore.prototype.startDevice = function(type, ids) {
-	if (type === 'spin') this.startSpinService(ids);
-};
-Jaxcore.prototype.startSpinService = function(spinIds) {
-	// this.log('waiting for spin');
-	const Spin = this.deviceClasses.spin;
-	if (!spinIds || spinIds.length===0) spinIds = [];
-	Spin.connectBLE(spinIds, (spin) => {
-		this.log('connected BLE', spin.id);
-		const brightness = this.state.spinSettings[spin.id]? this.state.spinSettings[spin.id].brightness : this.spinDefaultSettings.brightness;
-		spin.setBrightness(brightness);
-		
-		const adapterConfig = this.findSpinAdapter(spin);
-		if (adapterConfig) {
-			this.relaunchAdapter(adapterConfig, spin);
-			this.emit('device-connected', 'spin', spin, adapterConfig);
-		}
-		else {
-			this.log('DID NOT FIND ADAPTER FOR:', spin.id);
-			this.emit('device-connected', 'spin', spin, null);
-		}
-	});
+	if (!ids) ids = [];
+	const deviceClass = this.deviceClasses[type];
+	deviceClass.startJaxcoreDevice(this, ids);
 };
 
 Jaxcore.prototype.findSpinAdapter = function(spin) {

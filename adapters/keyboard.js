@@ -191,47 +191,48 @@ function keyboardAdapter() {
 						this.state.didBothSpin = true;
 						const settings = diff > 0 ? this.state.settings.bothSpinRight : this.state.settings.bothSpinLeft;
 						
-						// diff = spin.resolution(diff, 16, settings.bufferStatic, settings.momentumTimeout);
-						// if (diff !== 0) {
-						// 	keyboard.keyPressMultiple(spin, Math.abs(bdiff), settings.key, settings.modifiers);
-						// 	spin.rotate(diff, theme.secondary, theme.secondary);
-						// }
-						
-						spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout, (bdiff) => {
-							keyboard.keyPressMultiple(spin, Math.abs(bdiff), settings.key, settings.modifiers);
+						diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
+						if (diff !== 0) {
+							keyboard.keyPressMultiple(spin, Math.abs(diff), settings.key, settings.modifiers);
 							spin.rotate(diff, theme.secondary, theme.secondary);
-						});
+						}
 					}
 				}
 				else if (spin.state.knobPushed) {
 					if (!this.state.didKnobHold) {
 						this.state.didKnobSpin = true;
 						const settings = diff > 0 ? this.state.settings.knobSpinRight : this.state.settings.knobSpinLeft;
-						spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout, (bdiff) => {
-							keyboard.keyPressMultiple(spin, Math.abs(bdiff), settings.key, settings.modifiers);
+						diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
+						if (diff !== 0) {
+							keyboard.keyPressMultiple(spin, Math.abs(diff), settings.key, settings.modifiers);
 							spin.rotate(diff, theme.primary, theme.primary);
-						});
+						}
 					}
 				}
 				else if (spin.state.buttonPushed) {
 					if (!this.state.didButtonHold) {
 						this.state.didButtonSpin = true;
 						const settings = diff > 0 ? this.state.settings.buttonSpinRight : this.state.settings.buttonSpinLeft;
-						spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout, (bdiff) => {
-							keyboard.keyPressMultiple(spin, Math.abs(bdiff), settings.key, settings.modifiers);
-							spin.rotate(diff, theme.high);
-						});
+						diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
+						if (diff !== 0) {
+							const adiff = Math.abs(diff);
+							keyboard.keyPressMultiple(spin, adiff, settings.key, settings.modifiers);
+							const dir = diff > 0 ? 1 : -1;
+							if (adiff > 1) spin.rotate(dir, theme.high, theme.high);
+							else spin.rotate(dir, theme.high);
+						}
 					}
 				}
 				else {
 					const settings = diff > 0 ? this.state.settings.spinRight : this.state.settings.spinLeft;
-					spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout, (bdiff) => {
-						const adiff = Math.abs(bdiff);
+					diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
+					if (diff !== 0) {
+						const adiff = Math.abs(diff);
 						keyboard.keyPressMultiple(spin, adiff, settings.key, settings.modifiers);
-						const dir = bdiff > 0? 1:-1;
-						if (adiff>1) spin.rotate(dir, theme.low, theme.low);
+						const dir = diff > 0 ? 1 : -1;
+						if (adiff > 1) spin.rotate(dir, theme.low, theme.low);
 						else spin.rotate(dir, theme.low);
-					});
+					}
 				}
 			},
 			knob: function (pushed) {
@@ -354,9 +355,7 @@ keyboardAdapter.getServicesConfig = function(adapterConfig) {
 	console.log('keyboardAdapter getServicesConfig', adapterConfig);
 	
 	let servicesConfig = {
-		keyboard: {
-			x: 123
-		}
+		keyboard: true
 	};
 	
 	return servicesConfig;

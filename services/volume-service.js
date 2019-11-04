@@ -2,8 +2,6 @@ var plugin = require('jaxcore-plugin');
 var Client = plugin.Client;
 var child_process = require('child_process');
 
-// var instances = {};
-
 function VolumeService(defaults) {
 	this.constructor();
 	this.createStore('Volume Store', true);

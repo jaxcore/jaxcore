@@ -89,18 +89,15 @@ function mediaAdapter() {
 				if (spin.state.knobPushed) {
 					if (!volume.state.muted) {
 						this.state.didKnobSpin = true;
-						
-						spin.buffer(diff, 0, 1, (bdiff) => {
-							let posDiff = spin.state.spinPosition - this.state.knobPushPosition;
-							if (posDiff === 0) {
-								this.stopFastForward();
-								this.stopRewind();
-							} else if (posDiff > 0) {
-								this.startFastForward();
-							} else if (posDiff < 0) {
-								this.startRewind();
-							}
-						});
+						let posDiff = spin.state.spinPosition - this.state.knobPushPosition;
+						if (posDiff === 0) {
+							this.stopFastForward();
+							this.stopRewind();
+						} else if (posDiff > 0) {
+							this.startFastForward();
+						} else if (posDiff < 0) {
+							this.startRewind();
+						}
 					}
 				} else if (spin.state.buttonPushed) {
 				

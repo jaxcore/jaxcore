@@ -42,6 +42,14 @@ jaxcore.addAdapter('mouseScroll', mouseScrollAdapter);
 const mediaAdapter = require('./adapters/media-volume');
 jaxcore.addAdapter('media', mediaAdapter);
 
+
+// PLUGINS
+
+const chromecastPlugin = require('jaxcore-chromecast-plugin');
+// jaxcore.addPlugin(chromecastPlugin);
+jaxcore.addService('chromecast', chromecastPlugin.services.chromecast);
+jaxcore.addAdapter('chromecast', chromecastPlugin.adapters.chromecast);
+
 if (process.env.NODE_ENV === 'prod') {
 	console.log = function () {
 	};
@@ -69,6 +77,8 @@ if (process.env.NODE_ENV === 'prod') {
 // 	}
 // },6000);
 
+let defaultAdapter = process.argv[2];
+
 jaxcore.on('device-connected', function(type, device) {
 	if (type === 'spin') {
 		const spin = device;
@@ -82,22 +92,15 @@ jaxcore.on('device-connected', function(type, device) {
 		else {
 			console.log('DID NOT FIND ADAPTER FOR:', spin.id);
 			// jaxcore.emit('device-connected', 'spin', spin, null);
-			// 	jaxcore.createAdapter(spin, 'scroll');
-			// jaxcore.createAdapter(spin, 'keyboard');
-			// jaxcore.createAdapter(spin, 'volume');
-			// jaxcore.createAdapter(spin, 'mouse');
-			jaxcore.createAdapter(spin, 'media');
-			// jaxcore.createAdapter(spin, 'mouseScroll');
+			
+			if (defaultAdapter === 'scroll') jaxcore.createAdapter(spin, 'scroll');
+			if (defaultAdapter === 'keyboard') jaxcore.createAdapter(spin, 'keyboard');
+			if (defaultAdapter === 'volume') jaxcore.createAdapter(spin, 'volume');
+			if (defaultAdapter === 'media') jaxcore.createAdapter(spin, 'media');
+			if (defaultAdapter === 'mouse') jaxcore.createAdapter(spin, 'mouse');
+			if (defaultAdapter === 'mouseScroll') jaxcore.createAdapter(spin, 'mouseScroll');
 		}
 	}
 });
 
 jaxcore.startDevice('spin');
-
-// setTimeout(function() {
-// 	for (let id in Spin.spinIds) {
-// 		let spin = Spin.spinIds[id];
-
-// 	}
-// },6000);
-

@@ -2,8 +2,6 @@ var plugin = require('jaxcore-plugin');
 var Client = plugin.Client;
 var robot = require("robotjs");
 
-// var instances = {};
-
 function KeyboardService(defaults) {
 	this.constructor();
 	this.createStore('Keyboard Store', true);
@@ -59,9 +57,11 @@ KeyboardService.prototype.disconnect = function (options) {
 };
 
 KeyboardService.prototype.keyPress = function(k, modifiers) {
-	this.log('keyPress', k, modifiers);
-	if (modifiers && modifiers.length) robot.keyTap(k, modifiers);
-	else robot.keyTap(k);
+	if (k > 0) {
+		this.log('keyPress', k, modifiers);
+		if (modifiers && modifiers.length) robot.keyTap(k, modifiers);
+		else robot.keyTap(k);
+	}
 };
 KeyboardService.prototype.keyPressMultiple = function(spin, number, k, modifiers) {
 	this.log('keyPressMultiple', 'number', number, 'key', k, 'modifiers', modifiers);

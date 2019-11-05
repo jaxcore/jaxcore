@@ -42,13 +42,13 @@ jaxcore.addAdapter('mouseScroll', mouseScrollAdapter);
 const mediaAdapter = require('./adapters/media-volume');
 jaxcore.addAdapter('media', mediaAdapter);
 
-
 // PLUGINS
 
 const chromecastPlugin = require('jaxcore-chromecast-plugin');
-// jaxcore.addPlugin(chromecastPlugin);
-jaxcore.addService('chromecast', chromecastPlugin.services.chromecast);
-jaxcore.addAdapter('chromecast', chromecastPlugin.adapters.chromecast);
+jaxcore.addPlugin(chromecastPlugin);
+
+const kodiPlugin = require('jaxcore-kodi-plugin');
+jaxcore.addPlugin(kodiPlugin);
 
 if (process.env.NODE_ENV === 'prod') {
 	console.log = function () {
@@ -99,6 +99,16 @@ jaxcore.on('device-connected', function(type, device) {
 			if (defaultAdapter === 'media') jaxcore.createAdapter(spin, 'media');
 			if (defaultAdapter === 'mouse') jaxcore.createAdapter(spin, 'mouse');
 			if (defaultAdapter === 'mouseScroll') jaxcore.createAdapter(spin, 'mouseScroll');
+			if (defaultAdapter === 'kodi') {
+				jaxcore.createAdapter(spin, 'kodi', {
+					services: {
+						kodi: {
+							host: '192.168.0.33',
+							port: 9090
+						}
+					}
+				});
+			}
 		}
 	}
 });

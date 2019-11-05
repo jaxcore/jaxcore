@@ -64,6 +64,19 @@ Jaxcore.prototype.addAdapter = function(adapterType, adapterInitializer) {
 	this.adapterInitializers[adapterType] = adapterInitializer;
 };
 
+Jaxcore.prototype.addPlugin = function(plugin) {
+	if (plugin.services) {
+		for (let serviceType in plugin.services) {
+			this.addService(serviceType, plugin.services[serviceType]);
+		}
+	}
+	if (plugin.adapters) {
+		for (let adapterType in plugin.adapters) {
+			this.addAdapter(adapterType, plugin.adapters[adapterType]);
+		}
+	}
+};
+
 Jaxcore.prototype.addTheme = function(themeName, theme) {
 	this.themes[themeName] = theme;
 };
@@ -99,18 +112,19 @@ Jaxcore.prototype.findSpinAdapter = function(spin) {
 
 Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serviceConfig, callback) {
 	this.log('start/get '+serviceType + ' service', 'serviceConfig:', serviceConfig);
-	// process.exit();
 	
 	const serviceClass = this.serviceClasses[serviceType];
 	if (!serviceClass) {
 		this.log('no service class for', serviceType);
 		process.exit();
 	}
+	// console.log('class', serviceClass.id, serviceConfig);
 	const serviceId = serviceClass.id(serviceConfig);
-	
+	console.log('serviceId', serviceId);
+	// process.exit();
 	if (!this.state.services[serviceType]) this.state.services[serviceType] = {};
 	
-	this.log('start/get service', serviceId);
+	this.log('start/get service serviceId', serviceId);
 	
 	if (serviceId && this.state.services[serviceType][serviceId] && this.serviceInstances[serviceId].instance) {
 		this.log('usage 2');
@@ -118,7 +132,7 @@ Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serv
 		adapterConfig.serviceIds[serviceType] = serviceId;
 		
 		// callback(this.state.services[serviceType][serviceId].instance);
-		callback(this.serviceInstances[serviceId].instance);
+		callback(null, this.serviceInstances[serviceId].instance);
 	}
 	else {
 		this.log('service does not exist', serviceId, serviceType);
@@ -151,25 +165,32 @@ Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serv
 			adapterConfig.serviceIds[serviceType] = serviceId;
 		}
 		else {
-			this.log('no service instance found', serviceType, serviceId);
+			this.log('no service instance found', serviceType, serviceId, serviceInstance.id === serviceId);
 			process.exit();
 		}
 		
 		if (serviceInstance.state.connected) {
 			this.log('service already connected', serviceType, serviceId);
 			process.exit();
-			callback(serviceInstance);
+			callback(null, serviceInstance);
 		} else {
 			this.log('waiting for service to connect', serviceType, serviceId);
 			
+			let connectTimeout = setTimeout(() => {
+				console.log('connection timeout');
+				callback({timeout:true});
+			},5000);
 			
 			serviceInstance.on('connect', function () {
+				clearTimeout(connectTimeout);
 				this.log(serviceType + ' service connected');
-				callback(serviceInstance);
+				callback(null, serviceInstance);
 			});
 			serviceInstance.on('disconnect', function () {
+				clearTimeout(connectTimeout);
 				this.log(serviceType + ' service disconnected');
-				destroyService(serviceType, serviceId);
+				process.exit();
+				jaxcore.destroyService(serviceType, serviceId);
 			});
 			serviceInstance.connect();
 		}
@@ -185,6 +206,10 @@ Jaxcore.prototype.getServicesForAdapter = function(adapterConfig, callback) {
 	// 	adapterConfig.type === 'keyboard') {
 		
 		const adapterInstance = this.adapterInitializers[adapterConfig.type];
+		if (!adapterInstance) {
+			console.log('no adapterInitializers', adapterConfig.type, Object.keys(this.adapterInitializers));
+			process.exit();
+		}
 		const servicesConfig = adapterInstance.getServicesConfig(adapterConfig);
 		this.log('getServicesForAdapter servicesConfig', adapterConfig, servicesConfig);
 		
@@ -198,8 +223,12 @@ Jaxcore.prototype.getServicesForAdapter = function(adapterConfig, callback) {
 			const serviceConfig = servicesConfig[serviceType];
 			let fn = ((type, config) => {
 				return (asyncCallback) => {
-					this.getOrCreateService(adapterConfig, type, config, function(serviceInstance) {
-						// this.log('hi', serviceInstance);
+					this.getOrCreateService(adapterConfig, type, config, function(err, serviceInstance) {
+						
+						if (err) {
+							this.log('err', err);
+							process.exit();
+						}
 						
 						if (serviceInstance) {
 							// console.log('getServicesForAdapter callback');

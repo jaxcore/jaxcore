@@ -176,31 +176,119 @@ Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serv
 		} else {
 			this.log('waiting for service to connect', serviceType, serviceId);
 			
-			let onConnect = () => {
-				clearTimeout(connectTimeout);
-				this.log(serviceType + ' service connected');
+			
+			let connectTimeout = setTimeout(() => {
 				
 				serviceInstance.removeListener('connect', onConnect);
 				
-				serviceInstance.on('disconnect', () => {
-					clearTimeout(connectTimeout);
-					this.log(serviceType + ' service disconnected');
-					//process.exit();
-					this.destroyService(serviceType, serviceId);
-				});
-				
-				callback(null, serviceInstance);
-			};
-			
-			let connectTimeout = setTimeout(() => {
 				console.log('connection timeout');
 				this.destroyService(serviceType, serviceId);
 				callback({timeout:true});
 			},5000);
 			
-			serviceInstance.on('connect', onConnect);
+			let onReconnect = () => {
+				this.reconnectServiceAdapter(adapterConfig, serviceType, serviceConfig, (err, success) => {
+					if (err) {
+						this.log('reconnectServiceAdapter error disable reconnect?');
+						
+					}
+				});
+			};
+			
+			let onDisconnect = (service, reconnecting) => {
+				// clearTimeout(connectTimeout);
+				this.log(serviceType + ' service disconnected, destroy adapter??', 'reconnecting='+reconnecting);
+				this.destroyAdapter(adapterConfig, () => {
+					console.log('destroyed adapter');
+				});
+				
+				// process.exit();
+				// this.destroyService(serviceType, serviceId);
+			};
+			
+			let onConnect = () => {
+				clearTimeout(connectTimeout);
+				this.log(serviceType + ' service connected');
+				
+				// serviceInstance.removeListener('connect', onConnect);
+				
+				// serviceInstance.on('disconnect', () => {
+				// 	clearTimeout(connectTimeout);
+				// 	this.log(serviceType + ' service disconnected');
+				// 	//process.exit();
+				// 	this.destroyService(serviceType, serviceId);
+				// });
+				
+				
+				
+				// serviceInstance.on('teardown', () => {
+				// 	console.log('teardown service, onReconnect');
+				// 	process.exit();
+				// });
+				
+				// handle reconnections by refinding the adapter
+				
+				serviceInstance.on('connect', onReconnect);
+				
+				serviceInstance.on('disconnect', onDisconnect);
+				
+				callback(null, serviceInstance);
+			};
+			
+			
+			serviceInstance.once('connect', onConnect);
+			
+			serviceInstance.on('teardown', () => {
+				serviceInstance.removeListener('connect', onReconnect);
+				serviceInstance.removeListener('disconnect', onDisconnect);
+				console.log('teardown service, onReconnect');
+				process.exit();
+			});
+			
+			// serviceInstance.once('connect', function() {
+			// 	callback(null, serviceInstance);
+			// });
+			
+			
+			
+			// serviceInstance.on('connect', () => {
+			//
+			// });
 			
 			serviceInstance.connect();
+		}
+	}
+};
+
+Jaxcore.prototype.reconnectServiceAdapter = function(adapterConfig, serviceType, serviceConfig, callback) {
+	this.log('reconnectServiceAdapter', adapterConfig, serviceType, serviceConfig);
+	adapterConfig.relaunching = true;
+	
+	for (let deviceType in adapterConfig.deviceIds) {
+		let deviceId = adapterConfig.deviceIds[deviceType];
+		if (deviceType === 'spin') {
+			let Spin = this.deviceClasses[deviceType];
+			let deviceInstance = Spin.getDeviceInstance(deviceId);
+			if (deviceInstance) {
+				if (deviceInstance.state.connected) {
+					this.log('relaunching...', deviceInstance);
+					this.relaunchAdapter(adapterConfig, deviceInstance);
+					callback(null, true);
+				}
+				else {
+					this.log('not relaunching adapter spin not connected');
+					callback({
+						spinNotConnected: true
+					});
+				}
+			}
+			else {
+				this.log('no spin found');
+				callback({
+					spinNotConnected: true
+				});
+			}
+			return;
 		}
 	}
 };
@@ -389,6 +477,15 @@ Jaxcore.prototype.startSpinAdapter = function(adapterConfig, spin, services, cal
 	};
 	
 	for (let serviceType in services) {
+		if (!services[serviceType].state.connected) {
+			console.log('startSpinAdapter service not connected', serviceType);
+			if (callback) {
+				callback({
+					serviceNotConnected: serviceType
+				});
+			}
+			return;
+		}
 		if (adapterConfig.serviceIds) {
 			adapterConfig.serviceIds[serviceType] = services[serviceType].id
 		}
@@ -428,6 +525,8 @@ Jaxcore.prototype.startSpinAdapter = function(adapterConfig, spin, services, cal
 			devices[id].addListener('disconnect', onDisconnect);
 		})(i);
 	}
+	
+	adapterConfig.destroyed = false;
 	
 	if (callback) {
 		callback(null, adapterConfig, adapterInstance);
@@ -476,7 +575,7 @@ Jaxcore.prototype.destroyService = function(serviceType, serviceId) {
 
 Jaxcore.prototype.destroyAdapter = function(adapterConfig) {
 	if (adapterConfig.destroyed) {
-		this.log('adapter destroyed');
+		this.log('adapter already destroyed');
 		return;
 	}
 	

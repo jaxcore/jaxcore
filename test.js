@@ -103,9 +103,18 @@ jaxcore.on('device-connected', function(type, device) {
 				jaxcore.createAdapter(spin, 'kodi', {
 					services: {
 						kodi: {
-							host: '192.168.0.33',
+							// host: '192.168.0.33',
+							host: 'localhost',
 							port: 9090
 						}
+					}
+				}, function(err, config, adapter) {
+					if (err) {
+						console.log('kodi error', err);
+						// process.exit();
+					}
+					else {
+						console.log('launched adapter', config, adapter);
 					}
 				});
 			}

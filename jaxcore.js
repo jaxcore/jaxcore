@@ -176,22 +176,30 @@ Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serv
 		} else {
 			this.log('waiting for service to connect', serviceType, serviceId);
 			
+			let onConnect = () => {
+				clearTimeout(connectTimeout);
+				this.log(serviceType + ' service connected');
+				
+				serviceInstance.removeListener('connect', onConnect);
+				
+				serviceInstance.on('disconnect', () => {
+					clearTimeout(connectTimeout);
+					this.log(serviceType + ' service disconnected');
+					//process.exit();
+					this.destroyService(serviceType, serviceId);
+				});
+				
+				callback(null, serviceInstance);
+			};
+			
 			let connectTimeout = setTimeout(() => {
 				console.log('connection timeout');
+				this.destroyService(serviceType, serviceId);
 				callback({timeout:true});
 			},5000);
 			
-			serviceInstance.on('connect', function () {
-				clearTimeout(connectTimeout);
-				this.log(serviceType + ' service connected');
-				callback(null, serviceInstance);
-			});
-			serviceInstance.on('disconnect', function () {
-				clearTimeout(connectTimeout);
-				this.log(serviceType + ' service disconnected');
-				process.exit();
-				jaxcore.destroyService(serviceType, serviceId);
-			});
+			serviceInstance.on('connect', onConnect);
+			
 			serviceInstance.connect();
 		}
 	}
@@ -223,24 +231,24 @@ Jaxcore.prototype.getServicesForAdapter = function(adapterConfig, callback) {
 			const serviceConfig = servicesConfig[serviceType];
 			let fn = ((type, config) => {
 				return (asyncCallback) => {
-					this.getOrCreateService(adapterConfig, type, config, function(err, serviceInstance) {
+					this.getOrCreateService(adapterConfig, type, config, (err, serviceInstance) => {
 						
 						if (err) {
-							this.log('err', err);
-							process.exit();
-						}
-						
-						if (serviceInstance) {
-							// console.log('getServicesForAdapter callback');
-							const serviceInstances = {};
-							serviceInstances[type] = serviceInstance;
-							asyncCallback(null, serviceInstances);
+							this.log('connect err', err);
+							asyncCallback(err);
 						}
 						else {
-							console.log('no service for', adapterConfig, config);
-							asyncCallback({
-								noServiceInstance: config
-							});
+							if (serviceInstance) {
+								// console.log('getServicesForAdapter callback');
+								const serviceInstances = {};
+								serviceInstances[type] = serviceInstance;
+								asyncCallback(null, serviceInstances);
+							} else {
+								this.log('no service for', adapterConfig, config);
+								asyncCallback({
+									noServiceInstance: config
+								});
+							}
 						}
 					});
 					
@@ -255,18 +263,26 @@ Jaxcore.prototype.getServicesForAdapter = function(adapterConfig, callback) {
 		
 		async.series(serviceConfigFns, (err, results) => {
 			if (err) {
-				this.log('err', err);
-				process.exit();
+				this.log('async.series', err);
+				callback(err);
 			}
-			if (results) {
-				const combinedServices = {};
-				results.forEach(function(serviceInstance) {
-					for (let type in serviceInstance) {
-						combinedServices[type] = serviceInstance[type];
-					}
-				});
-				this.log('serviceInstances combinedServices', combinedServices);
-				callback(combinedServices);
+			else {
+				if (results) {
+					const combinedServices = {};
+					results.forEach(function(serviceInstance) {
+						for (let type in serviceInstance) {
+							combinedServices[type] = serviceInstance[type];
+						}
+					});
+					this.log('serviceInstances combinedServices', combinedServices);
+					callback(null, combinedServices);
+				}
+				else {
+					this.log('no results');
+					callback({
+						error: 'no results'
+					});
+				}
 			}
 		});
 		
@@ -309,14 +325,19 @@ Jaxcore.prototype.getServicesForAdapter = function(adapterConfig, callback) {
 Jaxcore.prototype.relaunchAdapter = function(adapterConfig, spin) {
 	this.log('RELAUNCHING ADAPTER', adapterConfig, spin.id);
 	
-	this.getServicesForAdapter(adapterConfig, (services) => {
-		if (!services) {
-			this.log('relaunchAdapter: no service for adapter', adapterConfig);
+	this.getServicesForAdapter(adapterConfig, (err, services) => {
+		if (err) {
+			this.log('relaunchAdapter error', err);
 			process.exit();
 		}
-		
-		this.log('RELAUNCH ADAPTER:', adapterConfig);
-		this.startSpinAdapter(adapterConfig, spin, services);
+		else {
+			if (!services) {
+				this.log('relaunchAdapter: no service for adapter', adapterConfig);
+				process.exit();
+			}
+			this.log('RELAUNCH ADAPTER:', adapterConfig);
+			this.startSpinAdapter(adapterConfig, spin, services);
+		}
 	});
 };
 
@@ -338,17 +359,23 @@ Jaxcore.prototype.createAdapter = function(spin, adapterType, adapterSettings, c
 	
 	const adapterConfig = this.state.adapters[adapterId];
 	
-	this.getServicesForAdapter(adapterConfig, (services) => {
-		if (!services) {
-			this.log('createAdapter: no service for adapter', adapterConfig);
-			process.exit();
+	this.getServicesForAdapter(adapterConfig, (err, services) => {
+		if (err) {
+			this.log('createAdapter error', err);
+			callback(err);
 		}
-		
-		let serviceTypes = Object.keys(services);
-		
-		this.log('CREATED ADAPTER:', adapterConfig, 'services:', serviceTypes);
-		
-		this.startSpinAdapter(this.state.adapters[adapterId], spin, services, callback);
+		else {
+			if (!services) {
+				this.log('createAdapter: no service for adapter', adapterConfig);
+				process.exit();
+			}
+			
+			let serviceTypes = Object.keys(services);
+			
+			this.log('CREATED ADAPTER:', adapterConfig, 'services:', serviceTypes);
+			
+			this.startSpinAdapter(this.state.adapters[adapterId], spin, services, callback);
+		}
 	});
 	
 	return adapterId;
@@ -402,8 +429,10 @@ Jaxcore.prototype.startSpinAdapter = function(adapterConfig, spin, services, cal
 		})(i);
 	}
 	
-	if (callback) callback(adapterConfig);
-	return adapterInstance;
+	if (callback) {
+		callback(null, adapterConfig, adapterInstance);
+	}
+	// return adapterInstance;
 };
 
 Jaxcore.prototype.destroyService = function(serviceType, serviceId) {

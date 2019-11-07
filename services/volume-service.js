@@ -225,8 +225,9 @@ VolumeService.prototype._writeVolume = function () {
 VolumeService.prototype.changeVolume = function (diff) {
 	// if (diff > 0) VolumeService.volumeUp();
 	// else VolumeService.volumeDown();
+	
+	this.log('changing volume ...', this.state.volume, diff);
 	var v = this.state.volume + diff;
-	this.log('changing volume ...', this.state.volume, v);
 	this.setVolume(v);
 };
 

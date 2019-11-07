@@ -118,6 +118,7 @@ jaxcore.on('device-connected', function(type, device) {
 					}
 				});
 			}
+			if (defaultAdapter === 'chromecast') jaxcore.createAdapter(spin, 'chromecast');
 		}
 	}
 });

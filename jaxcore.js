@@ -138,125 +138,135 @@ Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serv
 		this.log('service does not exist', serviceId, serviceType);
 		this.log(this.state.services[serviceType][serviceId]);
 		
-		let serviceInstance = serviceClass.getOrCreateInstance(serviceId, serviceConfig);
-		
-		this.log('got serviceInstance', serviceInstance);
-		
-		if (serviceInstance && serviceInstance.id === serviceId) {
-			if (!this.state.services[serviceType][serviceId]) {
-				if (this.serviceInstances[serviceId]) {
-					this.log('service instance exists', serviceId);
-					process.exit();
-				}
-				
-				this.state.services[serviceType][serviceId] = {
-					serviceConfig,
-					// type: serviceType,
-					// instance: serviceInstance,
-					adapters: []
-				};
-				this.serviceInstances[serviceId] = {
-					type: serviceType,
-					instance: serviceInstance
-				};
-			}
-			this.log('usage 3');
-			this.state.services[serviceType][serviceId].adapters.push(adapterConfig.id);
-			adapterConfig.serviceIds[serviceType] = serviceId;
-		}
-		else {
-			this.log('no service instance found', serviceType, serviceId, serviceInstance.id === serviceId);
-			process.exit();
-		}
-		
-		if (serviceInstance.state.connected) {
-			this.log('service already connected', serviceType, serviceId);
-			process.exit();
-			callback(null, serviceInstance);
-		} else {
-			this.log('waiting for service to connect', serviceType, serviceId);
-			
-			
-			let connectTimeout = setTimeout(() => {
-				
-				serviceInstance.removeListener('connect', onConnect);
-				
-				console.log('connection timeout');
-				this.destroyService(serviceType, serviceId);
-				callback({timeout:true});
-			},5000);
-			
-			let onReconnect = () => {
-				this.reconnectServiceAdapter(adapterConfig, serviceType, serviceConfig, (err, success) => {
-					if (err) {
-						this.log('reconnectServiceAdapter error disable reconnect?');
-						
-					}
-				});
-			};
-			
-			let onDisconnect = (service, reconnecting) => {
-				// clearTimeout(connectTimeout);
-				this.log(serviceType + ' service disconnected, destroy adapter??', 'reconnecting='+reconnecting);
-				this.destroyAdapter(adapterConfig, () => {
-					console.log('destroyed adapter');
-				});
-				
-				// process.exit();
-				// this.destroyService(serviceType, serviceId);
-			};
-			
-			let onConnect = () => {
-				clearTimeout(connectTimeout);
-				this.log(serviceType + ' service connected');
-				
-				// serviceInstance.removeListener('connect', onConnect);
-				
-				// serviceInstance.on('disconnect', () => {
-				// 	clearTimeout(connectTimeout);
-				// 	this.log(serviceType + ' service disconnected');
-				// 	//process.exit();
-				// 	this.destroyService(serviceType, serviceId);
-				// });
-				
-				
-				
-				// serviceInstance.on('teardown', () => {
-				// 	console.log('teardown service, onReconnect');
-				// 	process.exit();
-				// });
-				
-				// handle reconnections by refinding the adapter
-				
-				serviceInstance.on('connect', onReconnect);
-				
-				serviceInstance.on('disconnect', onDisconnect);
-				
-				callback(null, serviceInstance);
-			};
-			
-			
-			serviceInstance.once('connect', onConnect);
-			
-			serviceInstance.on('teardown', () => {
-				serviceInstance.removeListener('connect', onReconnect);
-				serviceInstance.removeListener('disconnect', onDisconnect);
-				console.log('teardown service, onReconnect');
+		serviceClass.getOrCreateInstance(serviceId, serviceConfig, (serviceErr, serviceInstance) => {
+			if (serviceErr) {
+				this.log('serviceErr', serviceErr);
 				process.exit();
-			});
+			}
+			this.log('got serviceInstance', serviceInstance);
 			
-			// serviceInstance.once('connect', function() {
-			// 	callback(null, serviceInstance);
-			// });
+			if (!serviceInstance) {
+				this.log('no service instance found', serviceType, serviceId);
+				process.exit();
+			}
 			
+			if (serviceInstance.id === serviceId) {
+				if (!this.state.services[serviceType][serviceId]) {
+					if (this.serviceInstances[serviceId]) {
+						this.log('service instance exists', serviceId);
+						process.exit();
+					}
+					
+					this.state.services[serviceType][serviceId] = {
+						serviceConfig,
+						// type: serviceType,
+						// instance: serviceInstance,
+						adapters: []
+					};
+					this.serviceInstances[serviceId] = {
+						type: serviceType,
+						instance: serviceInstance
+					};
+				}
+				this.log('usage 3');
+				this.state.services[serviceType][serviceId].adapters.push(adapterConfig.id);
+				adapterConfig.serviceIds[serviceType] = serviceId;
+			}
+			else {
+				this.log('wrong id', serviceInstance.id, serviceId);
+				process.exit();
+			}
 			
+			if (serviceInstance.state.connected) {
+				this.log('service already connected', serviceType, serviceId);
+				process.exit();
+				callback(null, serviceInstance);
+			} else {
+				this.log('waiting for service to connect', serviceType, serviceId);
+				
+				
+				let connectTimeout = setTimeout(() => {
+					
+					serviceInstance.removeListener('connect', onConnect);
+					
+					console.log('connection timeout');
+					this.destroyService(serviceType, serviceId);
+					callback({timeout:true});
+				},5000);
+				
+				let onReconnect = () => {
+					this.reconnectServiceAdapter(adapterConfig, serviceType, serviceConfig, (err, success) => {
+						if (err) {
+							this.log('reconnectServiceAdapter error disable reconnect?');
+							
+						}
+					});
+				};
+				
+				let onDisconnect = (service, reconnecting) => {
+					// clearTimeout(connectTimeout);
+					this.log(serviceType + ' service disconnected, destroy adapter??', 'reconnecting='+reconnecting);
+					this.destroyAdapter(adapterConfig, () => {
+						console.log('destroyed adapter');
+					});
+					
+					// process.exit();
+					// this.destroyService(serviceType, serviceId);
+				};
+				
+				let onConnect = () => {
+					clearTimeout(connectTimeout);
+					this.log(serviceType + ' service connected');
+					
+					// serviceInstance.removeListener('connect', onConnect);
+					
+					// serviceInstance.on('disconnect', () => {
+					// 	clearTimeout(connectTimeout);
+					// 	this.log(serviceType + ' service disconnected');
+					// 	//process.exit();
+					// 	this.destroyService(serviceType, serviceId);
+					// });
+					
+					
+					
+					// serviceInstance.on('teardown', () => {
+					// 	console.log('teardown service, onReconnect');
+					// 	process.exit();
+					// });
+					
+					// handle reconnections by refinding the adapter
+					
+					serviceInstance.on('connect', onReconnect);
+					
+					serviceInstance.on('disconnect', onDisconnect);
+					
+					callback(null, serviceInstance);
+				};
+				
+				
+				serviceInstance.once('connect', onConnect);
+				
+				serviceInstance.on('teardown', () => {
+					serviceInstance.removeListener('connect', onReconnect);
+					serviceInstance.removeListener('disconnect', onDisconnect);
+					console.log('teardown service, onReconnect');
+					process.exit();
+				});
+				
+				// serviceInstance.once('connect', function() {
+				// 	callback(null, serviceInstance);
+				// });
+				
+				
+				
+				// serviceInstance.on('connect', () => {
+				//
+				// });
+				
+				serviceInstance.connect();
+			}
 			
-			// serviceInstance.on('connect', () => {
-			//
-			// });
-			
-			serviceInstance.connect();
-		}
+		});
 	}
 };
 

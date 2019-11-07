@@ -6,5 +6,7 @@ module.exports = {
 	secondary: [0,255,255],
 	tertiary: [255,255,0],
 	black: [0,0,0],
-	white: [255,255,255]
+	white: [255,255,255],
+	success: [0,255,0],
+	error: [255,0,0]
 };

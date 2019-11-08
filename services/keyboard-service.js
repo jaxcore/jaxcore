@@ -26,17 +26,12 @@ KeyboardService.id = function() {
 
 var keyboardInstance = null;
 
-KeyboardService.getOrCreateInstance = function(serviceId, serviceConfig) {
-	console.log('KeyboardService getOrCreateInstance', serviceId, serviceConfig);
+KeyboardService.getOrCreateInstance = function(serviceId, serviceConfig, callback) {
 	if (!keyboardInstance) {
 		console.log('CREATE KEYBOARD');
 		keyboardInstance = new KeyboardService(serviceConfig);
 	}
-	else {
-		console.log('RECONNECT KEYBOARD');
-	}
-	
-	return keyboardInstance;
+	callback(null, keyboardInstance);
 };
 
 KeyboardService.destroyInstance = function(serviceId, serviceConfig) {
@@ -57,10 +52,13 @@ KeyboardService.prototype.disconnect = function (options) {
 };
 
 KeyboardService.prototype.keyPress = function(k, modifiers) {
-	if (k > 0) {
-		this.log('keyPress', k, modifiers);
-		if (modifiers && modifiers.length) robot.keyTap(k, modifiers);
-		else robot.keyTap(k);
+	if (modifiers && modifiers.length) {
+		this.log('keyTap modifiers', k, modifiers);
+		robot.keyTap(k, modifiers);
+	}
+	else {
+		this.log('keyTap', k);
+		robot.keyTap(k);
 	}
 };
 KeyboardService.prototype.keyPressMultiple = function(spin, number, k, modifiers) {

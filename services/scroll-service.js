@@ -47,15 +47,12 @@ ScrollService.id = function () {
 
 var scrollInstance = null;
 
-ScrollService.getOrCreateInstance = function (serviceId, serviceConfig) {
+ScrollService.getOrCreateInstance = function (serviceId, serviceConfig, callback) {
 	if (!scrollInstance) {
 		console.log('CREATE SCROLL');
 		scrollInstance = new ScrollService(serviceConfig);
-	} else {
-		console.log('RECONNECT SCROLL');
 	}
-	
-	return scrollInstance;
+	callback(null, scrollInstance);
 };
 ScrollService.destroyInstance = function (serviceId, serviceConfig) {
 	if (scrollInstance) {

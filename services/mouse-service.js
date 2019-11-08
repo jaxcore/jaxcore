@@ -26,16 +26,12 @@ MouseService.id = function() {
 
 let mouseInstance = null;
 
-MouseService.getOrCreateInstance = function(serviceId, serviceConfig) {
+MouseService.getOrCreateInstance = function(serviceId, serviceConfig, callback) {
 	if (!mouseInstance) {
 		console.log('CREATE MOUSE');
 		mouseInstance = new MouseService(serviceConfig);
 	}
-	else {
-		console.log('RECONNECT MOUSE');
-	}
-	
-	return mouseInstance;
+	callback(null, mouseInstance);
 };
 MouseService.destroyInstance = function(serviceId, serviceConfig) {
 	if (mouseInstance) {

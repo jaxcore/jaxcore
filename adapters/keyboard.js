@@ -1,188 +1,123 @@
-function getDefaultState() {
-	return {
-		didKnobSpin: false,
-		didKnobHold: false,
-		
-		didButtonSpin: false,
-		didButtonHold: false,
-		
-		didBothSpin: false,
-		didBothHold: false,
-		
-		bothPushed: false,
-		bothReleased: false,
-		isBothRepeating: false,
-		
-		settings: {
-			bothPress: {
-				key: 'escape',
-				modifiers: []
-			},
-			bothHold: {
-				key: null,
-				modifiers: [],
-				repeat: true,
-				repeatDelay: 600,
-				repeatSpeed: 100
-			},
-			knobPress: {
-				key: 'enter',
-				modifiers: []
-			},
-			knobHold: {
-				key: 'enter',
-				modifiers: [],
-				repeat: true,
-				repeatDelay: 600,
-				repeatSpeed: 100
-			},
-			buttonPress: {
-				key: 'backspace',
-				modifiers: []
-			},
-			buttonHold: {
-				key: null,
-				modifiers: [],
-				repeat: true,
-				repeatDelay: 600,
-				repeatSpeed: 100
-			},
-			spinLeft: {
-				key: 'up',
-				modifiers: [],
-				bufferKinetic: 1,
-				bufferStatic: 1,
-				momentumTimeout: 300
-			},
-			spinRight: {
-				key: 'down',
-				modifiers: [],
-				bufferKinetic: 1,
-				bufferStatic: 1,
-				momentumTimeout: 300
-			},
-			knobSpinLeft: {
-				key: 'pageup',
-				modifiers: [],
-				bufferKinetic: 1,
-				bufferStatic: 1,
-				momentumTimeout: 300
-			},
-			knobSpinRight: {
-				key: 'pagedown',
-				modifiers: [],
-				bufferKinetic: 1,
-				bufferStatic: 1,
-				momentumTimeout: 300
-			},
-			buttonSpinLeft: {
-				key: 'left',
-				modifiers: [],
-				bufferKinetic: 1,
-				bufferStatic: 1,
-				momentumTimeout: 300
-			},
-			buttonSpinRight: {
-				key: 'right',
-				modifiers: [],
-				bufferKinetic: 1,
-				bufferStatic: 1,
-				momentumTimeout: 300
-			},
-			bothSpinLeft: {
-				key: 'left',
-				modifiers: ['command'],
-				bufferKinetic: 1,
-				bufferStatic: 1,
-				momentumTimeout: 300
-			},
-			bothSpinRight: {
-				key: 'right',
-				modifiers: ['command'],
-				bufferKinetic: 1,
-				bufferStatic: 1,
-				momentumTimeout: 300
-			}
-		}
-	};
-}
+const Adapter = require('jaxcore-plugin').Adapter;
 
-function keyboardAdapter() {
-	const {spin} = this.devices;
-	const {keyboard} = this.services;
-	const {theme} = this;
-	spin.rotateRainbow(2);
-	spin.lightsOff();
+class KeyboardAdapter extends Adapter {
+	static getDefaultState () {
+		return {
+			didKnobSpin: false,
+			didKnobHold: false,
+			
+			didButtonSpin: false,
+			didButtonHold: false,
+			
+			didBothSpin: false,
+			didBothHold: false,
+			
+			bothPushed: false,
+			bothReleased: false,
+			isBothRepeating: false,
+			
+			settings: {
+				bothPress: {
+					key: 'escape',
+					modifiers: []
+				},
+				bothHold: {
+					key: null,
+					modifiers: [],
+					repeat: true,
+					repeatDelay: 600,
+					repeatSpeed: 100
+				},
+				knobPress: {
+					key: 'enter',
+					modifiers: []
+				},
+				knobHold: {
+					key: 'enter',
+					modifiers: [],
+					repeat: true,
+					repeatDelay: 600,
+					repeatSpeed: 100
+				},
+				buttonPress: {
+					key: 'backspace',
+					modifiers: []
+				},
+				buttonHold: {
+					key: null,
+					modifiers: [],
+					repeat: true,
+					repeatDelay: 600,
+					repeatSpeed: 100
+				},
+				spinLeft: {
+					key: 'up',
+					modifiers: [],
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
+				},
+				spinRight: {
+					key: 'down',
+					modifiers: [],
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
+				},
+				knobSpinLeft: {
+					key: 'pageup',
+					modifiers: [],
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
+				},
+				knobSpinRight: {
+					key: 'pagedown',
+					modifiers: [],
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
+				},
+				buttonSpinLeft: {
+					key: 'left',
+					modifiers: [],
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
+				},
+				buttonSpinRight: {
+					key: 'right',
+					modifiers: [],
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
+				},
+				bothSpinLeft: {
+					key: 'left',
+					modifiers: ['command'],
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
+				},
+				bothSpinRight: {
+					key: 'right',
+					modifiers: ['command'],
+					bufferKinetic: 1,
+					bufferStatic: 1,
+					momentumTimeout: 300
+				}
+			}
+		};
+	}
 	
-	this.pushedBoth = function() {
-		this.state.bothPushed = true;
-		this.state.didBothHold = false;
-		this.log('PUSHED BOTH');
+	constructor (config, theme, devices, services) {
+		super(config, theme, devices, services);
+		const {spin} = devices;
+		const {keyboard} = services;
+		spin.rotateRainbow(2);
+		spin.lightsOff();
 		
-		if (this.state.didKnobHold) {
-			clearInterval(this.knobRepeatTimeout);
-			clearInterval(this.knobRepeatInterval);
-		}
-		if (this.state.didButtonHold) {
-			clearInterval(this.buttonRepeatTimeout);
-			clearInterval(this.buttonRepeatInterval);
-		}
-	};
-	
-	this.holdBoth = function(spin) {
-		if (!this.state.didBothSpin) {
-			this.log('BOTH HOLD');
-			this.state.didBothHold = true;
-			const settings = this.state.settings.bothHold;
-			if (this.state.isBothRepeating) {
-				this.log('ALREDY BOTH REPEATING');
-			}
-			if (settings.repeat && !this.state.isBothRepeating) {
-				this.state.isBothRepeating = true;
-				keyboard.keyPress(settings.key, settings.modifiers);
-				this.bothRepeatTimeout = setTimeout(() => {
-					this.bothRepeatInterval = setInterval(() => {
-						this.log('repeat both....');
-						keyboard.keyPress(settings.key, settings.modifiers);
-						spin.flash(theme.tertiary);
-					}, settings.repeatSpeed);
-				}, settings.repeatDelay);
-			}
-		}
-		else this.log('CANCEL BOTH HOLD');
-	};
-	
-	this.cancelHoldBoth = function() {
-		this.log('CANCEL BOTH HOLD');
-		if (this.state.bothPushed) {
-			this.state.didBothHold = true;
-			this.state.isBothRepeating = false;
-			clearTimeout(this.bothRepeatTimeout);
-			this.log('clearTimeout(this.bothRepeatTimeout);');
-			clearInterval(this.bothRepeatInterval);
-			this.log('clearInterval(this.bothRepeatInterval);');
-		}
-		else this.log('CANCEL BOTH HOLD OOOPS??');
-	};
-	
-	this.releasedBoth = function(spin) {
-		if (this.state.bothPushed) {
-			this.state.bothReleased = true;
-			if (this.state.didBothHold) {
-				this.cancelHoldBoth();
-				this.state.bothPushed = false;
-			}
-			else {
-				this.state.bothPushed = false;
-				this.log('RELEASED BOTH');
-				keyboard.keyPress(this.state.settings.bothPress.key, this.state.settings.bothPress.modifiers);
-				spin.flash(theme.tertiary);
-			}
-		}
-	};
-	
-	this.setEvents({
-		spin: {
+		this.addEvents(spin, {
 			spin: function (diff, spinTime) {
 				this.log('spin rotate', diff);
 				
@@ -347,20 +282,81 @@ function keyboardAdapter() {
 				}
 				else this.log('cancel button HOLD');
 			}
+		});
+	}
+	
+	pushedBoth () {
+		this.state.bothPushed = true;
+		this.state.didBothHold = false;
+		this.log('PUSHED BOTH');
+		
+		if (this.state.didKnobHold) {
+			clearInterval(this.knobRepeatTimeout);
+			clearInterval(this.knobRepeatInterval);
 		}
-	});
+		if (this.state.didButtonHold) {
+			clearInterval(this.buttonRepeatTimeout);
+			clearInterval(this.buttonRepeatInterval);
+		}
+	}
+	
+	holdBoth (spin) {
+		if (!this.state.didBothSpin) {
+			this.log('BOTH HOLD');
+			this.state.didBothHold = true;
+			const settings = this.state.settings.bothHold;
+			if (this.state.isBothRepeating) {
+				this.log('ALREDY BOTH REPEATING');
+			}
+			if (settings.repeat && !this.state.isBothRepeating) {
+				this.state.isBothRepeating = true;
+				keyboard.keyPress(settings.key, settings.modifiers);
+				this.bothRepeatTimeout = setTimeout(() => {
+					this.bothRepeatInterval = setInterval(() => {
+						this.log('repeat both....');
+						keyboard.keyPress(settings.key, settings.modifiers);
+						spin.flash(theme.tertiary);
+					}, settings.repeatSpeed);
+				}, settings.repeatDelay);
+			}
+		}
+		else this.log('CANCEL BOTH HOLD');
+	}
+	
+	cancelHoldBoth () {
+		this.log('CANCEL BOTH HOLD');
+		if (this.state.bothPushed) {
+			this.state.didBothHold = true;
+			this.state.isBothRepeating = false;
+			clearTimeout(this.bothRepeatTimeout);
+			this.log('clearTimeout(this.bothRepeatTimeout);');
+			clearInterval(this.bothRepeatInterval);
+			this.log('clearInterval(this.bothRepeatInterval);');
+		}
+		else this.log('CANCEL BOTH HOLD OOOPS??');
+	}
+	
+	releasedBoth (spin) {
+		if (this.state.bothPushed) {
+			this.state.bothReleased = true;
+			if (this.state.didBothHold) {
+				this.cancelHoldBoth();
+				this.state.bothPushed = false;
+			}
+			else {
+				this.state.bothPushed = false;
+				this.log('RELEASED BOTH');
+				keyboard.keyPress(this.state.settings.bothPress.key, this.state.settings.bothPress.modifiers);
+				spin.flash(theme.tertiary);
+			}
+		}
+	}
+	
+	static getServicesConfig (adapterConfig) {
+		return {
+			keyboard: true
+		};
+	}
 }
 
-keyboardAdapter.getServicesConfig = function(adapterConfig) {
-	console.log('keyboardAdapter getServicesConfig', adapterConfig);
-	
-	let servicesConfig = {
-		keyboard: true
-	};
-	
-	return servicesConfig;
-};
-
-keyboardAdapter.getDefaultState = getDefaultState;
-
-module.exports = keyboardAdapter;
+module.exports = KeyboardAdapter;

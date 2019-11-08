@@ -511,7 +511,13 @@ Jaxcore.prototype.startSpinAdapter = function(adapterConfig, spin, services, cal
 	
 	const adapterInitializer = this.adapterInitializers[adapterConfig.type];
 	
-	const adapterInstance = new Adapter(adapterConfig, this.themes[adapterConfig.theme], devices, services, adapterInitializer);
+	let adapterInstance;
+	// if (adapterConfig.type === 'chromecast') {
+		adapterInstance = new adapterInitializer(adapterConfig, this.themes[adapterConfig.theme], devices, services);
+	// }
+	// else {
+	// 	adapterInstance = new Adapter(adapterConfig, this.themes[adapterConfig.theme], devices, services, adapterInitializer);
+	// }
 	
 	// adapterConfig.instance = adapterInstance;
 	this.adapterInstances[adapterConfig.id] = {
@@ -537,6 +543,8 @@ Jaxcore.prototype.startSpinAdapter = function(adapterConfig, spin, services, cal
 	}
 	
 	adapterConfig.destroyed = false;
+	
+	adapterInstance.connect();
 	
 	if (callback) {
 		callback(null, adapterConfig, adapterInstance);

@@ -2,7 +2,7 @@ var plugin = require('jaxcore-plugin');
 var Client = plugin.Client;
 var child_process = require('child_process');
 
-function VolumeService(defaults) {
+function VolumeService (defaults) {
 	this.constructor();
 	this.createStore('Volume Store', true);
 	this.id = 'volume';
@@ -50,23 +50,20 @@ function VolumeService(defaults) {
 VolumeService.prototype = new Client();
 VolumeService.prototype.constructor = Client;
 
-VolumeService.id = function() {
+VolumeService.id = function () {
 	return 'volume';
 };
 
 var volumeInstance = null;
 
-VolumeService.getOrCreateInstance = function(serviceId, serviceConfig) {
+VolumeService.getOrCreateInstance = function (serviceId, serviceConfig, callback) {
 	if (!volumeInstance) {
 		console.log('CREATE VOLUME');
 		volumeInstance = new VolumeService(serviceConfig);
 	}
-	else {
-		console.log('RECONNECT VOLUME');
-	}
-	return volumeInstance;
+	callback(null, volumeInstance);
 };
-VolumeService.destroyInstance = function(serviceId, serviceConfig) {
+VolumeService.destroyInstance = function (serviceId, serviceConfig) {
 	if (volumeInstance) {
 		volumeInstance.destroy();
 		volumeInstance = null;
@@ -158,7 +155,8 @@ VolumeService.prototype._getVolume = function (callback) {
 		if (m) {
 			var volume = parseInt(m[1]);
 			callback(volume);
-		} else {
+		}
+		else {
 			this.log('_getVolume error, no volume');
 			callback();
 		}
@@ -246,9 +244,11 @@ VolumeService.prototype.getMuted = function (callback) {
 			var muted = null;
 			if (data === 'true') {
 				muted = true;
-			} else if (data === 'false') {
+			}
+			else if (data === 'false') {
 				muted = false;
-			} else {
+			}
+			else {
 				this.log('getMuted error: [[' + data + ']]');
 				return;
 			}

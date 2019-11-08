@@ -1,17 +1,18 @@
-function getDefaultState() {
-	return {
-	};
-}
+const Adapter = require('jaxcore-plugin').Adapter;
 
-function volumeAdapter() {
-	const {spin} = this.devices;
-	const {volume} = this.services;
-	const {theme} = this;
-	spin.rotateRainbow(2);
-	spin.scale(volume.state.volumePercent, theme.low, theme.high, theme.middle);
+class VolumeAdapter extends Adapter {
+	static getDefaultState () {
+		return {};
+	}
 	
-	this.setEvents({
-		volume: {
+	constructor (config, theme, devices, services) {
+		super(config, theme, devices, services);
+		const {spin} = devices;
+		const {volume} = services;
+		spin.rotateRainbow(2);
+		spin.scale(volume.state.volumePercent, theme.low, theme.high, theme.middle);
+		
+		this.addEvents(volume, {
 			volume: function (volumePercent, volume) {
 				this.log('volume started vol=', volumePercent, volume);
 				spin.scale(volumePercent, theme.low, theme.high, theme.middle);
@@ -20,25 +21,30 @@ function volumeAdapter() {
 				this.log('muted', muted);
 				if (muted) {
 					spin.scale(volume.state.volumePercent, theme.tertiary, theme.tertiary, theme.middle);
-				} else {
+				}
+				else {
 					spin.scale(volume.state.volumePercent, theme.low, theme.high, theme.middle);
 				}
 			}
-		},
-		spin: {
+		});
+		this.addEvents(spin, {
 			spin: function (diff, spinTime) {
 				this.log('spin rotate', diff);
 				
 				if (spin.state.knobPushed) {
-				} else if (spin.state.buttonPushed) {
-				} else {
+				}
+				else if (spin.state.buttonPushed) {
+				}
+				else {
 					if (volume.state.muted) {
 						if (volume.state.volumePercent < 0.04) {
 							volume.changeVolume(diff, spinTime);
-						} else {
+						}
+						else {
 							spin.scale(volume.state.volumePercent, theme.tertiary, theme.tertiary, theme.middle);
 						}
-					} else {
+					}
+					else {
 						volume.changeVolume(diff, spinTime);
 					}
 				}
@@ -47,31 +53,25 @@ function volumeAdapter() {
 				this.log('knob', pushed);
 				if (pushed) {
 				
-				} else {
+				}
+				else {
 					volume.toggleMuted();
 				}
 			},
 			button: function (pushed) {
 				this.log('button', pushed);
 			}
-		}
-	});
+		});
+	}
+	
+	static getServicesConfig (adapterConfig) {
+		return {
+			volume: {
+				minVolume: 0,
+				maxVolume: 100
+			}
+		};
+	}
 }
 
-volumeAdapter.getServicesConfig = function(adapterConfig) {
-	console.log('getServicesConfig adapterConfig', adapterConfig);
-	
-	let servicesConfig = {
-		volume: {
-			minVolume: 0,
-			maxVolume: 100
-		}
-	};
-	// defaults
-	
-	return servicesConfig;
-};
-
-volumeAdapter.getDefaultState = getDefaultState;
-
-module.exports = volumeAdapter;
+module.exports = VolumeAdapter;

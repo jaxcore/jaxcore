@@ -141,7 +141,9 @@ Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serv
 		serviceClass.getOrCreateInstance(serviceId, serviceConfig, (serviceErr, serviceInstance) => {
 			if (serviceErr) {
 				this.log('serviceErr', serviceErr);
-				process.exit();
+				// process.exit();
+				callback(serviceErr);
+				return;
 			}
 			this.log('got serviceInstance', serviceInstance);
 			
@@ -243,10 +245,10 @@ Jaxcore.prototype.getOrCreateService = function(adapterConfig, serviceType, serv
 					callback(null, serviceInstance);
 				};
 				
-				
 				serviceInstance.once('connect', onConnect);
 				
 				serviceInstance.on('teardown', () => {
+					console.log('teardown');
 					serviceInstance.removeListener('connect', onReconnect);
 					serviceInstance.removeListener('disconnect', onDisconnect);
 					console.log('teardown service, onReconnect');
@@ -613,6 +615,7 @@ Jaxcore.prototype.destroyAdapter = function(adapterConfig) {
 			this.log('service adapter Ids', this.state.services[serviceType][serviceId].adapters);
 		}
 	}
+	this.log('done destroy adapter');
 };
 
 module.exports = Jaxcore;

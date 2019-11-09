@@ -39,6 +39,9 @@ jaxcore.addPlugin(chromecastPlugin);
 const kodiPlugin = require('jaxcore-kodi-plugin');
 jaxcore.addPlugin(kodiPlugin);
 
+const sonosPlugin = require('jaxcore-sonos-plugin');
+jaxcore.addPlugin(sonosPlugin);
+
 if (process.env.NODE_ENV === 'prod') {
 	console.log = function () {
 	};
@@ -123,6 +126,51 @@ jaxcore.on('device-connected', function(type, device) {
 						console.log('launched chromecast', config, adapter);
 					}
 				});
+			}
+			
+			if (defaultAdapter === 'sonos') {
+				// const Sonos = jaxcore.serviceClasses.sonos;
+				// const sonos = Sonos.startService();
+				
+				jaxcore.createAdapter(spin, 'sonos', {
+					services: {
+						sonos: {
+							host: '192.168.1.231',
+							port: 1400
+						}
+					}
+				}, function(err, config, adapter) {
+					if (err) {
+						console.log('sonos error', err);
+						// process.exit();
+					}
+					else {
+						console.log('launched sonos', config, adapter);
+					}
+				});
+				
+				// let serviceId = Sonos.id(serviceConfig);
+				//
+				// Sonos.getOrCreateInstance(serviceId, serviceConfig, function(err, serviceInstance) {
+				// 	let sonos = serviceInstance;
+				// 	console.log('sonos', sonos.volumeUp);
+				//
+				// 	sonos.on('connect', function() {
+				// 		console.log('connected');
+				// 		process.exit();
+				//
+				// 	});
+				// 	sonos.connect();
+				//
+				// })
+				
+				/*sonos.on('device', function(device) {
+					console.log('found sonos', device);
+				});*/
+				
+				// sonos.scan();
+				
+				
 			}
 		}
 	}

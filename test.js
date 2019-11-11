@@ -1,6 +1,6 @@
-const Jaxcore = require('./jaxcore');
+const Jaxcore = require('./jaxcore'); // require('jaxcore');
+const cyber = require('./themes/cyber'); // require('jaxcore/themes/cyber');
 const jaxcore = new Jaxcore();
-const cyber = require('./themes/cyber');
 jaxcore.addTheme('cyber', cyber);
 jaxcore.setDefaultTheme('cyber');
 
@@ -27,7 +27,7 @@ jaxcore.addAdapter('keyboard', keyboardAdapter);
 const scrollAdapter = require('./adapters/scroll');
 jaxcore.addAdapter('scroll', scrollAdapter);
 const mouseAdapter = require('./adapters/mouse');
-jaxcore.addAdapter('mouseScroll', mouseAdapter);
+jaxcore.addAdapter('mouse', mouseAdapter);
 const mediaAdapter = require('./adapters/media');
 jaxcore.addAdapter('media', mediaAdapter);
 

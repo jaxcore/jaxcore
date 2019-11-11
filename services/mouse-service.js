@@ -1,54 +1,62 @@
-var plugin = require('jaxcore-plugin');
-var Client = plugin.Client;
-var robot = require("robotjs");
-
-function MouseService(defaults) {
-	this.constructor();
-	this.createStore('Mouse Store', true);
-	this.id = 'mouse';
-	this.log = plugin.createLogger('Mouse');
-	this.log('created');
-	
-	this.setStates({
-		connected: {
-			type: 'boolean',
-			defaultValue: false
-		}
-	}, defaults);
-}
-
-MouseService.prototype = new Client();
-MouseService.prototype.constructor = Client;
-
-MouseService.id = function() {
-	return 'mouse';
-};
+const {Service, createLogger} = require('jaxcore-plugin');
+const robot = require("robotjs");
 
 let mouseInstance = null;
 
-MouseService.getOrCreateInstance = function(serviceId, serviceConfig, callback) {
-	if (!mouseInstance) {
-		console.log('CREATE MOUSE');
-		mouseInstance = new MouseService(serviceConfig);
+class MouseService extends Service {
+	constructor(defaults) {
+		super(defaults);
+		this.createStore('Mouse Store', true);
+		this.log = createLogger('Mouse');
+		this.log('created');
+		
+		this.setStates({
+			id: {
+				type: 'string',
+				defaultValue: 'mouse'
+			},
+			connected: {
+				type: 'boolean',
+				defaultValue: false
+			}
+		}, defaults);
+		
+		this.id = this.state.id
 	}
-	callback(null, mouseInstance);
-};
-MouseService.destroyInstance = function(serviceId, serviceConfig) {
-	if (mouseInstance) {
-		mouseInstance.destroy();
+	
+	connect() {
+		this.setState({
+			connected: true
+		});
+		this.emit('connect');
 	}
-};
+	
+	disconnect(options) {
+		this.log('disconnecting...');
+	}
 
-MouseService.prototype.connect = function () {
-	this.setState({
-		connected: true
-	});
-	this.emit('connect');
-};
-
-MouseService.prototype.disconnect = function (options) {
-	this.log('disconnecting...');
-};
+	destroy() {
+		this.emit('teardown');
+		mouseInstance = null;
+	}
+	
+	static id() {
+		return 'mouse';
+	}
+	
+	static getOrCreateInstance(serviceId, serviceConfig, callback) {
+		if (!mouseInstance) {
+			console.log('CREATE MOUSE');
+			mouseInstance = new MouseService(serviceConfig);
+		}
+		callback(null, mouseInstance);
+	}
+	static destroyInstance(serviceId, serviceConfig) {
+		if (mouseInstance) {
+			mouseInstance.destroy();
+		}
+	}
+}
 
 MouseService.prototype.moveMouse = robot.moveMouse.bind(robot);
 MouseService.prototype.dragMouse = robot.dragMouse.bind(robot);
@@ -56,15 +64,7 @@ MouseService.prototype.mouseToggle = robot.mouseToggle.bind(robot);
 MouseService.prototype.mouseClick = robot.mouseClick.bind(robot);
 MouseService.prototype.getMousePos = robot.getMousePos.bind(robot);
 MouseService.prototype.getScreenSize = robot.getScreenSize.bind(robot);
-
-MouseService.prototype.scroll = function (diffX, diffY) {
-	robot.scrollMouse(-diffX, -diffY);
-};
-
-MouseService.prototype.destroy = function () {
-	this.emit('teardown');
-	mouseInstance = null;
-};
+MouseService.prototype.scroll = robot.scrollMouse.bind(robot);
 
 module.exports = MouseService;
 

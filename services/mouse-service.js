@@ -3,23 +3,36 @@ const robot = require("robotjs");
 
 let mouseInstance = null;
 
+const schema = {
+	id: {
+		type: 'string',
+		defaultValue: 'mouse'
+	},
+	connected: {
+		type: 'boolean',
+		defaultValue: false
+	}
+};
+
 class MouseService extends Service {
-	constructor(defaults) {
-		super(defaults);
-		this.createStore('Mouse Store', true);
+	constructor(defaults, store) {
+		super(schema, store, defaults);
+		// super(defaults);
+		// this.createStore('Mouse Store', true);
+		
 		this.log = createLogger('Mouse');
 		this.log('created');
 		
-		this.setStates({
-			id: {
-				type: 'string',
-				defaultValue: 'mouse'
-			},
-			connected: {
-				type: 'boolean',
-				defaultValue: false
-			}
-		}, defaults);
+		// this.setStates({
+		// 	id: {
+		// 		type: 'string',
+		// 		defaultValue: 'mouse'
+		// 	},
+		// 	connected: {
+		// 		type: 'boolean',
+		// 		defaultValue: false
+		// 	}
+		// }, defaults);
 		
 		this.id = this.state.id
 	}
@@ -44,10 +57,10 @@ class MouseService extends Service {
 		return 'mouse';
 	}
 	
-	static getOrCreateInstance(serviceId, serviceConfig, callback) {
+	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
 		if (!mouseInstance) {
 			console.log('CREATE MOUSE');
-			mouseInstance = new MouseService(serviceConfig);
+			mouseInstance = new MouseService(serviceConfig, serviceStore);
 		}
 		callback(null, mouseInstance);
 	}

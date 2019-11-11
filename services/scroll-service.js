@@ -4,10 +4,22 @@ const MomentumScroll = require('../tools/momentumscroll/lib/src/momentumscroll/m
 
 let scrollInstance = null;
 
+const schema = {
+	id: {
+		type: 'string',
+			defaultValue: 'scroll'
+	},
+	connected: {
+		type: 'boolean',
+			defaultValue: false
+	}
+};
+
 class ScrollService extends Service {
-	constructor(defaults) {
-		super(defaults);
-		this.createStore('Scroll Store', true);
+	constructor(defaults, store) {
+		super(schema, store, defaults);
+		// super(defaults);
+		// this.createStore('Scroll Store', true);
 		
 		this.log = createLogger('Scroll');
 		this.log('created');
@@ -22,16 +34,16 @@ class ScrollService extends Service {
 		};
 		this.momentumScroll.addListener('scroll', this._onScroll);
 		
-		this.setStates({
-			id: {
-				type: 'string',
-				defaultValue: 'scroll'
-			},
-			connected: {
-				type: 'boolean',
-				defaultValue: false
-			}
-		}, defaults);
+		// this.setStates({
+		// 	id: {
+		// 		type: 'string',
+		// 		defaultValue: 'scroll'
+		// 	},
+		// 	connected: {
+		// 		type: 'boolean',
+		// 		defaultValue: false
+		// 	}
+		// }, defaults);
 		
 		this.setState({
 			scrollForce: 0.01,
@@ -161,10 +173,11 @@ class ScrollService extends Service {
 		return 'scroll';
 	}
 	
-	static getOrCreateInstance(serviceId, serviceConfig, callback) {
+	// static getOrCreateInstance(serviceId, serviceConfig, callback) {
+	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
 		if (!scrollInstance) {
 			console.log('CREATE SCROLL');
-			scrollInstance = new ScrollService(serviceConfig);
+			scrollInstance = new ScrollService(serviceConfig, serviceStore);
 		}
 		callback(null, scrollInstance);
 	}

@@ -1,4 +1,5 @@
 const Jaxcore = require('./jaxcore'); // require('jaxcore');
+const {createClientStore,createServiceStore} = require('jaxcore-plugin'); // require('jaxcore');
 const cyber = require('./themes/cyber'); // require('jaxcore/themes/cyber');
 const jaxcore = new Jaxcore();
 jaxcore.addTheme('cyber', cyber);
@@ -7,18 +8,30 @@ jaxcore.setDefaultTheme('cyber');
 // DEVICES
 
 const Spin = require('jaxcore-spin');
-jaxcore.addDevice('spin', Spin);
+const spinStore = createServiceStore('JAXCORE Spin Store');
+jaxcore.addDevice('spin', Spin, spinStore);
 
 // SERVICES
 
 const KeyboardService = require('./services/keyboard-service');
 jaxcore.addService('keyboard', KeyboardService);
+const keyboardStore = createServiceStore('JAXCORE Keyboard Store');
+jaxcore.setServiceStore('keyboard', keyboardStore);
+
 const VolumeService = require('./services/volume-service');
 jaxcore.addService('volume', VolumeService);
+const volumeStore = createServiceStore('JAXCORE Volume Store');
+jaxcore.setServiceStore('volume', volumeStore);
+
 const MouseService = require('./services/mouse-service');
 jaxcore.addService('mouse', MouseService);
+const mouseStore = createServiceStore('JAXCORE Mouse Store');
+jaxcore.setServiceStore('mouse', mouseStore);
+
 const ScrollService = require('./services/scroll-service');
 jaxcore.addService('scroll', ScrollService);
+const scrollStore = createServiceStore('JAXCORE Scroll Store');
+jaxcore.setServiceStore('scroll', scrollStore);
 
 // ADAPTERS
 
@@ -35,6 +48,8 @@ jaxcore.addAdapter('media', mediaAdapter);
 
 const chromecastPlugin = require('jaxcore-chromecast-plugin');
 jaxcore.addPlugin(chromecastPlugin);
+const castStore = createClientStore('JAXCORE Chromecast Store');
+jaxcore.setServiceStore('chromecast', castStore);
 
 const kodiPlugin = require('jaxcore-kodi-plugin');
 jaxcore.addPlugin(kodiPlugin);

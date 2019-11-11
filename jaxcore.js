@@ -1,4 +1,4 @@
-const {plugin, createLogger, createStore, Service} = require('jaxcore-plugin');
+const {createLogger, createStore, Service} = require('jaxcore-plugin');
 const async = require('async');
 
 class Jaxcore extends Service {
@@ -38,8 +38,11 @@ class Jaxcore extends Service {
 		};
 		
 		this.deviceClasses = {};
+		this.deviceStores = {};
 		this.serviceClasses = {};
-		this.adapterInitializers = {};
+		this.serviceStores = {};
+		this.adapterClasses = {};
+		this.adapterStores = {};
 		
 		this.spinDefaultSettings = {
 			brightness: 8,
@@ -53,14 +56,20 @@ class Jaxcore extends Service {
 		});
 	}
 	
-	addDevice(deviceType, deviceClass) {
+	addDevice(deviceType, deviceClass, deviceStore) {
 		this.deviceClasses[deviceType] = deviceClass;
+		if (deviceStore) this.deviceStores[deviceType] = deviceStore;
 	}
-	addService(serviceType, serviceClass) {
+	addService(serviceType, serviceClass, serviceStore) {
 		this.serviceClasses[serviceType] = serviceClass;
+		// if (serviceStore) this.setServiceStore(serviceType, serviceStore);
 	}
-	addAdapter(adapterType, adapterInitializer) {
-		this.adapterInitializers[adapterType] = adapterInitializer;
+	addAdapter(adapterType, adapterClass) {
+		this.adapterClasses[adapterType] = adapterClass;
+	}
+	
+	setServiceStore(serviceType, serviceStore) {
+		this.serviceStores[serviceType] = serviceStore;
 	}
 	
 	addPlugin(plugin) {
@@ -86,7 +95,12 @@ class Jaxcore extends Service {
 	startDevice(type, ids) {
 		if (!ids) ids = [];
 		const deviceClass = this.deviceClasses[type];
-		deviceClass.startJaxcoreDevice(this, ids);
+		const deviceStore = this.deviceStores[type];
+		let callback = (spin) => {
+			this.log('connected Spin Device', spin.id);
+			this.emit('device-connected', 'spin', spin);
+		};
+		deviceClass.startJaxcoreDevice(ids, deviceStore, callback);
 	}
 	
 	findSpinAdapter(spin) {
@@ -113,12 +127,13 @@ class Jaxcore extends Service {
 		this.log('start/get ' + serviceType + ' service', 'serviceConfig:', serviceConfig);
 		
 		const serviceClass = this.serviceClasses[serviceType];
+		const serviceStore = this.serviceStores[serviceType];
 		if (!serviceClass) {
 			this.log('no service class for', serviceType);
 			process.exit();
 		}
 		// console.log('class', serviceClass.id, serviceConfig);
-		const serviceId = serviceClass.id(serviceConfig);
+		const serviceId = serviceClass.id(serviceConfig, serviceStore);
 		console.log('serviceId', serviceId);
 		// process.exit();
 		if (!this.state.services[serviceType]) this.state.services[serviceType] = {};
@@ -137,7 +152,7 @@ class Jaxcore extends Service {
 			this.log('service does not exist', serviceId, serviceType);
 			this.log(this.state.services[serviceType][serviceId]);
 			
-			serviceClass.getOrCreateInstance(serviceId, serviceConfig, (serviceErr, serviceInstance) => {
+			serviceClass.getOrCreateInstance(serviceStore, serviceId, serviceConfig, (serviceErr, serviceInstance) => {
 				if (serviceErr) {
 					this.log('serviceErr', serviceErr);
 					// process.exit();
@@ -304,9 +319,9 @@ class Jaxcore extends Service {
 	}
 	
 	getServicesForAdapter(adapterConfig, callback) {
-		const adapterInstance = this.adapterInitializers[adapterConfig.type];
+		const adapterInstance = this.adapterClasses[adapterConfig.type];
 		if (!adapterInstance) {
-			console.log('no adapterInitializers', adapterConfig.type, Object.keys(this.adapterInitializers));
+			console.log('no adapterClasses', adapterConfig.type, Object.keys(this.adapterClasses));
 			process.exit();
 		}
 		const servicesConfig = adapterInstance.getServicesConfig(adapterConfig);
@@ -468,14 +483,14 @@ class Jaxcore extends Service {
 		this.log('adapter devices', Object.keys(devices));
 		this.log('adapter services', Object.keys(services));
 		
-		const adapterInitializer = this.adapterInitializers[adapterConfig.type];
+		const adapterClass = this.adapterClasses[adapterConfig.type];
 		
 		let adapterInstance;
 		// if (adapterConfig.type === 'chromecast') {
-		adapterInstance = new adapterInitializer(adapterConfig, this.themes[adapterConfig.theme], devices, services);
+		adapterInstance = new adapterClass(adapterConfig, this.themes[adapterConfig.theme], devices, services);
 		// }
 		// else {
-		// 	adapterInstance = new Adapter(adapterConfig, this.themes[adapterConfig.theme], devices, services, adapterInitializer);
+		// 	adapterInstance = new Adapter(adapterConfig, this.themes[adapterConfig.theme], devices, services, adapterClass);
 		// }
 		
 		// adapterConfig.instance = adapterInstance;

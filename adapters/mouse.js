@@ -27,7 +27,7 @@ class MouseScrollAdapter extends Adapter {
 		
 		this.addEvents(spin, {
 			spin: function (diff, time) {
-				if (this.state.didBothHold) {
+				if (this.state.didBothHold) { // TODO: shuttleHorizontal
 					return;
 				}
 				
@@ -41,7 +41,10 @@ class MouseScrollAdapter extends Adapter {
 				else if (time < 150) distance = dir * Math.round(Math.pow(Math.abs(diff), 1.4));
 				else distance = diff;
 				
-				if (spin.state.knobPushed) {
+				if (spin.state.knobPushed && spin.state.buttonPushed) { // TODO: shuttleHorizontal
+					console.log('TODO: shuttleHorizontal', diff);
+				}
+				else if (spin.state.knobPushed) {
 					this.state.didKnobSpin = true;
 					
 					clearInterval(this.balanceInterval);
@@ -184,7 +187,7 @@ class MouseScrollAdapter extends Adapter {
 		this.state.didBothHold = true;
 		this.log('CLICK MIDDLE');
 		this.services.mouse.mouseClick('middle');
-		this.devices.spin.flash(theme.tertiary);
+		this.devices.spin.flash(this.theme.tertiary);
 	}
 	
 	releaseBoth () {

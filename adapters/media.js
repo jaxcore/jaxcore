@@ -90,7 +90,7 @@ class MediaAdapter extends Adapter {
 			button: function (pushed) {
 				this.log('button', pushed);
 				if (pushed) {
-					console.log('keypress play');
+					// this.log('keypress play');
 					keyboard.keyPress('audio_play');
 					spin.flash(theme.secondary);
 				}

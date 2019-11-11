@@ -3,24 +3,35 @@ const robot = require("robotjs");
 
 let keyboardInstance = null;
 
+const schema = {
+	id: {
+		type: 'string',
+		defaultValue: 'keyboard'
+	},
+	connected: {
+		type: 'boolean',
+		defaultValue: false
+	}
+};
+
 class KeyboardService extends Service {
-	constructor(defaults) {
-		super(defaults);
-		this.createStore('Keyboard Store', true);
+	constructor(defaults, store) {
+		super(schema, store, defaults);
+		// this.createStore('Keyboard Store', true);
 		
 		this.log = createLogger('Keyboard');
 		this.log('created');
 		
-		this.setStates({
-			id: {
-				type: 'string',
-				defaultValue: 'keyboard'
-			},
-			connected: {
-				type: 'boolean',
-				defaultValue: false
-			}
-		}, defaults);
+		// this.setStates({
+		// 	id: {
+		// 		type: 'string',
+		// 		defaultValue: 'keyboard'
+		// 	},
+		// 	connected: {
+		// 		type: 'boolean',
+		// 		defaultValue: false
+		// 	}
+		// }, defaults);
 		
 		this.id = this.state.id;
 	}
@@ -66,14 +77,14 @@ class KeyboardService extends Service {
 		keyboardInstance = null;
 	}
 	
-	static id() {
+	static id(config, store) {
 		return 'keyboard';
 	}
 	
-	static getOrCreateInstance(serviceId, serviceConfig, callback) {
+	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
 		if (!keyboardInstance) {
-			console.log('CREATE KEYBOARD');
-			keyboardInstance = new KeyboardService(serviceConfig);
+			console.log('CREATE KEYBOARD', 'serviceStore=',serviceStore);
+			keyboardInstance = new KeyboardService(serviceConfig, serviceStore);
 		}
 		callback(null, keyboardInstance);
 	}

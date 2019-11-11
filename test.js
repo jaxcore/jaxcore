@@ -131,13 +131,26 @@ jaxcore.on('device-connected', function(type, device) {
 			if (defaultAdapter === 'sonos') {
 				// const Sonos = jaxcore.serviceClasses.sonos;
 				// const sonos = Sonos.startService();
+				// sonos.on('device', function(device) {
+				// 	console.log('found sonos', device);
+				// });
+				// sonos.scan();
 				
 				jaxcore.createAdapter(spin, 'sonos', {
 					services: {
 						sonos: {
 							host: '192.168.1.231',
-							port: 1400
+							port: 1400,
+							minVolume: 0,
+							maxVolume: 80
 						}
+						
+						// sonos: {
+						// 	host: '192.168.0.19',
+						// 	port: 1400,
+						// 	minVolume: 0,
+						// 	maxVolume: 100
+						// }
 					}
 				}, function(err, config, adapter) {
 					if (err) {
@@ -148,28 +161,6 @@ jaxcore.on('device-connected', function(type, device) {
 						console.log('launched sonos', config, adapter);
 					}
 				});
-				
-				// let serviceId = Sonos.id(serviceConfig);
-				//
-				// Sonos.getOrCreateInstance(serviceId, serviceConfig, function(err, serviceInstance) {
-				// 	let sonos = serviceInstance;
-				// 	console.log('sonos', sonos.volumeUp);
-				//
-				// 	sonos.on('connect', function() {
-				// 		console.log('connected');
-				// 		process.exit();
-				//
-				// 	});
-				// 	sonos.connect();
-				//
-				// })
-				
-				/*sonos.on('device', function(device) {
-					console.log('found sonos', device);
-				});*/
-				
-				// sonos.scan();
-				
 				
 			}
 		}

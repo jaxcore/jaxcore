@@ -1,12 +1,12 @@
 const Adapter = require('jaxcore-plugin').Adapter;
 
-function startInterval (fn, t) {
+function startInterval(fn, t) {
 	fn();
 	return setInterval(fn, t);
 }
 
 class MouseScrollAdapter extends Adapter {
-	static getDefaultState () {
+	static getDefaultState() {
 		return {
 			didKnobHold: false,
 			didBothPush: false,
@@ -18,7 +18,7 @@ class MouseScrollAdapter extends Adapter {
 		};
 	}
 	
-	constructor (config, theme, devices, services) {
+	constructor(config, theme, devices, services) {
 		super(config, theme, devices, services);
 		const {spin} = devices;
 		const {scroll, mouse} = services;
@@ -181,7 +181,7 @@ class MouseScrollAdapter extends Adapter {
 		});
 	}
 	
-	pushBoth () {
+	pushBoth() {
 		this.log('PUSH BOTH');
 		this.state.didBothPush = true;
 		this.state.didBothHold = true;
@@ -190,12 +190,12 @@ class MouseScrollAdapter extends Adapter {
 		this.devices.spin.flash(this.theme.tertiary);
 	}
 	
-	releaseBoth () {
+	releaseBoth() {
 		this.state.didBothHold = false;
 		this.log('RELEASE BOTH');
 	}
 	
-	static getServicesConfig (adapterConfig) {
+	static getServicesConfig(adapterConfig) {
 		return {
 			scroll: true,
 			mouse: true

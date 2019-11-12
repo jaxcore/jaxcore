@@ -33,7 +33,7 @@ class KeyboardService extends Service {
 		// 	}
 		// }, defaults);
 		
-		this.id = this.state.id;
+		// this.id = this.state.id;
 	}
 	
 	
@@ -83,7 +83,7 @@ class KeyboardService extends Service {
 	
 	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
 		if (!keyboardInstance) {
-			console.log('CREATE KEYBOARD', 'serviceStore=',serviceStore);
+			console.log('CREATE KEYBOARD', 'serviceStore=', serviceStore);
 			keyboardInstance = new KeyboardService(serviceConfig, serviceStore);
 		}
 		callback(null, keyboardInstance);

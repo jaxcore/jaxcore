@@ -1,12 +1,12 @@
 const Adapter = require('jaxcore-plugin').Adapter;
 
-function startInterval(fn,t) {
+function startInterval(fn, t) {
 	fn();
-	return setInterval(fn,t);
+	return setInterval(fn, t);
 }
 
 class ScrollAdapter extends Adapter {
-	static getDefaultState () {
+	static getDefaultState() {
 		return {
 			didBothSpin: false,
 			didBothPush: false,
@@ -15,7 +15,7 @@ class ScrollAdapter extends Adapter {
 		};
 	}
 	
-	constructor (config, theme, devices, services) {
+	constructor(config, theme, devices, services) {
 		super(config, theme, devices, services);
 		const {spin} = devices;
 		const {scroll, keyboard} = services;

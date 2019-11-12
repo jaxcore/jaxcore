@@ -1,6 +1,6 @@
 const Jaxcore = require('./jaxcore'); // require('jaxcore');
-const {createClientStore,createServiceStore} = require('jaxcore-plugin'); // require('jaxcore');
 const cyber = require('./themes/cyber'); // require('jaxcore/themes/cyber');
+const {createClientStore,createServiceStore} = require('jaxcore-plugin'); // require('jaxcore-plugin');
 const jaxcore = new Jaxcore();
 jaxcore.addTheme('cyber', cyber);
 jaxcore.setDefaultTheme('cyber');
@@ -53,9 +53,13 @@ jaxcore.setServiceStore('chromecast', castStore);
 
 const kodiPlugin = require('jaxcore-kodi-plugin');
 jaxcore.addPlugin(kodiPlugin);
+const kodiStore = createClientStore('JAXCORE Kodi Store');
+jaxcore.setServiceStore('kodi', kodiStore);
 
 const sonosPlugin = require('jaxcore-sonos-plugin');
 jaxcore.addPlugin(sonosPlugin);
+const sonosStore = createClientStore('JAXCORE Sonos Store');
+jaxcore.setServiceStore('sonos', sonosStore);
 
 if (process.env.NODE_ENV === 'prod') {
 	console.log = function () {

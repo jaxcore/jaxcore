@@ -52,7 +52,7 @@ class VolumeService extends Service {
 		this.log = createLogger('Volume');
 		this.log('created');
 		
-		this.id = this.state.id;
+		// this.id = this.state.id;
 		// this.setStates(, defaults);
 	}
 	

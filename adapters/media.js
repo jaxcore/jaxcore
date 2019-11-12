@@ -1,7 +1,7 @@
 const Adapter = require('jaxcore-plugin').Adapter;
 
 class MediaAdapter extends Adapter {
-	static getDefaultState () {
+	static getDefaultState() {
 		return {
 			didKnobSpin: false,
 			isRewinding: false,
@@ -11,7 +11,7 @@ class MediaAdapter extends Adapter {
 		};
 	}
 	
-	constructor (config, theme, devices, services) {
+	constructor(config, theme, devices, services) {
 		super(config, theme, devices, services);
 		const {spin} = devices;
 		const {keyboard, volume} = services;
@@ -98,7 +98,7 @@ class MediaAdapter extends Adapter {
 		});
 	}
 	
-	startRewind () {
+	startRewind() {
 		if (this.state.isFastForwarding) {
 			this.stopFastForward();
 		}
@@ -117,7 +117,7 @@ class MediaAdapter extends Adapter {
 		}
 	}
 	
-	stopRewind () {
+	stopRewind() {
 		if (this.state.isRewinding) {
 			this.state.isRewinding = false;
 			this.services.keyboard.keyToggle('audio_prev', 'up');
@@ -126,7 +126,7 @@ class MediaAdapter extends Adapter {
 		}
 	}
 	
-	startFastForward () {
+	startFastForward() {
 		if (this.state.isRewinding) {
 			this.stopRewind();
 		}
@@ -144,7 +144,7 @@ class MediaAdapter extends Adapter {
 		}
 	}
 	
-	stopFastForward () {
+	stopFastForward() {
 		if (this.state.isFastForwarding) {
 			this.state.isFastForwarding = false;
 			this.services.keyboard.keyToggle('audio_next', 'up');
@@ -153,7 +153,7 @@ class MediaAdapter extends Adapter {
 		}
 	}
 	
-	static getServicesConfig (adapterConfig) {
+	static getServicesConfig(adapterConfig) {
 		return {
 			keyboard: true,
 			volume: true

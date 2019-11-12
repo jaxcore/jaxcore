@@ -7,11 +7,11 @@ let scrollInstance = null;
 const schema = {
 	id: {
 		type: 'string',
-			defaultValue: 'scroll'
+		defaultValue: 'scroll'
 	},
 	connected: {
 		type: 'boolean',
-			defaultValue: false
+		defaultValue: false
 	}
 };
 
@@ -62,7 +62,7 @@ class ScrollService extends Service {
 			shuttlePositionV: 0
 		});
 		
-		this.id = this.state.id;
+		// this.id = this.state.id;
 	}
 	
 	connect() {
@@ -85,10 +85,12 @@ class ScrollService extends Service {
 			// scrollFriction = this.state.scrollFriction;
 			scrollForce = dir * Math.pow(Math.abs(diff * this.state.scrollForceFactorSlow), this.state.scrollSpeedSlow) * this.state.scrollForce;
 			scrollFriction = this.state.scrollFriction;
-		} else if (time > 70) {
+		}
+		else if (time > 70) {
 			scrollForce = dir * Math.pow(Math.abs(diff * this.state.scrollForceFactorMedium), this.state.scrollSpeedMedium) * this.state.scrollForce;
 			scrollFriction = this.state.scrollFriction;
-		} else {
+		}
+		else {
 			scrollForce = dir * Math.pow(Math.abs(diff * this.state.scrollScrollFactorFast), this.state.scrollSpeedFast) * this.state.scrollForce;
 			scrollFriction = this.state.scrollFriction;
 		}
@@ -101,10 +103,12 @@ class ScrollService extends Service {
 		if (time > 170) {
 			scrollForce = diff * this.state.scrollForce;
 			scrollFriction = this.state.scrollFriction;
-		} else if (time > 70) {
+		}
+		else if (time > 70) {
 			scrollForce = dir * Math.pow(Math.abs(diff * this.state.scrollForceFactorMedium), this.state.scrollSpeedMedium) * this.state.scrollForce;
 			scrollFriction = this.state.scrollFriction;
-		} else {
+		}
+		else {
 			scrollForce = dir * Math.pow(Math.abs(diff * this.state.scrollScrollFactorFast), this.state.scrollSpeedFast) * this.state.scrollForce;
 			scrollFriction = this.state.scrollFriction;
 		}
@@ -139,7 +143,8 @@ class ScrollService extends Service {
 		let shuttleDiff = spinPosition - this.state.shuttlePositionV;
 		if (shuttleDiff === 0) {
 			this.momentumScroll.stopShuttleVertical();
-		} else {
+		}
+		else {
 			let d = shuttleDiff > 0 ? 1 : -1;
 			let shuttleForce = d * Math.pow(Math.abs(shuttleDiff), this.state.shuttleAcceleration) * this.state.shuttleForce;
 			this.momentumScroll.startShuttleVertical(shuttleDiff, shuttleForce, this.state.shuttleFriction, this.state.shuttleIntervalTime);
@@ -151,7 +156,8 @@ class ScrollService extends Service {
 		let shuttleDiff = spinPosition - this.state.shuttlePositionH;
 		if (shuttleDiff === 0) {
 			this.momentumScroll.stopShuttleHorizontal();
-		} else {
+		}
+		else {
 			let d = shuttleDiff > 0 ? 1 : -1;
 			let shuttleForce = d * Math.pow(Math.abs(shuttleDiff), this.state.shuttleAcceleration) * this.state.shuttleForce;
 			this.momentumScroll.startShuttleHorizontal(shuttleDiff, shuttleForce, this.state.shuttleFriction, this.state.shuttleIntervalTime);
@@ -181,6 +187,7 @@ class ScrollService extends Service {
 		}
 		callback(null, scrollInstance);
 	}
+	
 	static destroyInstance(serviceId, serviceConfig) {
 		if (scrollInstance) {
 			scrollInstance.destroy();

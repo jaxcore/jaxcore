@@ -34,7 +34,7 @@ class MouseService extends Service {
 		// 	}
 		// }, defaults);
 		
-		this.id = this.state.id
+		// this.id = this.state.id
 	}
 	
 	connect() {
@@ -47,7 +47,7 @@ class MouseService extends Service {
 	disconnect(options) {
 		this.log('disconnecting...');
 	}
-
+	
 	destroy() {
 		this.emit('teardown');
 		mouseInstance = null;
@@ -64,6 +64,7 @@ class MouseService extends Service {
 		}
 		callback(null, mouseInstance);
 	}
+	
 	static destroyInstance(serviceId, serviceConfig) {
 		if (mouseInstance) {
 			mouseInstance.destroy();

@@ -128,12 +128,18 @@ class Jaxcore extends Service {
 		
 		const serviceClass = this.serviceClasses[serviceType];
 		const serviceStore = this.serviceStores[serviceType];
+		if (!serviceStore) {
+			this.log('no service store for', serviceType);
+			process.exit();
+		}
 		if (!serviceClass) {
 			this.log('no service class for', serviceType);
 			process.exit();
 		}
 		// console.log('class', serviceClass.id, serviceConfig);
 		const serviceId = serviceClass.id(serviceConfig, serviceStore);
+		serviceConfig.id = serviceId;
+		
 		console.log('serviceId', serviceId);
 		// process.exit();
 		if (!this.state.services[serviceType]) this.state.services[serviceType] = {};
@@ -334,7 +340,10 @@ class Jaxcore extends Service {
 			// for (let serviceId in servicesConfig[serviceType]) {
 			// 	this.log('loop serviceId', serviceId, servicesConfig[serviceType]);
 			
-			const serviceConfig = servicesConfig[serviceType];
+			let serviceConfig = servicesConfig[serviceType];
+			
+			if (serviceConfig === true) serviceConfig = {}; // override for keyboard: true, mouse: true returned by adapter.getServicesConf()
+			
 			let fn = ((type, config) => {
 				return (asyncCallback) => {
 					this.getOrCreateService(adapterConfig, type, config, (err, serviceInstance) => {

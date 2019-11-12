@@ -1,7 +1,7 @@
 const Adapter = require('jaxcore-plugin').Adapter;
 
 class KeyboardAdapter extends Adapter {
-	static getDefaultState () {
+	static getDefaultState() {
 		return {
 			didKnobSpin: false,
 			didKnobHold: false,
@@ -51,14 +51,16 @@ class KeyboardAdapter extends Adapter {
 					repeatSpeed: 100
 				},
 				spinLeft: {
-					key: 'up',
+					// key: 'up',
+					key: 'left',
 					modifiers: [],
 					bufferKinetic: 1,
 					bufferStatic: 1,
 					momentumTimeout: 300
 				},
 				spinRight: {
-					key: 'down',
+					// key: 'down',
+					key: 'right',
 					modifiers: [],
 					bufferKinetic: 1,
 					bufferStatic: 1,
@@ -79,14 +81,16 @@ class KeyboardAdapter extends Adapter {
 					momentumTimeout: 300
 				},
 				buttonSpinLeft: {
-					key: 'left',
+					// key: 'left',
+					key: 'up',
 					modifiers: [],
 					bufferKinetic: 1,
 					bufferStatic: 1,
 					momentumTimeout: 300
 				},
 				buttonSpinRight: {
-					key: 'right',
+					// key: 'right',
+					key: 'down',
 					modifiers: [],
 					bufferKinetic: 1,
 					bufferStatic: 1,
@@ -94,14 +98,14 @@ class KeyboardAdapter extends Adapter {
 				},
 				bothSpinLeft: {
 					key: 'left',
-					modifiers: ['command'],
+					modifiers: ['alt'],
 					bufferKinetic: 1,
 					bufferStatic: 1,
 					momentumTimeout: 300
 				},
 				bothSpinRight: {
 					key: 'right',
-					modifiers: ['command'],
+					modifiers: ['alt'],
 					bufferKinetic: 1,
 					bufferStatic: 1,
 					momentumTimeout: 300
@@ -110,7 +114,7 @@ class KeyboardAdapter extends Adapter {
 		};
 	}
 	
-	constructor (config, theme, devices, services) {
+	constructor(config, theme, devices, services) {
 		super(config, theme, devices, services);
 		const {spin} = devices;
 		const {keyboard} = services;
@@ -285,7 +289,7 @@ class KeyboardAdapter extends Adapter {
 		});
 	}
 	
-	pushedBoth () {
+	pushedBoth() {
 		this.state.bothPushed = true;
 		this.state.didBothHold = false;
 		this.log('PUSHED BOTH');
@@ -300,7 +304,7 @@ class KeyboardAdapter extends Adapter {
 		}
 	}
 	
-	holdBoth (spin) {
+	holdBoth(spin) {
 		if (!this.state.didBothSpin) {
 			this.log('BOTH HOLD');
 			this.state.didBothHold = true;
@@ -310,11 +314,11 @@ class KeyboardAdapter extends Adapter {
 			}
 			if (settings.repeat && !this.state.isBothRepeating) {
 				this.state.isBothRepeating = true;
-				keyboard.keyPress(settings.key, settings.modifiers);
+				this.services.keyboard.keyPress(settings.key, settings.modifiers);
 				this.bothRepeatTimeout = setTimeout(() => {
 					this.bothRepeatInterval = setInterval(() => {
 						this.log('repeat both....');
-						keyboard.keyPress(settings.key, settings.modifiers);
+						this.services.keyboard.keyPress(settings.key, settings.modifiers);
 						spin.flash(theme.tertiary);
 					}, settings.repeatSpeed);
 				}, settings.repeatDelay);
@@ -323,7 +327,7 @@ class KeyboardAdapter extends Adapter {
 		else this.log('CANCEL BOTH HOLD');
 	}
 	
-	cancelHoldBoth () {
+	cancelHoldBoth() {
 		this.log('CANCEL BOTH HOLD');
 		if (this.state.bothPushed) {
 			this.state.didBothHold = true;
@@ -336,7 +340,7 @@ class KeyboardAdapter extends Adapter {
 		else this.log('CANCEL BOTH HOLD OOOPS??');
 	}
 	
-	releasedBoth (spin) {
+	releasedBoth(spin) {
 		if (this.state.bothPushed) {
 			this.state.bothReleased = true;
 			if (this.state.didBothHold) {
@@ -346,13 +350,13 @@ class KeyboardAdapter extends Adapter {
 			else {
 				this.state.bothPushed = false;
 				this.log('RELEASED BOTH');
-				keyboard.keyPress(this.state.settings.bothPress.key, this.state.settings.bothPress.modifiers);
-				spin.flash(theme.tertiary);
+				this.services.keyboard.keyPress(this.state.settings.bothPress.key, this.state.settings.bothPress.modifiers);
+				this.devices.spin.flash(this.theme.tertiary);
 			}
 		}
 	}
 	
-	static getServicesConfig (adapterConfig) {
+	static getServicesConfig(adapterConfig) {
 		return {
 			keyboard: true
 		};

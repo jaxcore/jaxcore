@@ -33,6 +33,8 @@ jaxcore.addService('scroll', ScrollService);
 const scrollStore = createServiceStore('JAXCORE Scroll Store');
 jaxcore.setServiceStore('scroll', scrollStore);
 
+
+
 // ADAPTERS
 
 const keyboardAdapter = require('./adapters/keyboard');
@@ -44,7 +46,20 @@ jaxcore.addAdapter('mouse', mouseAdapter);
 const mediaAdapter = require('./adapters/media');
 jaxcore.addAdapter('media', mediaAdapter);
 
+
 // PLUGINS
+
+// const WebsocketService = require('./services/websocket-service');
+// jaxcore.addService('websocket', WebsocketService);
+// const websocketStore = createServiceStore('JAXCORE Websocket Store');
+// jaxcore.setServiceStore('websocket', websocketStore);
+// const websocketAdapter = require('./adapters/websocket-adapter');
+// jaxcore.addAdapter('websocket', websocketAdapter);
+
+const websocketPlugin = require('./plugins/websocket');
+jaxcore.addPlugin(websocketPlugin);
+const websocketStore = createServiceStore('JAXCORE Websocket Store');
+jaxcore.setServiceStore('websocket', websocketStore);
 
 const chromecastPlugin = require('jaxcore-chromecast-plugin');
 jaxcore.addPlugin(chromecastPlugin);
@@ -67,7 +82,6 @@ if (process.env.NODE_ENV === 'prod') {
 	process.on('uncaughtException', function (err) {
 	});
 }
-
 
 // let spinIds = [
 // 	'4a2cee65c67f4fdd9784da6af2bf57cf',
@@ -174,7 +188,7 @@ jaxcore.on('device-connected', function(type, device) {
 				}, function(err, config, adapter) {
 					if (err) {
 						console.log('sonos error', err);
-						// process.exit();
+						process.exit();
 					}
 					else {
 						console.log('launched sonos', config, adapter);
@@ -182,8 +196,34 @@ jaxcore.on('device-connected', function(type, device) {
 				});
 				
 			}
+			
+			if (defaultAdapter === 'websocket') {
+				jaxcore.createAdapter(spin, 'websocket', {
+					services: {
+						websocket: {
+							port: 37524
+						}
+					}
+				}, function(err, config, adapter) {
+					if (err) {
+						console.log('websocket error', err);
+						process.exit();
+					}
+					else {
+						console.log('launched websocket adapter', config, adapter);
+						// process.exit();
+					}
+				});
+			}
 		}
 	}
 });
 
 jaxcore.startDevice('spin');
+
+// jaxcore.startService('websocket', 'websocket', websocketStore, {
+// 	id: 'websocket',
+// 	port:37524
+// }, function(err, websocketService) {
+// 	console.log('websocketService', websocketService);
+// });

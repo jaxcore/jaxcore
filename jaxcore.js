@@ -103,6 +103,10 @@ class Jaxcore extends Service {
 		deviceClass.startJaxcoreDevice(ids, deviceStore, callback);
 	}
 	
+	startService(type, serviceId, serviceStore, serviceConfig, callback) {
+		this.serviceClasses[type].getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback);
+	}
+	
 	findSpinAdapter(spin) {
 		this.log('findSpinAdapter');
 		let adapterId;

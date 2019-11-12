@@ -1,39 +1,7 @@
-const Jaxcore = require('./jaxcore'); // require('jaxcore');
-const cyber = require('./themes/cyber'); // require('jaxcore/themes/cyber');
-// const {createClientStore,createServiceStore} = require('jaxcore-plugin'); // require('jaxcore-plugin');
-
+const Jaxcore = require('./jaxcore');
 const jaxcore = new Jaxcore();
-jaxcore.addTheme('cyber', cyber);
-jaxcore.setDefaultTheme('cyber');
-
-// DEVICES
-
-const Spin = require('jaxcore-spin');
-jaxcore.addDevice('spin', Spin);
-
-// SERVICES
-
-const VolumeService = require('./services/volume-service');
-jaxcore.addService('volume', VolumeService);
-
-// ADAPTERS
-
-const mediaAdapter = require('./adapters/media-adapter');
-jaxcore.addAdapter('media', mediaAdapter);
 
 // PLUGINS
-
-const keyboardPlugin = require('./plugins/keyboard');
-jaxcore.addPlugin(keyboardPlugin);
-
-const mousePlugin = require('./plugins/mouse');
-jaxcore.addPlugin(mousePlugin);
-
-const scrollPlugin = require('./plugins/scroll');
-jaxcore.addPlugin(scrollPlugin);
-
-const websocketPlugin = require('./plugins/websocket');
-jaxcore.addPlugin(websocketPlugin);
 
 const chromecastPlugin = require('jaxcore-chromecast-plugin');
 jaxcore.addPlugin(chromecastPlugin);
@@ -43,6 +11,17 @@ jaxcore.addPlugin(kodiPlugin);
 
 const sonosPlugin = require('jaxcore-sonos-plugin');
 jaxcore.addPlugin(sonosPlugin);
+
+jaxcore.enableServices({
+	keyboard: true,
+	mouse: true,
+	scroll: true,
+	volume: true,
+	websocket: true,
+	chromecast: true,
+	kodi: true,
+	sonos: true
+});
 
 if (process.env.NODE_ENV === 'prod') {
 	console.log = function () {

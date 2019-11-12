@@ -1,9 +1,24 @@
 const {createLogger, createServiceStore, Service} = require('jaxcore-plugin');
 const async = require('async');
 
+const Spin = require('jaxcore-spin');
+
+const keyboardPlugin = require('./plugins/keyboard');
+const mousePlugin = require('./plugins/mouse');
+const scrollPlugin = require('./plugins/scroll');
+const websocketPlugin = require('./plugins/websocket');
+
+const VolumeService = require('./services/volume-service');
+
+const mediaAdapter = require('./adapters/media-adapter');
+
+const cyberTheme = require('./themes/cyber');
+
 class Jaxcore extends Service {
 	constructor() {
 		super();
+		
+		
 		
 		this.stores = {
 			jaxcore: createServiceStore('JAXCORE Store'),
@@ -24,8 +39,10 @@ class Jaxcore extends Service {
 		this.setState({
 			id: 'jaxcore',
 			devices: {},
+			devicesEnabled: {},
 			adapters: {},
-			services: {}
+			services: {},
+			servicesEnabled: {}
 		});
 		
 		this.log = createLogger('Jaxcore');
@@ -67,6 +84,23 @@ class Jaxcore extends Service {
 				// spinId: {}
 			}
 		});
+		
+		this.addDevice('spin', Spin);
+		this.enableDevices({
+			spin: true
+		});
+		
+		this.addService('volume', VolumeService);
+		
+		this.addPlugin(keyboardPlugin);
+		this.addPlugin(mousePlugin);
+		this.addPlugin(scrollPlugin);
+		this.addPlugin(websocketPlugin);
+		
+		this.addAdapter('media', mediaAdapter);
+		
+		this.addTheme('cyber', cyberTheme);
+		this.setDefaultTheme('cyber');
 	}
 	
 	addDevice(deviceType, deviceClass) {
@@ -78,13 +112,29 @@ class Jaxcore extends Service {
 		
 		// }
 	}
+	enableDevices(devices) {
+		for (let type in devices) {
+			if (type in this.deviceClasses) {
+				this.state.devicesEnabled[type] = devices[type];
+			}
+		}
+	}
+	
 	addService(serviceType, serviceClass) {
 		this.serviceClasses[serviceType] = serviceClass;
 		// if (serviceStore) this.setServiceStore(serviceType, serviceStore);
 		const serviceStore = createServiceStore('JAXCORE '+serviceType+' Store');
 		this.stores.services[serviceType] = serviceStore;
-		
 	}
+	
+	enableServices(services) {
+		for (let type in services) {
+			if (type in this.serviceClasses) {
+				this.state.servicesEnabled[type] = services[type];
+			}
+		}
+	}
+	
 	addAdapter(adapterType, adapterClass) {
 		this.adapterClasses[adapterType] = adapterClass;
 	}
@@ -371,27 +421,41 @@ class Jaxcore extends Service {
 			
 			let fn = ((type, config) => {
 				return (asyncCallback) => {
-					this.getOrCreateService(adapterConfig, type, config, (err, serviceInstance) => {
-						
-						if (err) {
-							this.log('connect err', err);
-							asyncCallback(err);
-						}
-						else {
-							if (serviceInstance) {
-								// console.log('getServicesForAdapter callback');
-								const serviceInstances = {};
-								serviceInstances[type] = serviceInstance;
-								asyncCallback(null, serviceInstances);
+					
+					if (this.state.servicesEnabled[type]) {
+						this.getOrCreateService(adapterConfig, type, config, (err, serviceInstance) => {
+							
+							if (err) {
+								this.log('connect err', err);
+								let error = {};
+								error[type] = err;
+								asyncCallback();
 							}
 							else {
-								this.log('no service for', adapterConfig, config);
-								asyncCallback({
-									noServiceInstance: config
-								});
+								if (serviceInstance) {
+									// console.log('getServicesForAdapter callback');
+									const serviceInstances = {};
+									serviceInstances[type] = serviceInstance;
+									asyncCallback(null, serviceInstances);
+								}
+								else {
+									this.log('no service for', adapterConfig, config);
+									let error = {};
+									ersror[type] = {
+										noServiceInstance: config
+									};
+									asyncCallback(error);
+								}
 							}
-						}
-					});
+						});
+					}
+					else {
+						let error = {};
+						error[type] = {
+							notEnabled: config
+						};
+						asyncCallback(error);
+					}
 					
 				}
 			})(serviceType, serviceConfig);
@@ -468,7 +532,16 @@ class Jaxcore extends Service {
 		this.getServicesForAdapter(adapterConfig, (err, services) => {
 			if (err) {
 				this.log('createAdapter error', err);
-				callback(err);
+				if (callback) callback(err);
+				else {
+					console.log('Service error', err);
+					for (let type in err) {
+						if ('notEnabled' in err[type]) {
+							console.log('To enable the service: jaxcore.enableService{{'+type+': true}}')
+						}
+					}
+					process.exit();
+				}
 			}
 			else {
 				if (!services) {

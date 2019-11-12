@@ -6,8 +6,8 @@ class WebsocketAdapter extends Adapter {
 		};
 	}
 	
-	constructor(config, theme, devices, services) {
-		super(config, theme, devices, services);
+	constructor(store, config, theme, devices, services) {
+		super(store, config, theme, devices, services);
 		const {spin} = devices;
 		const {websocket} = services;
 		spin.rotateRainbow(2);

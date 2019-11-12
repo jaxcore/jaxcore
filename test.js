@@ -1,7 +1,12 @@
 const Jaxcore = require('./jaxcore'); // require('jaxcore');
 const cyber = require('./themes/cyber'); // require('jaxcore/themes/cyber');
 const {createClientStore,createServiceStore} = require('jaxcore-plugin'); // require('jaxcore-plugin');
-const jaxcore = new Jaxcore();
+
+const jaxcoreStore = createServiceStore('JAXCORE Store');
+
+const adapterStore = createServiceStore('JAXCORE Adapter Store');
+
+const jaxcore = new Jaxcore(jaxcoreStore, adapterStore);
 jaxcore.addTheme('cyber', cyber);
 jaxcore.setDefaultTheme('cyber');
 

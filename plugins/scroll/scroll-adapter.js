@@ -15,8 +15,8 @@ class ScrollAdapter extends Adapter {
 		};
 	}
 	
-	constructor(config, theme, devices, services) {
-		super(config, theme, devices, services);
+	constructor(store, config, theme, devices, services) {
+		super(store, config, theme, devices, services);
 		const {spin} = devices;
 		const {scroll, keyboard} = services;
 		spin.rotateRainbow(2);

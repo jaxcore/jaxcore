@@ -2,17 +2,26 @@ const {createLogger, createStore, Service} = require('jaxcore-plugin');
 const async = require('async');
 
 class Jaxcore extends Service {
-	constructor() {
+	constructor(store, adapterStore) {
 		super();
 		
-		this.log = createLogger('Jaxcore');
-		this.setStore(createStore('Jaxcore Store'), true);
+		
+		if (store) {
+			this.setStore(store);
+		}
+		else {
+			this.setStore(createStore('Jaxcore Store'), true);
+		}
 		this.setState({
 			id: 'jaxcore',
 			devices: {},
 			adapters: {},
 			services: {}
 		});
+		
+		this.adapterStore = adapterStore;
+		
+		this.log = createLogger('Jaxcore');
 		
 		this.themes = {};
 		
@@ -500,7 +509,7 @@ class Jaxcore extends Service {
 		
 		let adapterInstance;
 		// if (adapterConfig.type === 'chromecast') {
-		adapterInstance = new adapterClass(adapterConfig, this.themes[adapterConfig.theme], devices, services);
+		adapterInstance = new adapterClass(this.adapterStore, adapterConfig, this.themes[adapterConfig.theme], devices, services);
 		// }
 		// else {
 		// 	adapterInstance = new Adapter(adapterConfig, this.themes[adapterConfig.theme], devices, services, adapterClass);

@@ -18,7 +18,7 @@ class KeyboardAdapter extends Adapter {
 			
 			settings: {
 				bothPress: {
-					key: 'escape',
+					key: 'delete',
 					modifiers: []
 				},
 				bothHold: {
@@ -29,7 +29,7 @@ class KeyboardAdapter extends Adapter {
 					repeatSpeed: 100
 				},
 				knobPress: {
-					key: 'enter',
+					key: 'space',
 					modifiers: []
 				},
 				knobHold: {
@@ -44,14 +44,13 @@ class KeyboardAdapter extends Adapter {
 					modifiers: []
 				},
 				buttonHold: {
-					key: null,
+					key: 'escape',
 					modifiers: [],
-					repeat: true,
+					repeat: false,
 					repeatDelay: 600,
 					repeatSpeed: 100
 				},
 				spinLeft: {
-					// key: 'up',
 					key: 'left',
 					modifiers: [],
 					bufferKinetic: 1,
@@ -59,7 +58,6 @@ class KeyboardAdapter extends Adapter {
 					momentumTimeout: 300
 				},
 				spinRight: {
-					// key: 'down',
 					key: 'right',
 					modifiers: [],
 					bufferKinetic: 1,
@@ -67,15 +65,19 @@ class KeyboardAdapter extends Adapter {
 					momentumTimeout: 300
 				},
 				knobSpinLeft: {
-					key: 'pageup',
+					// key: 'pageup',
+					key: 'left',
 					modifiers: [],
+					shuttle: true, // TODO
 					bufferKinetic: 1,
 					bufferStatic: 1,
 					momentumTimeout: 300
 				},
 				knobSpinRight: {
-					key: 'pagedown',
+					// key: 'pagedown',
+					key: 'right',
 					modifiers: [],
+					shuttle: true, // TODO
 					bufferKinetic: 1,
 					bufferStatic: 1,
 					momentumTimeout: 300
@@ -97,15 +99,19 @@ class KeyboardAdapter extends Adapter {
 					momentumTimeout: 300
 				},
 				bothSpinLeft: {
-					key: 'left',
-					modifiers: ['alt'],
+					// key: 'left',
+					// modifiers: ['alt'],
+					key: 'pageup',
+					modifiers: [],
 					bufferKinetic: 1,
 					bufferStatic: 1,
 					momentumTimeout: 300
 				},
 				bothSpinRight: {
-					key: 'right',
-					modifiers: ['alt'],
+					// key: 'right',
+					// modifiers: ['alt'],
+					key: 'pagedown',
+					modifiers: [],
 					bufferKinetic: 1,
 					bufferStatic: 1,
 					momentumTimeout: 300

@@ -1,6 +1,6 @@
 const {Service, createLogger} = require('jaxcore-plugin');
 const robot = require("robotjs");
-const MomentumScroll = require('../tools/momentumscroll/lib/src/momentumscroll/momentumscroll.js').default;
+const MomentumScroll = require('./momentumscroll/lib/src/momentumscroll/momentumscroll.js').default;
 
 let scrollInstance = null;
 

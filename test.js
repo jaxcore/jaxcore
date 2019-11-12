@@ -13,37 +13,36 @@ jaxcore.addDevice('spin', Spin, spinStore);
 
 // SERVICES
 
-const KeyboardService = require('./services/keyboard-service');
-jaxcore.addService('keyboard', KeyboardService);
-const keyboardStore = createServiceStore('JAXCORE Keyboard Store');
-jaxcore.setServiceStore('keyboard', keyboardStore);
+// const KeyboardService = require('./services/keyboard-service');
+// jaxcore.addService('keyboard', KeyboardService);
+// const keyboardStore = createServiceStore('JAXCORE Keyboard Store');
+// jaxcore.setServiceStore('keyboard', keyboardStore);
 
 const VolumeService = require('./services/volume-service');
 jaxcore.addService('volume', VolumeService);
 const volumeStore = createServiceStore('JAXCORE Volume Store');
 jaxcore.setServiceStore('volume', volumeStore);
 
-const MouseService = require('./services/mouse-service');
-jaxcore.addService('mouse', MouseService);
-const mouseStore = createServiceStore('JAXCORE Mouse Store');
-jaxcore.setServiceStore('mouse', mouseStore);
-
-const ScrollService = require('./services/scroll-service');
-jaxcore.addService('scroll', ScrollService);
-const scrollStore = createServiceStore('JAXCORE Scroll Store');
-jaxcore.setServiceStore('scroll', scrollStore);
-
-
+// const MouseService = require('./services/mouse-service');
+// jaxcore.addService('mouse', MouseService);
+// const mouseStore = createServiceStore('JAXCORE Mouse Store');
+// jaxcore.setServiceStore('mouse', mouseStore);
+//
+// const ScrollService = require('./services/scroll-service');
+// jaxcore.addService('scroll', ScrollService);
+// const scrollStore = createServiceStore('JAXCORE Scroll Store');
+// jaxcore.setServiceStore('scroll', scrollStore);
 
 // ADAPTERS
 
-const keyboardAdapter = require('./adapters/keyboard');
-jaxcore.addAdapter('keyboard', keyboardAdapter);
-const scrollAdapter = require('./adapters/scroll');
-jaxcore.addAdapter('scroll', scrollAdapter);
-const mouseAdapter = require('./adapters/mouse');
-jaxcore.addAdapter('mouse', mouseAdapter);
-const mediaAdapter = require('./adapters/media');
+// const keyboardAdapter = require('./adapters/keyboard');
+// jaxcore.addAdapter('keyboard', keyboardAdapter);
+// const scrollAdapter = require('./adapters/scroll');
+// jaxcore.addAdapter('scroll', scrollAdapter);
+// const mouseAdapter = require('./adapters/mouse');
+// jaxcore.addAdapter('mouse', mouseAdapter);
+
+const mediaAdapter = require('./adapters/media-adapter');
 jaxcore.addAdapter('media', mediaAdapter);
 
 
@@ -55,6 +54,21 @@ jaxcore.addAdapter('media', mediaAdapter);
 // jaxcore.setServiceStore('websocket', websocketStore);
 // const websocketAdapter = require('./adapters/websocket-adapter');
 // jaxcore.addAdapter('websocket', websocketAdapter);
+
+const keyboardPlugin = require('./plugins/keyboard');
+jaxcore.addPlugin(keyboardPlugin);
+const keyboardStore = createServiceStore('JAXCORE Keyboard Store');
+jaxcore.setServiceStore('keyboard', keyboardStore);
+
+const mousePlugin = require('./plugins/mouse');
+jaxcore.addPlugin(mousePlugin);
+const mouseStore = createServiceStore('JAXCORE Mouse Store');
+jaxcore.setServiceStore('mouse', mouseStore);
+
+const scrollPlugin = require('./plugins/scroll');
+jaxcore.addPlugin(scrollPlugin);
+const scrollStore = createServiceStore('JAXCORE Scroll Store');
+jaxcore.setServiceStore('scroll', scrollStore);
 
 const websocketPlugin = require('./plugins/websocket');
 jaxcore.addPlugin(websocketPlugin);

@@ -1,25 +1,32 @@
-const {createLogger, createStore, Service} = require('jaxcore-plugin');
+const {createLogger, createServiceStore, Service} = require('jaxcore-plugin');
 const async = require('async');
 
 class Jaxcore extends Service {
-	constructor(store, adapterStore) {
+	constructor() {
 		super();
 		
+		this.stores = {
+			jaxcore: createServiceStore('JAXCORE Store'),
+			adapters: createServiceStore('JAXCORE Adapter Store'),
+			devices: {},
+			services: {}
+		};
 		
-		if (store) {
-			this.setStore(store);
-		}
-		else {
-			this.setStore(createStore('Jaxcore Store'), true);
-		}
+		this.setStore(this.stores.jaxcore);
+		
+		// if (store) {
+		// 	this.setStore(store);
+		// }
+		// else {
+		// 	this.setStore(createStore('Jaxcore Store'), true);
+		// }
+		
 		this.setState({
 			id: 'jaxcore',
 			devices: {},
 			adapters: {},
 			services: {}
 		});
-		
-		this.adapterStore = adapterStore;
 		
 		this.log = createLogger('Jaxcore');
 		
@@ -47,16 +54,13 @@ class Jaxcore extends Service {
 		};
 		
 		this.deviceClasses = {};
-		this.deviceStores = {};
 		this.serviceClasses = {};
-		this.serviceStores = {};
 		this.adapterClasses = {};
-		this.adapterStores = {};
 		
-		this.spinDefaultSettings = {
-			brightness: 8,
-			sleepTimeout: 120
-		};
+		// this.spinDefaultSettings = {
+		// 	brightness: 8,
+		// 	sleepTimeout: 120
+		// };
 		
 		this.setState({
 			spinSettings: {
@@ -65,21 +69,29 @@ class Jaxcore extends Service {
 		});
 	}
 	
-	addDevice(deviceType, deviceClass, deviceStore) {
+	addDevice(deviceType, deviceClass) {
 		this.deviceClasses[deviceType] = deviceClass;
-		if (deviceStore) this.deviceStores[deviceType] = deviceStore;
+		// if (deviceStore) this.stores.devices[deviceType] = deviceStore;
+		// else {
+		const deviceStore = createServiceStore('JAXCORE '+deviceType+' Store');
+		this.stores.devices[deviceType] = deviceStore;
+		
+		// }
 	}
-	addService(serviceType, serviceClass, serviceStore) {
+	addService(serviceType, serviceClass) {
 		this.serviceClasses[serviceType] = serviceClass;
 		// if (serviceStore) this.setServiceStore(serviceType, serviceStore);
+		const serviceStore = createServiceStore('JAXCORE '+serviceType+' Store');
+		this.stores.services[serviceType] = serviceStore;
+		
 	}
 	addAdapter(adapterType, adapterClass) {
 		this.adapterClasses[adapterType] = adapterClass;
 	}
 	
-	setServiceStore(serviceType, serviceStore) {
-		this.serviceStores[serviceType] = serviceStore;
-	}
+	// setServiceStore(serviceType, serviceStore) {
+	// 	this.stores.services[serviceType] = serviceStore;
+	// }
 	
 	addPlugin(plugin) {
 		if (plugin.services) {
@@ -104,7 +116,7 @@ class Jaxcore extends Service {
 	startDevice(type, ids) {
 		if (!ids) ids = [];
 		const deviceClass = this.deviceClasses[type];
-		const deviceStore = this.deviceStores[type];
+		const deviceStore = this.stores.devices[type];
 		let callback = (spin) => {
 			this.log('connected Spin Device', spin.id);
 			this.emit('device-connected', 'spin', spin);
@@ -140,7 +152,7 @@ class Jaxcore extends Service {
 		this.log('start/get ' + serviceType + ' service', 'serviceConfig:', serviceConfig);
 		
 		const serviceClass = this.serviceClasses[serviceType];
-		const serviceStore = this.serviceStores[serviceType];
+		const serviceStore = this.stores.services[serviceType];
 		if (!serviceStore) {
 			this.log('no service store for', serviceType);
 			process.exit();
@@ -509,7 +521,7 @@ class Jaxcore extends Service {
 		
 		let adapterInstance;
 		// if (adapterConfig.type === 'chromecast') {
-		adapterInstance = new adapterClass(this.adapterStore, adapterConfig, this.themes[adapterConfig.theme], devices, services);
+		adapterInstance = new adapterClass(this.stores.adapters, adapterConfig, this.themes[adapterConfig.theme], devices, services);
 		// }
 		// else {
 		// 	adapterInstance = new Adapter(adapterConfig, this.themes[adapterConfig.theme], devices, services, adapterClass);

@@ -1,99 +1,48 @@
 const Jaxcore = require('./jaxcore'); // require('jaxcore');
 const cyber = require('./themes/cyber'); // require('jaxcore/themes/cyber');
-const {createClientStore,createServiceStore} = require('jaxcore-plugin'); // require('jaxcore-plugin');
+// const {createClientStore,createServiceStore} = require('jaxcore-plugin'); // require('jaxcore-plugin');
 
-const jaxcoreStore = createServiceStore('JAXCORE Store');
-
-const adapterStore = createServiceStore('JAXCORE Adapter Store');
-
-const jaxcore = new Jaxcore(jaxcoreStore, adapterStore);
+const jaxcore = new Jaxcore();
 jaxcore.addTheme('cyber', cyber);
 jaxcore.setDefaultTheme('cyber');
 
 // DEVICES
 
 const Spin = require('jaxcore-spin');
-const spinStore = createServiceStore('JAXCORE Spin Store');
-jaxcore.addDevice('spin', Spin, spinStore);
+jaxcore.addDevice('spin', Spin);
 
 // SERVICES
 
-// const KeyboardService = require('./services/keyboard-service');
-// jaxcore.addService('keyboard', KeyboardService);
-// const keyboardStore = createServiceStore('JAXCORE Keyboard Store');
-// jaxcore.setServiceStore('keyboard', keyboardStore);
-
 const VolumeService = require('./services/volume-service');
 jaxcore.addService('volume', VolumeService);
-const volumeStore = createServiceStore('JAXCORE Volume Store');
-jaxcore.setServiceStore('volume', volumeStore);
-
-// const MouseService = require('./services/mouse-service');
-// jaxcore.addService('mouse', MouseService);
-// const mouseStore = createServiceStore('JAXCORE Mouse Store');
-// jaxcore.setServiceStore('mouse', mouseStore);
-//
-// const ScrollService = require('./services/scroll-service');
-// jaxcore.addService('scroll', ScrollService);
-// const scrollStore = createServiceStore('JAXCORE Scroll Store');
-// jaxcore.setServiceStore('scroll', scrollStore);
 
 // ADAPTERS
-
-// const keyboardAdapter = require('./adapters/keyboard');
-// jaxcore.addAdapter('keyboard', keyboardAdapter);
-// const scrollAdapter = require('./adapters/scroll');
-// jaxcore.addAdapter('scroll', scrollAdapter);
-// const mouseAdapter = require('./adapters/mouse');
-// jaxcore.addAdapter('mouse', mouseAdapter);
 
 const mediaAdapter = require('./adapters/media-adapter');
 jaxcore.addAdapter('media', mediaAdapter);
 
-
 // PLUGINS
-
-// const WebsocketService = require('./services/websocket-service');
-// jaxcore.addService('websocket', WebsocketService);
-// const websocketStore = createServiceStore('JAXCORE Websocket Store');
-// jaxcore.setServiceStore('websocket', websocketStore);
-// const websocketAdapter = require('./adapters/websocket-adapter');
-// jaxcore.addAdapter('websocket', websocketAdapter);
 
 const keyboardPlugin = require('./plugins/keyboard');
 jaxcore.addPlugin(keyboardPlugin);
-const keyboardStore = createServiceStore('JAXCORE Keyboard Store');
-jaxcore.setServiceStore('keyboard', keyboardStore);
 
 const mousePlugin = require('./plugins/mouse');
 jaxcore.addPlugin(mousePlugin);
-const mouseStore = createServiceStore('JAXCORE Mouse Store');
-jaxcore.setServiceStore('mouse', mouseStore);
 
 const scrollPlugin = require('./plugins/scroll');
 jaxcore.addPlugin(scrollPlugin);
-const scrollStore = createServiceStore('JAXCORE Scroll Store');
-jaxcore.setServiceStore('scroll', scrollStore);
 
 const websocketPlugin = require('./plugins/websocket');
 jaxcore.addPlugin(websocketPlugin);
-const websocketStore = createServiceStore('JAXCORE Websocket Store');
-jaxcore.setServiceStore('websocket', websocketStore);
 
 const chromecastPlugin = require('jaxcore-chromecast-plugin');
 jaxcore.addPlugin(chromecastPlugin);
-const castStore = createClientStore('JAXCORE Chromecast Store');
-jaxcore.setServiceStore('chromecast', castStore);
 
 const kodiPlugin = require('jaxcore-kodi-plugin');
 jaxcore.addPlugin(kodiPlugin);
-const kodiStore = createClientStore('JAXCORE Kodi Store');
-jaxcore.setServiceStore('kodi', kodiStore);
 
 const sonosPlugin = require('jaxcore-sonos-plugin');
 jaxcore.addPlugin(sonosPlugin);
-const sonosStore = createClientStore('JAXCORE Sonos Store');
-jaxcore.setServiceStore('sonos', sonosStore);
 
 if (process.env.NODE_ENV === 'prod') {
 	console.log = function () {

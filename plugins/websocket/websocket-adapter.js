@@ -21,8 +21,9 @@ class WebsocketAdapter extends Adapter {
 		
 		this.addEvents(spin, {
 			update: function(changes) {
-				// this.log('spin change', changes);
-				websocket.spinUpdate(spin, changes);
+				this.log('spin change', changes);
+				if (changes) websocket.spinUpdate(spin, changes);
+				else console.log('no changes??');
 			},
 			spin: function (diff, spinTime) {
 				// this.log('spin rotate', diff, spinTime);

@@ -4,6 +4,7 @@ const {Service, createLogger} = require('jaxcore-plugin');
 const app = express();
 const socketServer = http.createServer(app);
 const io = require('socket.io')(socketServer);
+const Spin = require('jaxcore-spin');
 
 const schema = {
 	id: {
@@ -50,11 +51,18 @@ class WebsocketService extends Service {
 	}
 	
 	onConnect(socket) {
-		this.log('Socket connected', socket);
+		this.log('Socket connected', socket.id, socket.handshake.headers.host, socket.handshake.headers['user-agent']);
+		
 		
 		socket.on('disconnect', this._onDisconnect);
 		
-		socket.emit('connected-spins', this.state.connectedSpins);
+		for (let id in this.state.connectedSpins) {
+			let spin = Spin.spinIds[id];
+			if (spin.state.connected) {
+				socket.emit('spin-update', id, spin.state);
+			}
+		}
+		// socket.emit('connected-spins', this.state.connectedSpins);
 	};
 	
 	connectSpin(spin) {
@@ -62,12 +70,16 @@ class WebsocketService extends Service {
 		const {connectedSpins} = this.state;
 		connectedSpins[spin.id] = true;
 		this.setState(connectedSpins);
+		
+		io.emit('spin-connect', spin.id, spin.state);
 	}
 	disconnectSpin(spin) {
 		this.log('Spin disconnected from websocket', spin.id);
 		const {connectedSpins} = this.state;
 		delete connectedSpins[spin.id];
 		this.setState(connectedSpins);
+		
+		io.emit('spin-disconnect', spin.id);
 	}
 	
 	spinUpdate(spin, changes) {

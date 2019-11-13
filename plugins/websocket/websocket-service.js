@@ -17,10 +17,13 @@ const schema = {
 	port: {
 		type: 'number',
 		defaultValue: 0
+	},
+	connectedSpins: {
+		type: 'object'
 	}
 };
 
-let websocketInstance = null;
+const websocketInstances = {};
 
 class WebsocketService extends Service {
 	constructor(defaults, store) {
@@ -34,8 +37,11 @@ class WebsocketService extends Service {
 	connect() {
 		io.on('connection', this._onConnect);
 		
+		this.log('starting on port', this.state.port);
+		
 		socketServer.listen(this.state.port, () => {
 			this.log('Socket server listening on : ' + this.state.port);
+			
 			this.setState({
 				connected: true
 			});
@@ -44,9 +50,30 @@ class WebsocketService extends Service {
 	}
 	
 	onConnect(socket) {
-		this.log('Socket connected');
+		this.log('Socket connected', socket);
+		
 		socket.on('disconnect', this._onDisconnect);
+		
+		socket.emit('connected-spins', this.state.connectedSpins);
 	};
+	
+	connectSpin(spin) {
+		this.log('Spin connected to websocket', spin.id);
+		const {connectedSpins} = this.state;
+		connectedSpins[spin.id] = true;
+		this.setState(connectedSpins);
+	}
+	disconnectSpin(spin) {
+		this.log('Spin disconnected from websocket', spin.id);
+		const {connectedSpins} = this.state;
+		delete connectedSpins[spin.id];
+		this.setState(connectedSpins);
+	}
+	
+	spinUpdate(spin, changes) {
+		this.log('Spin changes', changes);
+		io.emit('spin-update', spin.id, changes);
+	}
 	
 	onDisconnect(socket) {
 		this.log('Socket disconnected', socket);
@@ -58,24 +85,30 @@ class WebsocketService extends Service {
 	
 	destroy() {
 		this.emit('teardown');
-		websocketInstance = null;
+		
 	}
 	
-	static id() {
-		return 'websocket';
+	static id(serviceConfig) {
+		return 'websocket:'+serviceConfig.port;
 	}
 	
 	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
-		if (!websocketInstance) {
-			console.log('CREATE WEBSOCKET');
+		let websocketInstance;
+		
+		if (serviceId in websocketInstances) {
+			websocketInstance = websocketInstances[serviceId];
+		}
+		else {
+			console.log('CREATE WEBSOCKET', serviceConfig);
 			websocketInstance = new WebsocketService(serviceConfig, serviceStore);
 		}
 		callback(null, websocketInstance);
 	}
 	
 	static destroyInstance(serviceId, serviceConfig) {
-		if (websocketInstance) {
-			websocketInstance.destroy();
+		if (websocketInstances[serviceId]) {
+			websocketInstances[serviceId].destroy();
+			delete websocketInstances[serviceId];
 		}
 	}
 }

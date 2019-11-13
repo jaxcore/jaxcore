@@ -1,4 +1,4 @@
-const {createLogger, createServiceStore, Service} = require('jaxcore-plugin');
+const {createLogger, createServiceStore, createClientStore, Service} = require('jaxcore-plugin');
 const async = require('async');
 
 const Spin = require('jaxcore-spin');
@@ -17,8 +17,6 @@ const cyberTheme = require('./themes/cyber');
 class Jaxcore extends Service {
 	constructor() {
 		super();
-		
-		
 		
 		this.stores = {
 			jaxcore: createServiceStore('JAXCORE Store'),
@@ -120,10 +118,12 @@ class Jaxcore extends Service {
 		}
 	}
 	
-	addService(serviceType, serviceClass) {
+	addService(serviceType, serviceClass, serviceStoreType) {
 		this.serviceClasses[serviceType] = serviceClass;
 		// if (serviceStore) this.setServiceStore(serviceType, serviceStore);
-		const serviceStore = createServiceStore('JAXCORE '+serviceType+' Store');
+		let serviceStore;
+		if (serviceStoreType === 'service') serviceStore = createServiceStore('JAXCORE '+serviceType+' ServiceStore');
+		else if (serviceStoreType === 'client') serviceStore = createClientStore('JAXCORE '+serviceType+' ClientStore');
 		this.stores.services[serviceType] = serviceStore;
 	}
 	
@@ -146,7 +146,15 @@ class Jaxcore extends Service {
 	addPlugin(plugin) {
 		if (plugin.services) {
 			for (let serviceType in plugin.services) {
-				this.addService(serviceType, plugin.services[serviceType]);
+				let service = plugin.services[serviceType];
+				let storeType;
+				if ('stores' in plugin && serviceType in plugin.stores) {
+					storeType = plugin.stores[serviceType];
+				}
+				else {
+					storeType = 'service';
+				}
+				this.addService(serviceType, service, storeType);
 			}
 		}
 		if (plugin.adapters) {
@@ -451,6 +459,8 @@ class Jaxcore extends Service {
 					}
 					else {
 						let error = {};
+						console.log('not enabled', type, this.state.servicesEnabled);
+						process.exit();
 						error[type] = {
 							notEnabled: config
 						};

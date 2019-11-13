@@ -13,25 +13,32 @@ class WebsocketAdapter extends Adapter {
 		spin.rotateRainbow(2);
 		spin.lightsOff();
 		
+		websocket.connectSpin(spin);
+		
 		// spin.state.on('update', function(changes) {
 		// 	console.log('update', spin.id, changes);
 		// });
 		
 		this.addEvents(spin, {
+			update: function(changes) {
+				// this.log('spin change', changes);
+				websocket.spinUpdate(spin, changes);
+			},
 			spin: function (diff, spinTime) {
-				this.log('spin rotate', diff, spinTime);
+				// this.log('spin rotate', diff, spinTime);
+				// this.log('spin rotate', spin.setState);
 			},
 			knob: function (pushed) {
-				this.log('knob', pushed);
+				// this.log('knob', pushed);
 			},
 			button: function (pushed) {
-				this.log('button', pushed);
+				// this.log('button', pushed);
 			},
 			knobHold: function () {
-				this.log('knob HOLD');
+				// this.log('knob HOLD');
 			},
 			buttonHold: function () {
-				this.log('button HOLD');
+				// this.log('button HOLD');
 			}
 		});
 	}
@@ -39,7 +46,7 @@ class WebsocketAdapter extends Adapter {
 	
 	static getServicesConfig(adapterConfig) {
 		return {
-			websocket: true
+			websocket: adapterConfig.settings.services.websocket
 		};
 	}
 }

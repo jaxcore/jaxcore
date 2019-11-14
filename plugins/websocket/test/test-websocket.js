@@ -30,57 +30,88 @@ const socketTransport = new WebsocketTransport(TransportSpin, spinStore);
 TransportSpin.connect(function(spin) {
 	console.log('transport spin connected', spin.id);
 	
-	spin.on('spin', function(diff, time) {
+	function onSpin(diff, time) {
 		console.log('transport ON SPIN', diff, time);
-	});
-	spin.on('button', function(pushed) {
+	}
+	function onButton(pushed) {
 		console.log('transport ON BUTTON', pushed);
-	});
-	spin.on('knob', function(pushed) {
+	}
+	function onKnob(pushed) {
 		console.log('transport ON KNOB', pushed);
+	}
+	spin.on('spin', onSpin);
+	spin.on('button', onButton);
+	spin.on('knob', onKnob);
+	
+	spin.once('disconnect', function() {
+		console.log('final disconnected');
+		
+		spin.removeListener('spin', onSpin);
+		spin.removeListener('button', onButton);
+		spin.removeListener('knob', onKnob);
 	});
 });
 
 
-socket.on('connect', function() {
-	log('socket connect');
+const onConnect = function(id, state) {
+	log('ON spin-connect', id, state);
 	
+	let spin = socketTransport.connectSpin(id, state);
+	console.log('spin-connect CONNECTING...');
 	
-	socket.on('spin-connect', function(id, state) {
-		log('ON spin-connect', id, state);
-		
-		let spin = socketTransport.connectSpin(id, state);
-		console.log('spin-connect CONNECTING...');
-		
-		// spin.on('connect', function() {
-		// 	console.log('on connect', id);
-		// 	process.exit();
-		// 	TransportSpin.onSpinConnected(id);
-		// });
-		// spin.connect();
-		log('spin-connect spin created', spin);
-		// process.exit();
-		
-		// TransportSpin.createSpin(this.transport, id, state);
-	});
-	socket.on('spin-disconnect', function(id, state) {
-		log('ON spin-disconnect', id, state);
-		TransportSpin.onSpinDisconnected(id);
-	});
+	spin.once('connect', function() {
+		console.log('onConnect connect', id);
+		TransportSpin.onSpinConnected(id);
+	}, 'connect');
+	spin.connect();
 	
-	socket.on('spin-update', function(id, changes) {
-		
+	log('spin-connect spin created', spin);
+	// process.exit();
+	
+	// TransportSpin.createSpin(this.transport, id, state);
+	
+};
+const onDisconnect = function(id, state) {
+	log('ON spin-disconnect', id, state);
+	TransportSpin.onSpinDisconnected(id);
+	
+	// socket.removeListener('spin-connect', onConnect);
+	socket.removeListener('spin-update', onUpdate);
+	socket.removeListener('spin-disconnect', onDisconnect);
+};
+
+const onUpdate = function(id, changes) {
+	console.log('spin-update', changes);
+	
+	if ('connected' in changes && !changes.connected) {
+		console.log('spin-update disconnecting', changes);
+		socketTransport.disconnectSpin(id, changes);
+	}
+	else {
 		let spin = socketTransport.updateSpin(id, changes);
 		if (!spin.state.connected) {
 			console.log('spin-update CONNECTING...');
-			spin.on('connect', function () {
+			spin.once('connect', function () {
 				TransportSpin.onSpinConnected(id);
 			});
 			spin.connect();
 		}
-	});
+	}
+};
+
+socket.on('connect', function() {
+	log('socket connect');
+
+	socket.on('spin-update', onUpdate);
+	socket.on('spin-disconnect', onDisconnect);
+	socket.on('spin-connect', onConnect);
+
 });
 
 socket.on('disconnect', () => {
 	log('socket disconnect');
+	
+	socket.removeListener('spin-update', onUpdate);
+	socket.removeListener('spin-disconnect', onDisconnect);
+	socket.removeListener('spin-connect', onConnect);
 });

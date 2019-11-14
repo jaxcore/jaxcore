@@ -183,51 +183,53 @@ class TransportSpin extends Client {
 	
 	sendCommand() {
 		let args = Array.prototype.slice.call(arguments);
+		args.unshift(this.id);
 		this.transport.sendCommand(this, args);
 	}
 	
 	orbit(direction, speed, color1, color2) {
 		// this.log('client orbit(', direction, speed, color1, color2);
-		this.sendCommand(this.id, 'ORBIT', direction, speed, color1, color2);
+		this.sendCommand('ORBIT', direction, speed, color1, color2);
 	}
 	
 	flash(color) {
-		this.sendCommand(this.id, 'FLASH', color);
+		this.sendCommand('FLASH', color);
 	}
 	
 	quickFlash(color, repeat) {
 		if (!repeat) repeat = 1;
-		this.sendCommand(this.id, 'QUICKFLASH', color.join(',') + ',' + repeat);
+		this.sendCommand('QUICKFLASH', color.join(',') + ',' + repeat);
 	}
 	
 	lightsOn(color) {
-		this.sendCommand(this.id, 'LIGHTSON', color);
+		this.sendCommand('LIGHTSON', color);
 	}
 	
 	lightsOff() {
-		this.sendCommand(this.id, 'LIGHTSOFF');
+		this.sendCommand('LIGHTSOFF');
 	}
 	
 	setBrightness(brightness) {
-		this.sendCommand(this.id, 'BRIGHTNESS', brightness);
+		this.sendCommand('BRIGHTNESS', brightness);
 	}
 	
-	rotate(direction, color1, color2) {
-		this._rotationIndex += direction;
-		if (this._rotationIndex <= 0 || this._rotationIndex >= 16384) this._rotationIndex = 8192;
-		this.sendCommand(this.id, 'ROTATE', [this._rotationIndex, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2]]);
-		// this.sendCommand(this.id, 'ROTATE', direction, color1, color2);
+	rotate(diff, color1, color2) {
+		// this._rotationIndex += diff;
+		// if (this._rotationIndex <= 0 || this._rotationIndex >= 16384) this._rotationIndex = 8192;
+		// this.sendCommand('ROTATE', [this._rotationIndex, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2]]);
+		// this.sendCommand('ROTATE', [this._rotationIndex, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2]]);
+		this.sendCommand('ROTATE', diff, color1, color2);
 	}
 	
 	scale(scalePercent, color1, color2, color3) {
 		if (scalePercent < 0) scalePercent = 0;
 		if (scalePercent > 1) scalePercent = 1;
 		var scaleIndex = Math.round(scalePercent * 25);
-		this.sendCommand(this.id, 'SCALAR', [scaleIndex, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2], color3[0], color3[1], color3[2]]);
+		this.sendCommand('SCALAR', [scaleIndex, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2], color3[0], color3[1], color3[2]]);
 	}
 	
 	// scale (percent, color1, color2, color3) {
-	// 	this.sendCommand(this.id, 'SCALAR', percent, color1, color2, color3);
+	// 	this.sendCommand('SCALAR', percent, color1, color2, color3);
 	// }
 	
 	dial(scalePercent, color1, color2, color3) {
@@ -235,12 +237,12 @@ class TransportSpin extends Client {
 		if (scalePercent > 1) scalePercent = 1;
 		var scaleIndex = Math.round(scalePercent * 25);
 		log('dial', scaleIndex, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2], color3[0], color3[1], color3[2]);
-		this.sendCommand(this.id, 'DIAL', [scaleIndex, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2], color3[0], color3[1], color3[2]]);
+		this.sendCommand('DIAL', [scaleIndex, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2], color3[0], color3[1], color3[2]]);
 	}
 	
 	orbit(direction, speed, color1, color2) {
 		if (this.bleDevice) this.bleDevice.orbit(direction, speed, color1, color2);
-		else this.sendCommand(this.id, 'ORBIT', [direction === 1 ? 1 : 0, speed, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2]]);
+		else this.sendCommand('ORBIT', [direction === 1 ? 1 : 0, speed, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2]]);
 	}
 	
 	
@@ -250,15 +252,15 @@ class TransportSpin extends Client {
 		else if (balancePercent < 0) balanceIndex = 23 - Math.round(Math.abs(balancePercent) * 23);
 		else balanceIndex = 24 + Math.round(balancePercent * 23);
 		log('balancePercent', balancePercent, 'balanceIndex=' + balanceIndex);
-		this.sendCommand(this.id, 'BALANCE', [balanceIndex, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2], color3[0], color3[1], color3[2]]);
+		this.sendCommand('BALANCE', [balanceIndex, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2], color3[0], color3[1], color3[2]]);
 	}
 	
 	startTimer(ms, color1, color2) {
-		this.sendCommand(this.id, 'TIMER', [ms, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2]]);
+		this.sendCommand('TIMER', [ms, color1[0], color1[1], color1[2], color2[0], color2[1], color2[2]]);
 	}
 	
 	cancelTimer() {
-		this.sendCommand(this.id, 'TIMER', [0]);
+		this.sendCommand('TIMER', [0]);
 	}
 	
 	setKnobHoldThreshold(th) {

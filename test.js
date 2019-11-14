@@ -1,13 +1,12 @@
 const Jaxcore = require('./jaxcore');
 const jaxcore = new Jaxcore();
 
-// DEVICES
-jaxcore.addDevice('spin', require('jaxcore-spin'));
-
 // SERVICES
 jaxcore.addService('volume', require('./services/volume-service'));
+// TODO: jaxcore.addPlugin(require('jaxcore-volume-macosx-plugin'));
 
 // PLUGINS
+jaxcore.addPlugin(require('jaxcore-spin'));
 jaxcore.addPlugin(require('./plugins/keyboard'));
 jaxcore.addPlugin(require('./plugins/mouse'));
 jaxcore.addPlugin(require('./plugins/scroll'));
@@ -15,7 +14,9 @@ jaxcore.addPlugin(require('./plugins/websocket'));
 jaxcore.addPlugin(require('jaxcore-chromecast-plugin'));
 jaxcore.addPlugin(require('jaxcore-kodi-plugin'));
 jaxcore.addPlugin(require('jaxcore-sonos-plugin'));
-// jaxcore.addPlugin(require('./plugins/websocket-client'));
+
+jaxcore.addPlugin(require('./plugins/websocket-client'));
+jaxcore.addAdapter('console-websocket-test', require('./adapters/console-websocket-test-adapter'));
 
 // ADAPTERS
 jaxcore.addAdapter('media', require('./adapters/media-adapter'));
@@ -181,10 +182,3 @@ jaxcore.on('device-connected', function(type, device) {
 });
 
 jaxcore.startDevice('spin');
-
-// jaxcore.startService('websocket', 'websocket', websocketStore, {
-// 	id: 'websocket',
-// 	port:37524
-// }, function(err, websocketService) {
-// 	console.log('websocketService', websocketService);
-// });

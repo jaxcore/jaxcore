@@ -108,6 +108,10 @@ class Jaxcore extends Service {
 		let deviceStore;
 		if (deviceStoreType === 'service') deviceStore = createServiceStore('JAXCORE '+deviceType+' Store');
 		else if (deviceStoreType === 'client') deviceStore = createClientStore('JAXCORE '+deviceType+' Store');
+		else {
+			console.log('device', deviceType, 'has no storeType');
+			process.exit();
+		}
 		this.stores.devices[deviceType] = deviceStore;
 		this.state.devicesEnabled[deviceType] = true;
 		// }
@@ -148,16 +152,35 @@ class Jaxcore extends Service {
 	addPlugin(plugin) {
 		if (plugin.services) {
 			for (let serviceType in plugin.services) {
-				let service = plugin.services[serviceType];
+				let service;
+				if ('service' in plugin.services[serviceType]) {
+					service = plugin.services[serviceType].service;
+				}
+				else {
+					service = plugin.services[serviceType];
+				}
+				
 				let storeType;
-				if ('stores' in plugin && serviceType in plugin.stores) {
+				if ('storeType' in plugin.services[serviceType]) {
+					storeType = plugin.services[serviceType].storeType;
+				}
+				else if ('stores' in plugin && serviceType in plugin.stores) {
 					storeType = plugin.stores[serviceType];
 				}
 				else {
 					storeType = 'service';
 				}
+				
 				this.addService(serviceType, service, storeType);
 				this.state.servicesEnabled[serviceType] = true;
+			}
+		}
+		if (plugin.devices) {
+			for (let deviceType in plugin.devices) {
+				let device = plugin.devices[deviceType].device;
+				let storeType = plugin.devices[deviceType].storeType;
+				this.addDevice(deviceType, device, storeType);
+				this.state.devicesEnabled[deviceType] = true;
 			}
 		}
 		if (plugin.adapters) {

@@ -53,8 +53,15 @@ class WebsocketService extends Service {
 	onConnect(socket) {
 		this.log('Socket connected', socket.id, socket.handshake.headers.host, socket.handshake.headers['user-agent']);
 		
-		
 		socket.on('disconnect', this._onDisconnect);
+		
+		socket.on('spin-command', function(id, method, args) {
+			console.log('SPIN-COMMAND', id, method, args);
+			let spin = Spin.spinIds[id];
+			if (spin.state.connected) {
+				spin.processCommand(method, args);
+			}
+		});
 		
 		for (let id in this.state.connectedSpins) {
 			let spin = Spin.spinIds[id];

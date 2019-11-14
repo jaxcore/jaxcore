@@ -1,27 +1,35 @@
 const Jaxcore = require('./jaxcore');
 const jaxcore = new Jaxcore();
 
+// DEVICES
+jaxcore.addDevice('spin', require('jaxcore-spin'));
+
+// SERVICES
+jaxcore.addService('volume', require('./services/volume-service'));
+
 // PLUGINS
+jaxcore.addPlugin(require('./plugins/keyboard'));
+jaxcore.addPlugin(require('./plugins/mouse'));
+jaxcore.addPlugin(require('./plugins/scroll'));
+jaxcore.addPlugin(require('./plugins/websocket'));
+jaxcore.addPlugin(require('jaxcore-chromecast-plugin'));
+jaxcore.addPlugin(require('jaxcore-kodi-plugin'));
+jaxcore.addPlugin(require('jaxcore-sonos-plugin'));
+// jaxcore.addPlugin(require('./plugins/websocket-client'));
 
-const chromecastPlugin = require('jaxcore-chromecast-plugin');
-jaxcore.addPlugin(chromecastPlugin);
+// ADAPTERS
+jaxcore.addAdapter('media', require('./adapters/media-adapter'));
 
-const kodiPlugin = require('jaxcore-kodi-plugin');
-jaxcore.addPlugin(kodiPlugin);
-
-const sonosPlugin = require('jaxcore-sonos-plugin');
-jaxcore.addPlugin(sonosPlugin);
-
-jaxcore.enableServices({
-	keyboard: true,
-	mouse: true,
-	scroll: true,
-	volume: true,
-	websocket: true,
-	chromecast: true,
-	kodi: true,
-	sonos: true
-});
+// jaxcore.enableServices({
+// 	keyboard: true,
+// 	mouse: true,
+// 	scroll: true,
+// 	volume: true,
+// 	websocket: true,
+// 	chromecast: true,
+// 	kodi: true,
+// 	sonos: true
+// });
 
 if (process.env.NODE_ENV === 'prod') {
 	console.log = function () {

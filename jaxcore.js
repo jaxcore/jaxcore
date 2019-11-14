@@ -1,16 +1,16 @@
 const {createLogger, createServiceStore, createClientStore, Service} = require('jaxcore-plugin');
 const async = require('async');
 
-const Spin = require('jaxcore-spin');
-
-const keyboardPlugin = require('./plugins/keyboard');
-const mousePlugin = require('./plugins/mouse');
-const scrollPlugin = require('./plugins/scroll');
-const websocketPlugin = require('./plugins/websocket');
-
-const VolumeService = require('./services/volume-service');
-
-const mediaAdapter = require('./adapters/media-adapter');
+// const Spin = require('jaxcore-spin');
+//
+// const keyboardPlugin = require('./plugins/keyboard');
+// const mousePlugin = require('./plugins/mouse');
+// const scrollPlugin = require('./plugins/scroll');
+// const websocketPlugin = require('./plugins/websocket');
+//
+// const VolumeService = require('./services/volume-service');
+//
+// const mediaAdapter = require('./adapters/media-adapter');
 
 const cyberTheme = require('./themes/cyber');
 
@@ -83,19 +83,19 @@ class Jaxcore extends Service {
 			}
 		});
 		
-		this.addDevice('spin', Spin);
-		this.enableDevices({
-			spin: true
-		});
-		
-		this.addService('volume', VolumeService);
-		
-		this.addPlugin(keyboardPlugin);
-		this.addPlugin(mousePlugin);
-		this.addPlugin(scrollPlugin);
-		this.addPlugin(websocketPlugin);
-		
-		this.addAdapter('media', mediaAdapter);
+		// this.addDevice('spin', Spin);
+		// this.enableDevices({
+		// 	spin: true
+		// });
+		//
+		// this.addService('volume', VolumeService);
+		//
+		// this.addPlugin(keyboardPlugin);
+		// this.addPlugin(mousePlugin);
+		// this.addPlugin(scrollPlugin);
+		// this.addPlugin(websocketPlugin);
+		//
+		// this.addAdapter('media', mediaAdapter);
 		
 		this.addTheme('cyber', cyberTheme);
 		this.setDefaultTheme('cyber');
@@ -107,7 +107,7 @@ class Jaxcore extends Service {
 		// else {
 		const deviceStore = createServiceStore('JAXCORE '+deviceType+' Store');
 		this.stores.devices[deviceType] = deviceStore;
-		
+		this.state.devicesEnabled[deviceType] = true;
 		// }
 	}
 	enableDevices(devices) {
@@ -155,6 +155,7 @@ class Jaxcore extends Service {
 					storeType = 'service';
 				}
 				this.addService(serviceType, service, storeType);
+				this.state.servicesEnabled[serviceType] = true;
 			}
 		}
 		if (plugin.adapters) {

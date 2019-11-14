@@ -19,6 +19,7 @@ jaxcore.addPlugin(require('jaxcore-sonos-plugin'));
 
 // ADAPTERS
 jaxcore.addAdapter('media', require('./adapters/media-adapter'));
+jaxcore.addAdapter('console-test', require('./adapters/console-test-adapter'));
 
 // jaxcore.enableServices({
 // 	keyboard: true,
@@ -59,6 +60,7 @@ if (process.env.NODE_ENV === 'prod') {
 
 let defaultAdapter = process.argv[2];
 
+// jaxcore.on('spin-connected', function(spin) {
 jaxcore.on('device-connected', function(type, device) {
 	if (type === 'spin') {
 		const spin = device;
@@ -169,6 +171,10 @@ jaxcore.on('device-connected', function(type, device) {
 						// process.exit();
 					}
 				});
+			}
+			
+			if (defaultAdapter === 'console-test') {
+				jaxcore.createAdapter(spin, 'console-test');
 			}
 		}
 	}

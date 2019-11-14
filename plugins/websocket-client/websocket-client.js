@@ -1,4 +1,4 @@
-const {createLogger} = require('jaxcore-plugin');
+const {Client, createLogger} = require('jaxcore-plugin');
 const TransportSpin = require('./transport-spin');
 const WebsocketTransport = require('./websocket-transport');
 const io = require('socket.io-client');
@@ -8,18 +8,56 @@ const log = createLogger('WebSocketClient');
 let spinStore;
 let socketTransport;
 
-class WebSocketClient {
-	static setSpinStore(store) {
-		spinStore = store;
+const schema = {
+	id: {
+		type: 'string',
+		defaultValue: ''
+	},
+	host: {
+		type: 'string',
+		defaultValue: ''
+	},
+	port: {
+		type: 'integer',
+		defaultValue: 0
+	},
+	connected: {
+		type: 'boolean',
+		defaultValue: false
+	}
+};
+
+var _instance = 0;
+class WebsocketClient extends Client {
+	constructor(defaults, store, socketTransport) {
+		super(schema, store, defaults);
+		
+		this.socketTransport = socketTransport;
+		
+		this.log = createLogger('WebsocketClient ' + (_instance++));
+		this.log('create', defaults);
+		
 	}
 	
-	static connectSocket(socketConfig) {
-		if (!socketTransport) socketTransport = new WebsocketTransport(TransportSpin, spinStore);
+	connect() {
+		this.log('connecting x', this.state.host + ':' + this.state.port);
+		// console.log('wsc state', this.state);
+		// process.exit();
+		
+		// this.setState({
+		// 	connecting: true,
+		// 	status: 'connecting'
+		// });
+		// if (!socketTransport) socketTransport = new WebsocketTransport(TransportSpin, spinStore);
+		
+		let socketConfig = this.state;
 		
 		const url = socketConfig.protocol + '://' + socketConfig.host + ':' + socketConfig.port;
-		console.log('connecting websocket ' + url + ' ...');
+		this.log('connecting websocket ' + url + ' ...');
 		
 		const socket = io.connect(url, socketConfig.options);
+		
+		const socketTransport = this.socketTransport;
 		
 		const onConnect = function(id, state) {
 			log('ON spin-connect', id, state);
@@ -86,6 +124,8 @@ class WebSocketClient {
 		
 		return socket;
 	};
+	
+	
 }
 
-module.exports = WebSocketClient;
+module.exports = WebsocketClient;

@@ -106,6 +106,8 @@ class TransportSpin extends Client {
 		
 		super(schema, store, defaults);
 		
+		this.deviceType = 'spin';
+		
 		this.log = createLogger('TransportSpin ' + instance);
 		
 		let id = device.id;
@@ -290,6 +292,38 @@ class TransportSpin extends Client {
 	
 	static connect(callback) {
 		spinMonitor.on('spin-connected', callback);
+	}
+	
+	static startJaxcoreDevice(ids, deviceStore, callback) {
+		console.log('TransportSpin startJaxcoreDevice', deviceStore);
+		// process.exit();
+		// ble.connectBLE(store, Spin.create, spinIds, callback);
+		
+		TransportSpin.connect(function(spin) {
+			console.log('transport spin connected', spin.id);
+			callback(spin);
+			
+			// function onSpin(diff, time) {
+			// 	console.log('transport ON SPIN', diff, time);
+			// }
+			// function onButton(pushed) {
+			// 	console.log('transport ON BUTTON', pushed);
+			// }
+			// function onKnob(pushed) {
+			// 	console.log('transport ON KNOB', pushed);
+			// }
+			// spin.on('spin', onSpin);
+			// spin.on('button', onButton);
+			// spin.on('knob', onKnob);
+			//
+			// spin.once('disconnect', function() {
+			// 	console.log('final disconnected');
+			//
+			// 	spin.removeListener('spin', onSpin);
+			// 	spin.removeListener('button', onButton);
+			// 	spin.removeListener('knob', onKnob);
+			// });
+		});
 	}
 }
 

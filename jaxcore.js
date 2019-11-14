@@ -101,11 +101,13 @@ class Jaxcore extends Service {
 		this.setDefaultTheme('cyber');
 	}
 	
-	addDevice(deviceType, deviceClass) {
+	addDevice(deviceType, deviceClass, deviceStoreType) {
 		this.deviceClasses[deviceType] = deviceClass;
 		// if (deviceStore) this.stores.devices[deviceType] = deviceStore;
 		// else {
-		const deviceStore = createServiceStore('JAXCORE '+deviceType+' Store');
+		let deviceStore;
+		if (deviceStoreType === 'service') deviceStore = createServiceStore('JAXCORE '+deviceType+' Store');
+		else if (deviceStoreType === 'client') deviceStore = createClientStore('JAXCORE '+deviceType+' Store');
 		this.stores.devices[deviceType] = deviceStore;
 		this.state.devicesEnabled[deviceType] = true;
 		// }
@@ -176,15 +178,24 @@ class Jaxcore extends Service {
 		if (!ids) ids = [];
 		const deviceClass = this.deviceClasses[type];
 		const deviceStore = this.stores.devices[type];
-		let callback = (spin) => {
-			this.log('connected Spin Device', spin.id);
-			this.emit('device-connected', 'spin', spin);
+		let callback = (device) => {
+			this.log('connected Device', device.id);
+			this.emit('device-connected', type, device);
+			//this.emit(type+'-device-connected', device);
 		};
 		deviceClass.startJaxcoreDevice(ids, deviceStore, callback);
+		
+		
 	}
 	
-	startService(type, serviceId, serviceStore, serviceConfig, callback) {
-		this.serviceClasses[type].getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback);
+	startService(serviceType, serviceId, serviceStore, serviceConfig, callback) {
+		if (!serviceId) {
+			serviceId = this.getServiceId(serviceType, serviceConfig);
+		}
+		if (!serviceStore) {
+			serviceStore = this.stores.services[serviceType];
+		}
+		this.serviceClasses[serviceType].getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback);
 	}
 	
 	findSpinAdapter(spin) {
@@ -205,6 +216,16 @@ class Jaxcore extends Service {
 				}
 			}
 		}
+	}
+	
+	getServiceId(serviceType, serviceConfig) {
+		const serviceClass = this.serviceClasses[serviceType];
+		const serviceStore = this.stores.services[serviceType];
+		if (!serviceClass.id) {
+			this.log('no serviceClass id', serviceClass);
+			process.exit();
+		}
+		return serviceClass.id(serviceConfig, serviceStore);
 	}
 	
 	getOrCreateService(adapterConfig, serviceType, serviceConfig, callback) {
@@ -414,7 +435,13 @@ class Jaxcore extends Service {
 			console.log('no adapterClasses', adapterConfig.type, Object.keys(this.adapterClasses));
 			process.exit();
 		}
-		const servicesConfig = adapterInstance.getServicesConfig(adapterConfig);
+		let servicesConfig;
+		if (adapterInstance.getServicesConfig) servicesConfig = adapterInstance.getServicesConfig(adapterConfig);
+		else {
+			this.log('adapter', adapterConfig.type, 'has no getServicesConfig');
+			servicesConfig = {};
+		}
+		
 		this.log('getServicesForAdapter servicesConfig', adapterConfig, servicesConfig);
 		
 		const serviceConfigFns = [];
@@ -522,17 +549,27 @@ class Jaxcore extends Service {
 		});
 	}
 	
-	createAdapter(spin, adapterType, adapterSettings, callback) {
+	createAdapter(device, adapterType, adapterSettings, callback) {
 		if (!adapterSettings) adapterSettings = {};
-		this.log('CREATING ADAPTER:', spin.id, adapterType, adapterSettings);
+		this.log('CREATING ADAPTER:', device.id, adapterType, adapterSettings);
 		const adapterId = Math.random().toString().substring(2);
 		this.log('usage 4');
+		
+		const deviceIds = {};
+		
+		if (!device.deviceType) {
+			this.log('device has no deviceType');
+			process.exit();
+		}
+		
+		// console.log('jaxcoreDeviceType', device.deviceType);
+		
+		deviceIds[device.deviceType] = device.id;
+		
 		this.state.adapters[adapterId] = {
 			id: adapterId,
 			type: adapterType,
-			deviceIds: {
-				spin: spin.id
-			},
+			deviceIds,
 			serviceIds: {},
 			settings: adapterSettings,
 			theme: adapterSettings.theme || this.defaultTheme
@@ -564,7 +601,7 @@ class Jaxcore extends Service {
 				
 				this.log('CREATED ADAPTER:', adapterConfig, 'services:', serviceTypes);
 				
-				this.startSpinAdapter(this.state.adapters[adapterId], spin, services, callback);
+				this.startSpinAdapter(this.state.adapters[adapterId], device, services, callback);
 			}
 		});
 		

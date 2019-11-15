@@ -1,4 +1,4 @@
-const Adapter = require('jaxcore-plugin').Adapter;
+const {Adapter} = require('jaxcore-plugin');
 
 class KeyboardAdapter extends Adapter {
 	static getDefaultState() {
@@ -124,7 +124,7 @@ class KeyboardAdapter extends Adapter {
 		super(store, config, theme, devices, services);
 		const {spin} = devices;
 		const {keyboard} = services;
-		spin.rotateRainbow(2);
+		spin.rainbow(2);
 		spin.lightsOff();
 		
 		this.addEvents(spin, {

@@ -1,4 +1,4 @@
-const Adapter = require('jaxcore-plugin').Adapter;
+const {Adapter} = require('jaxcore-plugin');
 
 class MediaAdapter extends Adapter {
 	static getDefaultState() {
@@ -15,7 +15,7 @@ class MediaAdapter extends Adapter {
 		super(store, config, theme, devices, services);
 		const {spin} = devices;
 		const {keyboard, volume} = services;
-		spin.rotateRainbow(2);
+		spin.rainbow(2);
 		spin.scale(volume.state.volumePercent, theme.low, theme.high, theme.middle);
 		
 		this.addEvents(volume, {

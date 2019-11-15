@@ -1,4 +1,4 @@
-const Adapter = require('jaxcore-plugin').Adapter;
+const {Adapter} = require('jaxcore-plugin');
 
 class VolumeAdapter extends Adapter {
 	static getDefaultState () {
@@ -9,7 +9,7 @@ class VolumeAdapter extends Adapter {
 		super(config, theme, devices, services);
 		const {spin} = devices;
 		const {volume} = services;
-		spin.rotateRainbow(2);
+		spin.rainbow(2);
 		spin.scale(volume.state.volumePercent, theme.low, theme.high, theme.middle);
 		
 		this.addEvents(volume, {

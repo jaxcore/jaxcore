@@ -1,4 +1,4 @@
-const Adapter = require('jaxcore-plugin').Adapter;
+const {Adapter} = require('jaxcore-plugin');
 
 class WebsocketAdapter extends Adapter {
 	static getDefaultState() {
@@ -10,7 +10,7 @@ class WebsocketAdapter extends Adapter {
 		super(store, config, theme, devices, services);
 		const {spin} = devices;
 		const {websocket} = services;
-		// spin.rotateRainbow(2);
+		// spin.rainbow(2);
 		spin.quickFlash([255,255,255], 3);
 		// spin.lightsOff();
 		

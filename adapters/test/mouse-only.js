@@ -1,4 +1,4 @@
-const Adapter = require('jaxcore-plugin').Adapter;
+const {Adapter} = require('jaxcore-plugin');
 
 class MouseAdapter extends Adapter {
 	static getDefaultState () {
@@ -17,7 +17,7 @@ class MouseAdapter extends Adapter {
 		super(config, theme, devices, services);
 		const {spin} = devices;
 		const {mouse} = services;
-		spin.rotateRainbow(2);
+		spin.rainbow(2);
 		spin.lightsOff();
 		
 		this.addEvents(spin, {

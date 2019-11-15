@@ -90,7 +90,7 @@ const schema = {
 
 let spinStore;
 
-class TransportSpin extends Client {
+class WebsocketSpin extends Client {
 	constructor(device, store) {
 		let instance = (_instance++);
 		
@@ -213,6 +213,10 @@ class TransportSpin extends Client {
 		this.sendCommand('BRIGHTNESS', brightness);
 	}
 	
+	rainbow(rotations) {
+		this.sendCommand('RAINBOW', rotations);
+	}
+	
 	rotate(diff, color1, color2) {
 		// this._rotationIndex += diff;
 		// if (this._rotationIndex <= 0 || this._rotationIndex >= 16384) this._rotationIndex = 8192;
@@ -282,13 +286,13 @@ class TransportSpin extends Client {
 	
 	
 	static onSpinConnected(id) {
-		let spin = TransportSpin.spinIds[id];
+		let spin = WebsocketSpin.spinIds[id];
 		// console.log('onSpinConnected', id);
 		// process.exit();
 		if (spin) spinMonitor.emit('spin-connected', spin);
 	}
 	static onSpinDisconnected(id) {
-		let spin = TransportSpin.spinIds[id];
+		let spin = WebsocketSpin.spinIds[id];
 		if (spin) spinMonitor.emit('spin-disconnected', spin);
 	}
 	
@@ -300,9 +304,14 @@ class TransportSpin extends Client {
 		console.log('TransportSpin startJaxcoreDevice', deviceStore);
 		// process.exit();
 		// ble.connectBLE(store, Spin.create, spinIds, callback);
+		// websocketClient.on('connect', function() {
+		//
+		// });
+		// websocketClient.connect();
 		
-		TransportSpin.connect(function(spin) {
+		WebsocketSpin.connect(function(spin) {
 			console.log('transport spin connected', spin.id);
+			
 			callback(spin);
 			
 			// function onSpin(diff, time) {
@@ -329,6 +338,6 @@ class TransportSpin extends Client {
 	}
 }
 
-TransportSpin.spinIds = spinIds;
+WebsocketSpin.spinIds = spinIds;
 
-module.exports = TransportSpin;
+module.exports = WebsocketSpin;

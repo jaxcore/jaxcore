@@ -1,7 +1,7 @@
 module.exports = {
 	devices: {
-		'transport-spin': {
-			device: require('./transport-spin'),
+		'websocket-spin': {
+			device: require('./websocket-spin'),
 			storeType: 'client'
 		}
 	},

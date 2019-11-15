@@ -1,6 +1,8 @@
 const {createLogger, createServiceStore, createClientStore, Service} = require('jaxcore-plugin');
 const async = require('async');
 
+const WebSocketClientPlugin = require('./plugins/websocket-client');
+
 // const Spin = require('jaxcore-spin');
 //
 // const keyboardPlugin = require('./plugins/keyboard');
@@ -197,8 +199,8 @@ class Jaxcore extends Service {
 		this.defaultTheme = themeName;
 	}
 	
-	startDevice(type, ids) {
-		if (!ids) ids = [];
+	startDevice(type, deviceConfig) {
+		// if (!ids) ids = [];
 		const deviceClass = this.deviceClasses[type];
 		const deviceStore = this.stores.devices[type];
 		let callback = (device) => {
@@ -206,7 +208,7 @@ class Jaxcore extends Service {
 			this.emit('device-connected', type, device);
 			//this.emit(type+'-device-connected', device);
 		};
-		deviceClass.startJaxcoreDevice(ids, deviceStore, callback);
+		deviceClass.startJaxcoreDevice(deviceConfig, deviceStore, callback);
 		
 		
 	}
@@ -766,6 +768,34 @@ class Jaxcore extends Service {
 		}
 		this.log('done destroy adapter');
 	}
+	
+	static connectWebsocket(host, port) {
+		const jaxcore = new Jaxcore();
+		
+		jaxcore.isWebsocket = true;
+		
+		if (!jaxcore.serviceClasses['websocket-client']) {
+			jaxcore.addPlugin(WebSocketClientPlugin);
+		}
+		
+		// jaxcore.addPlugin(require('./plugins/websocket-client'));
+		
+		const webSocketClientConfig = {
+			host,
+			port,
+			protocol: 'http',
+			options: {
+				reconnection: true
+			}
+		};
+		jaxcore.startService('websocket-client', null, null, webSocketClientConfig, function(err, websocketClient) {
+			console.log('websocketClient', websocketClient);
+		});
+		
+		jaxcore.startDevice('websocket-spin');
+		
+		return jaxcore;
+	};
 }
 
 module.exports = Jaxcore;

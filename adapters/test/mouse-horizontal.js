@@ -14,7 +14,7 @@ function horizontalMouseAdapter() {
 	const {spin} = this.devices;
 	const {mouse} = this.services;
 	const {theme} = this;
-	spin.rotateRainbow(2);
+	spin.rainbow(2);
 	spin.lightsOff();
 	
 	this.pushBoth = function(spin) {

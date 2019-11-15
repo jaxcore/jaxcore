@@ -1,6 +1,4 @@
 const EventEmitter = require('events');
-
-
 const {createLogger} = require('jaxcore-plugin');
 const log = createLogger('WebsocketTransport');
 
@@ -59,7 +57,7 @@ class WebsocketTransport extends EventEmitter {
 				spin.emit('knob', changes.knobPushed);
 			}
 			if ('buttonPushed' in changes) {
-				// console.log('emit button pushed', spin.state.id, changes.buttonPushed);
+				// log('emit button pushed', spin.state.id, changes.buttonPushed);
 				log('emit button', changes.buttonPushed);
 				spin.emit('button', changes.buttonPushed);
 			}
@@ -119,7 +117,7 @@ class WebsocketTransport extends EventEmitter {
 	}
 	
 	update(id, changes) {
-		console.log('transport update', id, changes);
+		log('transport update', id, changes);
 		
 		var spin = this.Spin.spinIds[id];
 		
@@ -127,13 +125,13 @@ class WebsocketTransport extends EventEmitter {
 			spin.state[c] = changes[c];
 		}
 		
-		// console.log('update changed', changed);
+		// log('update changed', changed);
 		
 		if ('knobPushed' in changes) {
 			spin.emit('knob', changes.knobPushed);
 		}
 		if ('buttonPushed' in changes) {
-			// console.log('emit button pushed', spin.state.id, changes.buttonPushed);
+			// log('emit button pushed', spin.state.id, changes.buttonPushed);
 			spin.emit('button', changes.buttonPushed);
 		}
 		if ('spinPosition' in changes) {
@@ -152,38 +150,20 @@ class WebsocketTransport extends EventEmitter {
 			}
 		}
 		
-		console.log('update', changes);
+		log('update', changes);
 		spin.emit('update', changes);
 	}
 	
 	sendCommand(spin, args) {
-		// this.emit('command', spin, args);
-		console.log('WebsocketTransport sendCommand', args);
+		log('WebsocketTransport sendCommand', args);
 		
 		let id = args.shift();
 		let method = args.shift();
 		// this.emit('spin-command', id, method, args);
-		console.log('emit spin-command-'+id, method, args);
+		log('emit spin-command-'+id, method, args);
 		this.emit('spin-command-'+id, id, method, args);
-		
-		// console.log('args', args);
-		// socket.emit();
-		// this.postCommandFn({
-		// 	spinCommand: {
-		// 		id,
-		// 		method,
-		// 		args
-		// 	}
-		// });
 	}
 	
 }
-
-
-
-
-// setPostCommand = function(fn) {
-// 	this.postCommandFn = fn;
-// };
 
 module.exports = WebsocketTransport;

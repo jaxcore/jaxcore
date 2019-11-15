@@ -1,12 +1,8 @@
 const {Client, createLogger} = require('jaxcore-plugin');
-const TransportSpin = require('./transport-spin');
-const WebsocketTransport = require('./websocket-transport');
+const WebsocketSpin = require('./websocket-spin');
 const io = require('socket.io-client');
 
 const log = createLogger('WebSocketClient');
-
-let spinStore;
-let socketTransport;
 
 const schema = {
 	id: {
@@ -26,7 +22,7 @@ const schema = {
 	}
 };
 
-var _instance = 0;
+let _instance = 0;
 class WebsocketClient extends Client {
 	constructor(defaults, store, socketTransport) {
 		super(schema, store, defaults);
@@ -47,7 +43,7 @@ class WebsocketClient extends Client {
 		// 	connecting: true,
 		// 	status: 'connecting'
 		// });
-		// if (!socketTransport) socketTransport = new WebsocketTransport(TransportSpin, spinStore);
+		// if (!socketTransport) socketTransport = new WebsocketTransport(WebsocketSpin, spinStore);
 		
 		let socketConfig = this.state;
 		
@@ -72,20 +68,20 @@ class WebsocketClient extends Client {
 			
 			spin.once('connect', function() {
 				console.log('onConnect connect', id);
-				TransportSpin.onSpinConnected(id);
 				socketTransport.on('spin-command-'+id, onCommand);
+				WebsocketSpin.onSpinConnected(id);
 			}, 'connect');
 			spin.connect();
 			
 			log('spin-connect spin created', spin);
 			// process.exit();
 			
-			// TransportSpin.createSpin(this.transport, id, state);
+			// WebsocketSpin.createSpin(this.transport, id, state);
 			
 		};
 		const onDisconnect = function(id, state) {
 			log('ON spin-disconnect', id, state);
-			// TransportSpin.onSpinDisconnected(id);
+			// WebsocketSpin.onSpinDisconnected(id);
 			
 			// socket.removeListener('spin-connect', onConnect);
 			socket.removeListener('spin-update', onUpdate);
@@ -107,27 +103,28 @@ class WebsocketClient extends Client {
 					console.log('spin-update CONNECTING...');
 					
 					// spin.once('connect', function () {
-					// 	TransportSpin.onSpinConnected(id);
+					// 	WebsocketSpin.onSpinConnected(id);
 					// });
 					// spin.connect();s
 					
 					spin.once('connect', function() {
 						console.log('onConnect connect', id);
-						TransportSpin.onSpinConnected(id);
 						socketTransport.on('spin-command-'+id, onCommand);
+						WebsocketSpin.onSpinConnected(id);
 					}, 'connect');
 					spin.connect();
 				}
 			}
 		};
 		
-		socket.on('connect', function() {
+		socket.on('connect', () => {
 			log('socket connect');
 			
 			socket.on('spin-update', onUpdate);
 			socket.on('spin-disconnect', onDisconnect);
 			socket.on('spin-connect', onConnect);
 			
+			this.emit('connect', socket);
 		});
 		
 		socket.on('disconnect', () => {
@@ -136,6 +133,8 @@ class WebsocketClient extends Client {
 			socket.removeListener('spin-update', onUpdate);
 			socket.removeListener('spin-disconnect', onDisconnect);
 			socket.removeListener('spin-connect', onConnect);
+			
+			this.emit('disconnect', socket);
 		});
 		
 		return socket;

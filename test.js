@@ -10,35 +10,22 @@ jaxcore.addPlugin(require('jaxcore-spin'));
 jaxcore.addPlugin(require('./plugins/keyboard'));
 jaxcore.addPlugin(require('./plugins/mouse'));
 jaxcore.addPlugin(require('./plugins/scroll'));
-jaxcore.addPlugin(require('./plugins/websocket'));
+jaxcore.addPlugin(require('./plugins/websocket-server'));
+jaxcore.addPlugin(require('./plugins/websocket-client'));
 jaxcore.addPlugin(require('jaxcore-chromecast-plugin'));
 jaxcore.addPlugin(require('jaxcore-kodi-plugin'));
 jaxcore.addPlugin(require('jaxcore-sonos-plugin'));
 
-jaxcore.addPlugin(require('./plugins/websocket-client'));
-jaxcore.addAdapter('console-websocket-test', require('./adapters/console-websocket-test-adapter'));
-
 // ADAPTERS
 jaxcore.addAdapter('media', require('./adapters/media-adapter'));
-jaxcore.addAdapter('console-test', require('./adapters/console-test-adapter'));
+jaxcore.addAdapter('basic', require('./adapters/basic-adapter'));
 
-// jaxcore.enableServices({
-// 	keyboard: true,
-// 	mouse: true,
-// 	scroll: true,
-// 	volume: true,
-// 	websocket: true,
-// 	chromecast: true,
-// 	kodi: true,
-// 	sonos: true
-// });
-
-if (process.env.NODE_ENV === 'prod') {
-	console.log = function () {
-	};
-	process.on('uncaughtException', function (err) {
-	});
-}
+// if (process.env.NODE_ENV === 'prod') {
+// 	console.log = function () {
+// 	};
+// 	process.on('uncaughtException', function (err) {
+// 	});
+// }
 
 // let spinIds = [
 // 	'4a2cee65c67f4fdd9784da6af2bf57cf',

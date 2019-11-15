@@ -1,5 +1,5 @@
 const {Service, createLogger, createClientStore} = require('jaxcore-plugin');
-const TransportSpin = require('./transport-spin');
+const WebsocketSpin = require('./websocket-spin');
 const WebsocketTransport = require('./websocket-transport');
 const WebsocketClient = require('./websocket-client');
 // const io = require('socket.io-client');
@@ -33,19 +33,19 @@ class WebsocketClientService extends Service {
 	//
 	// 		spin.once('connect', function() {
 	// 			console.log('onConnect connect', id);
-	// 			TransportSpin.onSpinConnected(id);
+	// 			WebsocketSpin.onSpinConnected(id);
 	// 		}, 'connect');
 	// 		spin.connect();
 	//
 	// 		log('spin-connect spin created', spin);
 	// 		// process.exit();
 	//
-	// 		// TransportSpin.createSpin(this.transport, id, state);
+	// 		// WebsocketSpin.createSpin(this.transport, id, state);
 	//
 	// 	};
 	// 	const onDisconnect = function(id, state) {
 	// 		log('ON spin-disconnect', id, state);
-	// 		TransportSpin.onSpinDisconnected(id);
+	// 		WebsocketSpin.onSpinDisconnected(id);
 	//
 	// 		// socket.removeListener('spin-connect', onConnect);
 	// 		socket.removeListener('spin-update', onUpdate);
@@ -64,7 +64,7 @@ class WebsocketClientService extends Service {
 	// 			if (!spin.state.connected) {
 	// 				console.log('spin-update CONNECTING...');
 	// 				spin.once('connect', function () {
-	// 					TransportSpin.onSpinConnected(id);
+	// 					WebsocketSpin.onSpinConnected(id);
 	// 				});
 	// 				spin.connect();
 	// 			}
@@ -149,14 +149,21 @@ class WebsocketClientService extends Service {
 			log('CREATE WSC', serviceId, serviceConfig);
 			var instance = serviceInstance.create(serviceConfig, serviceStore);
 			log('CREATED WSC CLIENT', instance);
-			callback(null, instance);
+			
+			instance.on('connect', function() {
+				// console.log('hix');
+				// process.exit();
+				if (callback) callback(null, instance);
+			});
+			
+			instance.connect();
 		}
 	}
 	
 	static startService() {
 		if (!serviceInstance) {
-			transportSpinStore = createClientStore('TransportSpin Store');
-			socketTransport = new WebsocketTransport(TransportSpin, transportSpinStore);
+			transportSpinStore = createClientStore('WebsocketSpin Store');
+			socketTransport = new WebsocketTransport(WebsocketSpin, transportSpinStore);
 			serviceInstance = new WebsocketClientService();
 		}
 	}

@@ -1,4 +1,4 @@
-const Adapter = require('jaxcore-plugin').Adapter;
+const {Adapter} = require('jaxcore-plugin');
 
 function startInterval(fn, t) {
 	fn();
@@ -19,7 +19,7 @@ class ScrollAdapter extends Adapter {
 		super(store, config, theme, devices, services);
 		const {spin} = devices;
 		const {scroll, keyboard} = services;
-		spin.rotateRainbow(2);
+		spin.rainbow(2);
 		spin.lightsOff();
 		
 		this.addEvents(spin, {

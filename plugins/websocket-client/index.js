@@ -1,12 +1,12 @@
 module.exports = {
 	devices: {
-		'websocket-spin': {
+		websocketSpin: {
 			device: require('./websocket-spin'),
 			storeType: 'client'
 		}
 	},
 	services: {
-		'websocket-client': {
+		websocketClient: {
 			service: require('./websocket-client-service'),
 			storeType: 'client'
 		}

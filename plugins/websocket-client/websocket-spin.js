@@ -3,7 +3,7 @@ const SpinBuffer = require('jaxcore-spin/lib/buffer');
 const EventEmitter = require('events');
 const spinMonitor = new EventEmitter();
 
-const log = createLogger('TransportSpin');
+const log = createLogger('WebsocketSpin');
 
 const spinIds = {};
 let _instance = 0;
@@ -141,6 +141,10 @@ class WebsocketSpin extends Client {
 	}
 	
 	connect() {
+		if (!this.transport.connectSpin) {
+			console.log('no this.transport.connectSpin');
+			process.exit();
+		}
 		this.transport.connectSpin(this);
 		this._connected();
 	}
@@ -287,9 +291,14 @@ class WebsocketSpin extends Client {
 	
 	static onSpinConnected(id) {
 		let spin = WebsocketSpin.spinIds[id];
-		// console.log('onSpinConnected', id);
+		console.log('onSpinConnected', id);
 		// process.exit();
-		if (spin) spinMonitor.emit('spin-connected', spin);
+		
+		if (spin) {
+			console.log('spinMonitor emit spin-connected', id);
+			// process.exit();
+			spinMonitor.emit('spin-connected', spin);
+		}
 	}
 	static onSpinDisconnected(id) {
 		let spin = WebsocketSpin.spinIds[id];
@@ -297,11 +306,12 @@ class WebsocketSpin extends Client {
 	}
 	
 	static connect(callback) {
+		console.log('spinMonitor waiting for on spin-connected');
 		spinMonitor.on('spin-connected', callback);
 	}
 	
 	static startJaxcoreDevice(ids, deviceStore, callback) {
-		console.log('TransportSpin startJaxcoreDevice', deviceStore);
+		console.log('WebsocketSpin startJaxcoreDevice', deviceStore);
 		// process.exit();
 		// ble.connectBLE(store, Spin.create, spinIds, callback);
 		// websocketClient.on('connect', function() {

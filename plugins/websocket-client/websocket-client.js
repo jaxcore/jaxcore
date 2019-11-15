@@ -63,17 +63,27 @@ class WebsocketClient extends Client {
 		const onConnect = function(id, state) {
 			log('ON spin-connect', id, state);
 			
+			if (!socketTransport.connectSpin) {
+				console.log('no socketTransport.connectSpin');
+				process.exit();
+			}
 			let spin = socketTransport.connectSpin(id, state);
 			// console.log('spin-connect CONNECTING...', spin.state.connected);
+			log('spin-connect spin created', spin.id);
+			// process.exit();
 			
 			spin.once('connect', function() {
 				console.log('onConnect connect', id);
+				
+				spin.on('disconnect', function() {
+					socketTransport.removeListener('spin-command-'+id, onCommand);
+				});
 				socketTransport.on('spin-command-'+id, onCommand);
+				
 				WebsocketSpin.onSpinConnected(id);
 			}, 'connect');
 			spin.connect();
 			
-			log('spin-connect spin created', spin);
 			// process.exit();
 			
 			// WebsocketSpin.createSpin(this.transport, id, state);
@@ -95,10 +105,15 @@ class WebsocketClient extends Client {
 			
 			if ('connected' in changes && !changes.connected) {
 				console.log('spin-update disconnecting', changes);
+				
 				socketTransport.disconnectSpin(id, changes);
 			}
 			else {
 				let spin = socketTransport.updateSpin(id, changes);
+				if (spin.state.connected) {
+					// console.log('already connected');
+					// process.exit();
+				}
 				if (!spin.state.connected) {
 					console.log('spin-update CONNECTING...');
 					
@@ -109,9 +124,15 @@ class WebsocketClient extends Client {
 					
 					spin.once('connect', function() {
 						console.log('onConnect connect', id);
+						// process.exit();
+						spin.on('disconnect', function() {
+							socketTransport.removeListener('spin-command-'+id, onCommand);
+						});
 						socketTransport.on('spin-command-'+id, onCommand);
 						WebsocketSpin.onSpinConnected(id);
 					}, 'connect');
+					
+					
 					spin.connect();
 				}
 			}

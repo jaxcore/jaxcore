@@ -1,24 +1,24 @@
-const Jaxcore = require('./jaxcore');
+const Jaxcore = require('../../jaxcore');
 const jaxcore = new Jaxcore();
 
 // SERVICES
-jaxcore.addService('volume', require('./services/volume-service'));
+jaxcore.addService('volume', require('../../services/volume-service'));
 // TODO: jaxcore.addPlugin(require('jaxcore-volume-macosx-plugin'));
 
 // PLUGINS
 jaxcore.addPlugin(require('jaxcore-spin'));
-jaxcore.addPlugin(require('./plugins/keyboard'));
-jaxcore.addPlugin(require('./plugins/mouse'));
-jaxcore.addPlugin(require('./plugins/scroll'));
-jaxcore.addPlugin(require('./plugins/websocket-server'));
-jaxcore.addPlugin(require('./plugins/websocket-client'));
+jaxcore.addPlugin(require('../../plugins/keyboard'));
+jaxcore.addPlugin(require('../../plugins/mouse'));
+jaxcore.addPlugin(require('../../plugins/scroll'));
+jaxcore.addPlugin(require('../../plugins/websocket-server'));
+jaxcore.addPlugin(require('../../plugins/websocket-client'));
 jaxcore.addPlugin(require('jaxcore-chromecast-plugin'));
 jaxcore.addPlugin(require('jaxcore-kodi-plugin'));
 jaxcore.addPlugin(require('jaxcore-sonos-plugin'));
 
 // ADAPTERS
-jaxcore.addAdapter('media', require('./adapters/media-adapter'));
-jaxcore.addAdapter('basic', require('./adapters/basic-adapter'));
+jaxcore.addAdapter('media', require('../../adapters/media-adapter'));
+jaxcore.addAdapter('basic', require('../../adapters/basic-adapter'));
 
 // if (process.env.NODE_ENV === 'prod') {
 // 	console.log = function () {

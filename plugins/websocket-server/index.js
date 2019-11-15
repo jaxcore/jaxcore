@@ -1,11 +1,11 @@
 module.exports = {
 	services: {
-		websocket: {
+		websocketServer: {
 			service: require('./websocket-service'),
 			storeType: 'client'
 		}
 	},
 	adapters: {
-		websocket: require('./websocket-adapter')
+		websocketServer: require('./websocket-adapter')
 	}
 };

@@ -1,9 +1,11 @@
 const express = require('express');
 const http = require('http');
+const socketIO = require('socket.io');
 const {Service, createLogger} = require('jaxcore-plugin');
 const app = express();
+
 const socketServer = http.createServer(app);
-const io = require('socket.io')(socketServer);
+
 const Spin = require('jaxcore-spin');
 
 const schema = {
@@ -33,35 +35,46 @@ class WebsocketService extends Service {
 		this.log('created');
 		this._onConnect = this.onConnect.bind(this);
 		this._onDisconnect = this.onDisconnect.bind(this);
+		this._onSpinCcommand = this.onSpinCcommand.bind(this);
 	}
 	
 	connect() {
-		io.on('connection', this._onConnect);
+		const options = this.state.options;
 		
-		this.log('starting on port', this.state.port);
+		// this.io = socketIO(socketServer, options);
+		this.io = socketIO(socketServer);
 		
-		socketServer.listen(this.state.port, () => {
+		this.io.on('connection', this._onConnect);
+		
+		this.log('starting on port', this.state.port, options);
+		
+		socketServer.listen(this.state.port, options, () => {
 			this.log('Socket server listening on : ' + this.state.port);
 			
 			this.setState({
 				connected: true
 			});
+			
 			this.emit('connect');
 		});
+	}
+	
+	onSpinCcommand(id, method, args) {
+		console.log('SPIN-COMMAND', id, method, args);
+		let spin = Spin.spinIds[id];
+		if (spin.state.connected) {
+			spin.processCommand(method, args);
+		}
 	}
 	
 	onConnect(socket) {
 		this.log('Socket connected', socket.id, socket.handshake.headers.host, socket.handshake.headers['user-agent']);
 		
-		socket.on('disconnect', this._onDisconnect);
-		
-		socket.on('spin-command', function(id, method, args) {
-			console.log('SPIN-COMMAND', id, method, args);
-			let spin = Spin.spinIds[id];
-			if (spin.state.connected) {
-				spin.processCommand(method, args);
-			}
+		socket.once('disconnect', () => {
+			socket.removeListener('spin-command', this._onSpinCcommand);
 		});
+		
+		socket.on('spin-command', this._onSpinCcommand);
 		
 		for (let id in this.state.connectedSpins) {
 			let spin = Spin.spinIds[id];
@@ -72,13 +85,20 @@ class WebsocketService extends Service {
 		// socket.emit('connected-spins', this.state.connectedSpins);
 	};
 	
+	onDisconnect(socket) {
+		this.log('Socket disconnected x', socket);
+		// process.exit();
+		// socket.on('disconnect', this._onDisconnect);
+		socket.off('spin-command', this._onSpinCcommand);
+	};
+	
 	connectSpin(spin) {
 		this.log('Spin connected to websocket', spin.id);
 		const {connectedSpins} = this.state;
 		connectedSpins[spin.id] = true;
 		this.setState(connectedSpins);
 		
-		io.emit('spin-connect', spin.id, spin.state);
+		this.io.emit('spin-connect', spin.id, spin.state);
 	}
 	disconnectSpin(spin) {
 		this.log('Spin disconnected from websocket', spin.id);
@@ -86,17 +106,15 @@ class WebsocketService extends Service {
 		delete connectedSpins[spin.id];
 		this.setState(connectedSpins);
 		
-		io.emit('spin-disconnect', spin.id);
+		this.io.emit('spin-disconnect', spin.id);
 	}
 	
 	spinUpdate(spin, changes) {
 		this.log('Spin changes', changes);
-		io.emit('spin-update', spin.id, changes);
+		this.io.emit('spin-update', spin.id, changes);
 	}
 	
-	onDisconnect(socket) {
-		this.log('Socket disconnected', socket);
-	};
+	
 	
 	disconnect(options) {
 		this.log('disconnecting...');

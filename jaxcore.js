@@ -769,33 +769,26 @@ class Jaxcore extends Service {
 		this.log('done destroy adapter');
 	}
 	
-	static connectWebsocket(host, port) {
-		const jaxcore = new Jaxcore();
+	connectWebsocket(webSocketClientConfig, callback) {
+		this.isWebsocket = true;
 		
-		jaxcore.isWebsocket = true;
-		
-		if (!jaxcore.serviceClasses['websocket-client']) {
-			jaxcore.addPlugin(WebSocketClientPlugin);
+		if (!this.serviceClasses.websocketClient) {
+			this.addPlugin(WebSocketClientPlugin);
 		}
 		
-		// jaxcore.addPlugin(require('./plugins/websocket-client'));
-		
-		const webSocketClientConfig = {
-			host,
-			port,
-			protocol: 'http',
-			options: {
-				reconnection: true
-			}
-		};
-		jaxcore.startService('websocket-client', null, null, webSocketClientConfig, function(err, websocketClient) {
+		this.startService('websocketClient', null, null, webSocketClientConfig, (err, websocketClient) => {
 			console.log('websocketClient', websocketClient);
+			if (callback) callback(err, websocketClient);
 		});
 		
-		jaxcore.startDevice('websocket-spin');
-		
-		return jaxcore;
-	};
+		this.startDevice('websocketSpin');
+	}
+	
+	connectBrowserExtension(callback) {
+		this.isBrowserExtension = true;
+		debugger;
+		if (callback) callback(err, websocketClient);
+	}
 }
 
 module.exports = Jaxcore;

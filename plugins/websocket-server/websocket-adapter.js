@@ -9,12 +9,13 @@ class WebsocketAdapter extends Adapter {
 	constructor(store, config, theme, devices, services) {
 		super(store, config, theme, devices, services);
 		const {spin} = devices;
-		const {websocket} = services;
+		const {websocketServer} = services;
 		// spin.rainbow(2);
 		spin.quickFlash([255,255,255], 3);
 		// spin.lightsOff();
 		
-		websocket.connectSpin(spin);
+		
+		websocketServer.connectSpin(spin);
 		
 		// spin.state.on('update', function(changes) {
 		// 	console.log('update', spin.id, changes);
@@ -23,7 +24,7 @@ class WebsocketAdapter extends Adapter {
 		this.addEvents(spin, {
 			update: function(changes) {
 				this.log('spin change', changes);
-				if (changes) websocket.spinUpdate(spin, changes);
+				if (changes) websocketServer.spinUpdate(spin, changes);
 				else console.log('no changes??');
 			},
 			spin: function (diff, spinTime) {
@@ -48,7 +49,7 @@ class WebsocketAdapter extends Adapter {
 	
 	static getServicesConfig(adapterConfig) {
 		return {
-			websocket: adapterConfig.settings.services.websocket
+			websocketServer: adapterConfig.settings.services.websocketServer
 		};
 	}
 }

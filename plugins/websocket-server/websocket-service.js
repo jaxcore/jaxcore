@@ -42,7 +42,7 @@ class WebsocketService extends Service {
 		const options = this.state.options;
 		
 		// this.io = socketIO(socketServer, options);
-		this.io = socketIO(socketServer);
+		this.io = socketIO(socketServer, options);
 		
 		this.io.on('connection', this._onConnect);
 		
@@ -69,6 +69,18 @@ class WebsocketService extends Service {
 	
 	onConnect(socket) {
 		this.log('Socket connected', socket.id, socket.handshake.headers.host, socket.handshake.headers['user-agent']);
+		
+		this.log('socket', socket.conn.remoteAddress);
+		// '::ffff:192.168.1.29',
+		if (this.state.allowClients && this.state.allowClients.length) {
+			if (this.state.allowClients.indexOf(socket.conn.remoteAddress) === -1) { //} !== '::ffff:127.0.0.1') {
+				this.log('invalid remote address', socket.conn.remoteAddress, 'allowed clients are:', this.state.allowClients);
+				// this.log('socket', socket);
+				// socket.disconnect();
+				process.exit();
+				return;
+			}
+		}
 		
 		socket.once('disconnect', () => {
 			socket.removeListener('spin-command', this._onSpinCcommand);

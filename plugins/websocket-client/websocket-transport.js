@@ -72,8 +72,10 @@ class WebsocketTransport extends EventEmitter {
 				
 				let diff = spin.state.spinPosition - previousSpinPosition;
 				let time = spin.state.spinTime - previousSpinTime;
-				log('emit spin', diff, time);
-				spin.emit('spin', diff, time);
+				if (!isNaN(diff)) {
+					log('emit spin', diff, time);
+					spin.emit('spin', diff, time);
+				}
 			}
 			
 			if ('knobHold' in changes) {

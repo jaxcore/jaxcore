@@ -8,7 +8,7 @@ const WEBSOCKET_PORT = 37500;
 const websocketClientConfig = {
 	protocol: 'http',
 	// host: '127.0.0.1',
-	// host: '192.168.1.129',
+	// host: '192.168.1.29',
 	host: 'localhost',
 	port: WEBSOCKET_PORT,
 	options: {

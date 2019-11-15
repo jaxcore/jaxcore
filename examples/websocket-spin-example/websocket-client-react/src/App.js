@@ -4,6 +4,7 @@ const Jaxcore = require('jaxcore');
 const jaxcore = new Jaxcore();
 
 const websocketClientConfig = {
+	// host: '192.168.1.29',
 	host: 'localhost',
 	port: 37500,
 	protocol: 'http',

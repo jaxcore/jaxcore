@@ -33,10 +33,14 @@ jaxcore.on('device-connected', function(type, device) {
 						// host: '127.0.0.1',
 						// host: 'localhost',
 						port: WEBSOCKET_PORT,
+						// allowHosts: ['::ffff:192.168.1.29'],
+						allowClients: ['::1', '::ffff:127.0.0.1'], // only allow clients to connect on localhost or 127.0.0.1
 						options: {
-							transports: [ 'websocket' ],
+							// transports: [ 'websocket' ],
+							// transports: [ 'polling' ],
 							// origins: '*:*'  // <---- Allow any origin here
-							origins: WEBSOCKET_HOST + ':*'
+							// origins: WEBSOCKET_HOST + ':*'
+							// origins: 'http://localhost:*'
 						}
 					}
 				}

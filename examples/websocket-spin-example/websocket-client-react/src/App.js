@@ -13,11 +13,15 @@ const websocketClientConfig = {
 	}
 };
 
-jaxcore.connectWebsocket(websocketClientConfig, function(err, websocketClient) {
-	console.log('websocketClient connected', websocketClient);
-});
+
+function connectSocket() {
+	jaxcore.connectWebsocket(websocketClientConfig, function (err, websocketClient) {
+		console.log('websocketClient connected', websocketClient);
+	});
+}
 
 const BasicAdapter = require('jaxcore/adapters/basic-adapter');
+
 jaxcore.addAdapter('basic', BasicAdapter);
 
 class App extends Component {
@@ -31,15 +35,44 @@ class App extends Component {
 	}
 	
 	componentDidMount() {
+		jaxcore.on('service-disconnected', (type, device) => {
+			if (type === 'websocketClient') {
+				this.setState({
+					serverConnected: false,
+					serverId: null
+				});
+				console.log('service-disconnected', type, device.id, 'reconnecting...');
+				debugger;
+				connectSocket();
+			}
+		});
+		
+		jaxcore.on('service-connected', (type, device) => {
+			if (type === 'websocketClient') {
+				console.log('service-connected', type, device.id);
+				this.setState({
+					loading: false,
+					serverConnected: true,
+					serverId: device.id
+				});
+				// process.exit();
+				// if (type === 'websocketClient') {
+				//
+				// }
+			}
+		});
+		
 		jaxcore.on('device-connected', (type, device) => {
 			if (type === 'websocketSpin') {
+				
+				debugger;
+				
 				const spin = device;
 				console.log('connected', spin);
 				
 				const {spins} = this.state;
 				spins.push(spin.id);
 				this.setState({
-					loading: false,
 					spins
 				});
 				
@@ -79,21 +112,29 @@ class App extends Component {
 				console.log('device-connected', type);
 			}
 		});
+		
+		connectSocket();
 	}
 	
 	render() {
-		if (this.state.loading) {
-			return (<div>Loading...</div>);
+		return (
+			<div>
+				<h4>Server:</h4>
+				{this.renderServer()}
+				<h4>Spins Connected:</h4>
+				{this.renderSpins()}
+				<h4>Updates:</h4>
+				{this.renderUpdates()}
+			</div>
+		);
+	}
+	
+	renderServer() {
+		if (this.state.serverConnected) {
+			return (<div>Connected {this.state.serverId}</div>);
 		}
 		else {
-			return (
-				<div>
-					<h4>Spins Connected:</h4>
-					{this.renderSpins()}
-					<h4>Updates:</h4>
-					{this.renderUpdates()}
-				</div>
-			);
+			return (<div>Connecting...</div>);
 		}
 	}
 	

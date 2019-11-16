@@ -1,133 +1,219 @@
-const {Service, createLogger, createClientStore} = require('jaxcore-plugin');
-const WebsocketSpin = require('./websocket-spin');
+const {Client, createLogger, createClientStore} = require('jaxcore-plugin');
 const WebsocketTransport = require('./websocket-transport');
-const WebsocketClient = require('./websocket-client');
-// const io = require('socket.io-client');
+const WebsocketSpin = require('./websocket-spin');
+const io = require('socket.io-client');
 
 const log = createLogger('WebSocketClient');
 
 let transportSpinStore;
 let socketTransport;
 
-var serviceInstance;
+transportSpinStore = createClientStore('WebsocketSpin Store');
+socketTransport = new WebsocketTransport(WebsocketSpin, transportSpinStore);
 
-class WebsocketClientService extends Service {
-	constructor(defaults) {
-		super(defaults);
-		this.log = createLogger('WebsocketClientService');
-		this.log('created');
-		this.clients = {};
+const schema = {
+	id: {
+		type: 'string'
+	},
+	host: {
+		type: 'string'
+	},
+	port: {
+		type: 'integer'
+	},
+	options: {
+		type: 'object'
+	},
+	connected: {
+		type: 'boolean'
+	}
+};
+
+let _instance = 0;
+
+const clients = {};
+
+global.websocketClients = clients;
+
+class WebsocketClient extends Client {
+	constructor(defaults, store) {
+		super(schema, store, defaults);
+		
+		// this.socketTransport = socketTransport;
+		
+		this.log = createLogger('WebsocketClient ' + (_instance++));
+		this.log('create', defaults);
+		this._instance = _instance;
+		clients[this.state.id] = this;
+		debugger;
 	}
 	
-	// static connectSocket(socketConfig) {
-	// 	const url = socketConfig.protocol + '://' + socketConfig.host + ':' + socketConfig.port;
-	// 	console.log('connecting websocket ' + url + ' ...');
-	//
-	// 	const socket = io.connect(url, socketConfig.options);
-	//
-	// 	const onConnect = function(id, state) {
-	// 		log('ON spin-connect', id, state);
-	//
-	// 		let spin = socketTransport.connectSpin(id, state);
-	// 		console.log('spin-connect CONNECTING...');
-	//
-	// 		spin.once('connect', function() {
-	// 			console.log('onConnect connect', id);
-	// 			WebsocketSpin.onSpinConnected(id);
-	// 		}, 'connect');
-	// 		spin.connect();
-	//
-	// 		log('spin-connect spin created', spin);
-	// 		// process.exit();
-	//
-	// 		// WebsocketSpin.createSpin(this.transport, id, state);
-	//
-	// 	};
-	// 	const onDisconnect = function(id, state) {
-	// 		log('ON spin-disconnect', id, state);
-	// 		WebsocketSpin.onSpinDisconnected(id);
-	//
-	// 		// socket.removeListener('spin-connect', onConnect);
-	// 		socket.removeListener('spin-update', onUpdate);
-	// 		socket.removeListener('spin-disconnect', onDisconnect);
-	// 	};
-	//
-	// 	const onUpdate = function(id, changes) {
-	// 		console.log('spin-update', changes);
-	//
-	// 		if ('connected' in changes && !changes.connected) {
-	// 			console.log('spin-update disconnecting', changes);
-	// 			socketTransport.disconnectSpin(id, changes);
-	// 		}
-	// 		else {
-	// 			let spin = socketTransport.updateSpin(id, changes);
-	// 			if (!spin.state.connected) {
-	// 				console.log('spin-update CONNECTING...');
-	// 				spin.once('connect', function () {
-	// 					WebsocketSpin.onSpinConnected(id);
-	// 				});
-	// 				spin.connect();
-	// 			}
-	// 		}
-	// 	};
-	//
-	// 	socket.on('connect', function() {
-	// 		log('socket connect');
-	//
-	// 		socket.on('spin-update', onUpdate);
-	// 		socket.on('spin-disconnect', onDisconnect);
-	// 		socket.on('spin-connect', onConnect);
-	//
-	// 	});
-	//
-	// 	socket.on('disconnect', () => {
-	// 		log('socket disconnect');
-	//
-	// 		socket.removeListener('spin-update', onUpdate);
-	// 		socket.removeListener('spin-disconnect', onDisconnect);
-	// 		socket.removeListener('spin-connect', onConnect);
-	// 	});
-	//
-	// 	return socket;
-	// };
-	
-	create(config, serviceStore) {
-		var id = WebsocketClientService.id(config);
-		config.id = id;
-		
-		if (id in this.clients) {
-			this.log('client exists', id);
-			return;
-		}
-		
-		this.log('create wsc', id);
-		
-		// console.log('serviceStore', serviceStore);
+	connect() {
+		this.log('connecting x', this.state.host + ':' + this.state.port);
+		// console.log('wsc state', this.state);
 		// process.exit();
-		this.clients[id] = new WebsocketClient(config, serviceStore, socketTransport, transportSpinStore);
 		
-		// this.clients[id].on('connect', () => {
-		// 	this.emit('connect', this.clients[id]);  // TODO: emit connect-client?
+		// this.setState({
+		// 	connecting: true,
+		// 	status: 'connecting'
 		// });
-		// this.clients[id].once('disconnect', () => {
-		// 	me.emit('disconnect', this.clients[id]);
-		// });
+		// if (!socketTransport) socketTransport = new WebsocketTransport(WebsocketSpin, spinStore);
 		
-		return this.clients[id];
-	}
+		let socketConfig = this.state;
+		
+		const url = socketConfig.protocol + '://' + socketConfig.host + ':' + socketConfig.port;
+		this.log('connecting websocket ' + url + ' ...');
+		
+		const socket = io.connect(url, socketConfig.options);
+		
+		this.socket = socket;
+		// const socketTransport = this.socketTransport;
+		
+		const onSpinCommand = function(id, method, args) {
+			console.log('RECEIVED SPIN COMMAND', id, method, args);
+			// process.exit();
+			socket.emit('spin-command', id, method, args);
+		};
+		
+		const onSpinConnect = function(id, state) {
+			log('ON spin-connect', id, state);
+			debugger;
+			
+			// if (typeof id !== 'string') {
+			// 	console.log('NOOOO');
+			// 	debugger;
+			// 	return;
+			// }
+			if (!socketTransport.connectSpin) {
+				console.log('no socketTransport.connectSpin');
+				process.exit();
+			}
+			
+			let spin = socketTransport.connectSpin(id, state);
+			// console.log('spin-connect CONNECTING...', spin.state.connected);
+			log('spin-connect spin created', spin.id);
+			// process.exit();
+			
+			spin.once('connect', function() {
+				console.log('onSpinConnect connect', id);
+				
+				spin.on('disconnect', function() {
+					debugger;
+					socketTransport.removeListener('spin-command-'+id, onSpinCommand);
+				});
+				socketTransport.on('spin-command-'+id, onSpinCommand);
+				
+				WebsocketSpin.onSpinConnected(id);
+			}, 'connect');
+			spin.connect();
+			
+			// process.exit();
+			
+			// WebsocketSpin.createSpin(this.transport, id, state);
+			
+		};
+		const onSpinDisconnect = function(id, state) {
+			log('ON spin-disconnect', id, state);
+			
+			// debugger;
+			WebsocketSpin.onSpinDisconnected(id);
+			
+			// socket.removeListener('spin-connect', onSpinConnect);
+			socket.removeListener('spin-update', onSpinUpdate);
+			socket.removeListener('spin-disconnect', onSpinDisconnect);
+			
+			socketTransport.removeListener('spin-command-'+id, onSpinCommand);
+		};
+		
+		const onSpinUpdate = function(id, changes) {
+			console.log('spin-update', changes);
+			
+			if ('connected' in changes) {//} && !changes.connected) {
+				if (changes.connected) {
+					onSpinConnect(id, changes);
+				}
+				else {
+					console.log('spin-update disconnecting', changes);
+					socketTransport.disconnectSpin(id, changes);
+				}
+			}
+			else {
+				let spin = socketTransport.updateSpin(id, changes);
+				
+				// if (spin.state.connected) {
+				// 	// console.log('already connected');
+				// 	// debugger;
+				// 	// process.exit();
+				// }
+				//
+				// else if (!spin.state.connected) {
+				// 	console.log('spin-update CONNECTING...');
+				// 	debugger;
+				//
+				// 	// spin.once('connect', function () {
+				// 	// 	WebsocketSpin.onSpinConnected(id);
+				// 	// });
+				// 	// spin.connect();s
+				// 	// spin.connect();s
+				//
+				// 	spin.once('connect', function() {
+				// 		console.log('onSpinConnect connect', id);
+				// 		// process.exit();
+				// 		spin.on('disconnect', function() {
+				// 			socketTransport.removeListener('spin-command-'+id, onSpinCommand);
+				// 		});
+				// 		socketTransport.on('spin-command-'+id, onSpinCommand);
+				//
+				// 		WebsocketSpin.onSpinConnected(id);
+				// 	}, 'connect');
+				//
+				//
+				// 	spin.connect();
+				// }
+			}
+		};
+		
+		socket.once('connect', () => {
+			log('socket connect');
+			debugger;
+			
+			socketTransport.socketConnected(socket);
+			
+			socket.on('spin-update', onSpinUpdate);
+			socket.on('spin-disconnect', onSpinDisconnect);
+			socket.on('spin-connect', onSpinConnect);
+			
+			this.emit('connect', socket);
+		});
+		
+		socket.once('disconnect', () => {
+			log('socket disconnect');
+			debugger;
+			
+			socketTransport.socketDisconnected(socket);
+			
+			socket.removeListener('spin-update', onSpinUpdate);
+			socket.removeListener('spin-disconnect', onSpinDisconnect);
+			socket.removeListener('spin-connect', onSpinConnect);
+			
+			debugger;
+			socket.destroy();
+			
+			this.emit('disconnect');
+		});
+		
+		return socket;
+	};
 	
-	// connect(id, callback) {
-	// 	if (callback) {
-	// 		this.clients[id].on('connect', callback);
-	// 	}
-	// 	this.clients[id].connect();
-	// }
-	//
-	// disconnect(id, callback) {
-	// 	this.clients[id].removeAllListeners('connect');
-	// 	this.clients[id].removeAllListeners('disconnect');
-	// 	callback();
-	// }
+	
+	destroy() {
+		this.emit('teardown');
+		if (this.socket) this.socket.destroy();
+		this.removeAllListeners();
+		delete this.socket;
+		delete clients[this.state.id];
+		debugger;
+	}
 	
 	static id(serviceConfig) {
 		return 'wsc:'+serviceConfig.host+':'+serviceConfig.port;
@@ -135,38 +221,69 @@ class WebsocketClientService extends Service {
 	
 	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
 		log('WebsocketClientService getOrCreateInstance', serviceId, serviceConfig);
-		if (!serviceInstance) {
-			WebsocketClientService.startService();
-		}
 		
-		if (serviceInstance.clients[serviceId]) {
-			let instance = serviceInstance.clients[serviceId];
-			log('RETURNING WSC CLIENT', instance);
-			// process.exit();
-			return instance;
+		if (serviceId in clients) {
+			console.log('wsc', serviceId, 'exists');
+			process.exit();
+			callback(null, clients[serviceId], false);
 		}
 		else {
 			log('CREATE WSC', serviceId, serviceConfig);
-			var instance = serviceInstance.create(serviceConfig, serviceStore);
+			
+			var instance = WebsocketClient.create(serviceConfig, serviceStore);
+			
 			log('CREATED WSC CLIENT', instance);
 			
-			instance.on('connect', function() {
-				// console.log('hix');
-				// process.exit();
-				if (callback) callback(null, instance);
-			});
+			callback(null, clients[serviceId], true);
 			
-			instance.connect();
+			// instance.on('connect', function() {
+			// 	// console.log('hix');
+			// 	// process.exit();
+			// 	if (callback) callback(null, instance, true);
+			// });
+			//
+			// instance.connect();
+			
 		}
+		// if (serviceInstance.clients[serviceId]) {
+		// 	let instance = serviceInstance.clients[serviceId];
+		// 	log('RETURNING WSC CLIENT', instance);
+		// 	// process.exit();
+		// 	return instance;
+		// }
+		// else {
+		
+		// }
 	}
 	
-	static startService() {
-		if (!serviceInstance) {
-			transportSpinStore = createClientStore('WebsocketSpin Store');
-			socketTransport = new WebsocketTransport(WebsocketSpin, transportSpinStore);
-			serviceInstance = new WebsocketClientService();
+	
+	static create(config, serviceStore) {
+		var id = WebsocketClient.id(config);
+		config.id = id;
+		log('create wsc', id);
+		
+		// console.log('serviceStore', serviceStore);
+		// process.exit();
+		
+		if (!transportSpinStore) {
+			
+			// serviceInstance = new WebsocketClientService();
 		}
+		
+		let client = new WebsocketClient(config, serviceStore);
+		
+		// clients[id].once('disconnect', () => {
+		// 	debugger;
+		// 	log('wsc disconnect');
+		// 	delete
+		// });
+		
+		return client;
 	}
+	
+	// static startService() {
+	//
+	// }
 	
 	// static destroyInstance(serviceId, serviceConfig) {
 	// 	if (volumeInstance) {
@@ -176,4 +293,4 @@ class WebsocketClientService extends Service {
 	// }
 }
 
-module.exports = WebsocketClientService;
+module.exports = WebsocketClient;

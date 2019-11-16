@@ -111,7 +111,15 @@ class WebsocketSpin extends Client {
 		this.log = createLogger('TransportSpin ' + instance);
 		
 		let id = device.id;
+		
+		// if (typeof id !== 'string') {
+		// 	debugger;
+		// 	return;
+		// }
+		
+		this.log('set id', id);
 		spinIds[id] = this;
+		
 		this.id = id;
 		
 		if (device.transport) {
@@ -145,7 +153,7 @@ class WebsocketSpin extends Client {
 			console.log('no this.transport.connectSpin');
 			process.exit();
 		}
-		this.transport.connectSpin(this);
+		// this.transport.connectSpin(this);
 		this._connected();
 	}
 	
@@ -318,7 +326,7 @@ class WebsocketSpin extends Client {
 		//
 		// });
 		// websocketClient.connect();
-		
+		// spinMonitor.on('spin-connected', callback);
 		WebsocketSpin.connect(function(spin) {
 			console.log('transport spin connected', spin.id);
 			
@@ -345,9 +353,13 @@ class WebsocketSpin extends Client {
 			// 	spin.removeListener('knob', onKnob);
 			// });
 		});
+		
+		// return spinMonitor; //.on('spin-connected', callback);
 	}
 }
 
 WebsocketSpin.spinIds = spinIds;
+
+global.WebsocketSpin = WebsocketSpin;
 
 module.exports = WebsocketSpin;

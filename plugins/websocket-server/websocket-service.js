@@ -83,6 +83,7 @@ class WebsocketService extends Service {
 		}
 		
 		socket.once('disconnect', () => {
+			this.log('socket disconnected');
 			socket.removeListener('spin-command', this._onSpinCcommand);
 		});
 		

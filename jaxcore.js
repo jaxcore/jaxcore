@@ -71,6 +71,7 @@ class Jaxcore extends Service {
 		};
 		
 		this.deviceClasses = {};
+		this.devicesStarted = {};
 		this.serviceClasses = {};
 		this.adapterClasses = {};
 		
@@ -203,15 +204,37 @@ class Jaxcore extends Service {
 		// if (!ids) ids = [];
 		const deviceClass = this.deviceClasses[type];
 		const deviceStore = this.stores.devices[type];
-		let callback = (device) => {
-			this.log('connected Device', device.id);
-			this.emit('device-connected', type, device);
-			//this.emit(type+'-device-connected', device);
-		};
-		deviceClass.startJaxcoreDevice(deviceConfig, deviceStore, callback);
+		if (this.devicesStarted[type]) {
+			console.log('device already started', type);
+			debugger;
+			return;
+		}
 		
+		this.devicesStarted[type] = true;
 		
+		// if (type === 'websocketSpin') {
+		// 	let spinMonitor = deviceClass.startJaxcoreDevice(deviceConfig, deviceStore);
+		//
+		// 	const onSpinConnected = (spin) => {
+		// 		this.emit('device-connected', type, spin);
+		// 	};
+		// 	// jaxcore.on('service-disconnected', (type, device) => {
+		// 	// 	if (type === 'websocketClient') {
+		// 	// 		spinMonitor.on('spin-connected', onSpinConnected);
+		// 	// 	}
+		// 	// }
+		// 	spinMonitor.on('spin-connected', onSpinConnected);
+		// }
+		// else {
+			let callback = (device) => {
+				this.log('connected Device', device.id);
+				this.emit('device-connected', type, device);
+				//this.emit(type+'-device-connected', device);
+			};
+			deviceClass.startJaxcoreDevice(deviceConfig, deviceStore, callback);
+		// }
 	}
+	
 	
 	startService(serviceType, serviceId, serviceStore, serviceConfig, callback) {
 		if (!serviceId) {
@@ -220,7 +243,56 @@ class Jaxcore extends Service {
 		if (!serviceStore) {
 			serviceStore = this.stores.services[serviceType];
 		}
-		this.serviceClasses[serviceType].getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback);
+		
+		this.log('startService getOrCreateInstance', serviceType);
+		
+		this.serviceClasses[serviceType].getOrCreateInstance(serviceStore, serviceId, serviceConfig, (err, service, didCreate) => {
+			if (err) {
+				this.log('startService err', err);
+				callback(err);
+				//process.exit();
+			}
+			else {
+				if (didCreate) {
+					// this.state.services[serviceType][serviceId] =
+					if (!this.state.services[serviceType]) this.state.services[serviceType] = {};
+					this.state.services[serviceType][serviceId] = {
+						serviceConfig,
+						// type: serviceType,
+						// instance: serviceInstance,
+						adapters: []
+					};
+					this.serviceInstances[serviceId] = {
+						type: serviceType,
+						instance: service
+					};
+					
+					this.log('did create', serviceType);
+					// process.exit();
+					// service.once('connect', () => {
+					
+					service.once('connect', () => {
+						this.emit('service-connected', serviceType, service);
+						callback(null, service);
+					});
+					service.once('disconnect', () => {
+						console.log('service teardown', serviceType, serviceId);
+						// process.exit();
+						this.destroyService(serviceType, serviceId);
+						
+						this.emit('service-disconnected', serviceType, service);
+					});
+					
+					service.connect();
+				}
+				else {
+					console.log('did not create', serviceType);
+					callback(null, service);
+					//process.exit();
+				}
+			}
+			
+		});
 	}
 	
 	findSpinAdapter(spin) {
@@ -359,12 +431,15 @@ class Jaxcore extends Service {
 					let onDisconnect = (service, reconnecting) => {
 						// clearTimeout(connectTimeout);
 						this.log(serviceType + ' service disconnected, destroy adapter??', 'reconnecting=' + reconnecting);
+						
 						this.destroyAdapter(adapterConfig, () => {
 							console.log('destroyed adapter');
 						});
 						
-						// process.exit();
-						// this.destroyService(serviceType, serviceId);
+						this.log('onDisconnect destroy');
+						process.exit();
+						
+						this.destroyService(serviceType, serviceId);
 					};
 					
 					let onConnect = () => {
@@ -707,6 +782,9 @@ class Jaxcore extends Service {
 	
 	destroyService(serviceType, serviceId) {
 		
+		console.log('destroyService', serviceType, serviceId);
+		// process.exit();
+		
 		if (this.state.services[serviceType][serviceId]) {
 			this.log('destroying service', serviceType, serviceId);
 			
@@ -777,7 +855,8 @@ class Jaxcore extends Service {
 		}
 		
 		this.startService('websocketClient', null, null, webSocketClientConfig, (err, websocketClient) => {
-			console.log('websocketClient', websocketClient);
+			// console.log('websocketClient', websocketClient);
+			// process.exit();
 			if (callback) callback(err, websocketClient);
 		});
 		

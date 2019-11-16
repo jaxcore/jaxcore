@@ -3,40 +3,52 @@ const {createLogger} = require('jaxcore-plugin');
 const log = createLogger('WebsocketTransport');
 
 class WebsocketTransport extends EventEmitter {
-	constructor(TransportSpin, spinStore) {
+	constructor(WebsocketSpin, spinStore) {
 		super();
-		this.TransportSpin = TransportSpin;
+		this.WebsocketSpin = WebsocketSpin;
 		this.spinStore = spinStore;
+		global.transport = this;
 	}
 	
 	createSpin(id, state) {
-		if (id in this.TransportSpin.spinIds) {
+		if (id in this.WebsocketSpin.spinIds) {
 			// return spinIds[id];
 		}
 		else {
 			if (state && state.connected) state.connected = false;
-			log('TransportSpin.createSpin', typeof id, id, typeof state, state);
+			log('WebsocketSpin.createSpin', typeof id, id, typeof state, state);
 			
 			let device = {
 				transport: this,
 				id
 			};
-			return new this.TransportSpin(device, this.spinStore, state);
+			console.log('createSpin', id);
+			if (typeof id !== 'string') {
+				debugger;
+				return;
+			}
+			return new this.WebsocketSpin(device, this.spinStore, state);
 		}
 	}
 	
 	connectSpin(id, state) {
+		console.log('connectSpin', id, state);
+		// if (typeof id !== 'string') {
+		// 	debugger;
+		// 	return;
+		// }
 		if (state && state.connected) state.connected = false;
 		
-		if (id in this.TransportSpin.spinIds) {
-			log('TransportSpin.connectSpin', id, state);
+		if (id in this.WebsocketSpin.spinIds) {
+			log('WebsocketSpin.connectSpin', id, state);
 			
-			let spin = this.TransportSpin.spinIds[id];
+			let spin = this.WebsocketSpin.spinIds[id];
 			spin.setState(state);
 			return spin;
 		}
 		else {
 			log('connectSpin CREATING', id, state);
+			// debugger;
 			return this.createSpin(id, state);
 		}
 	}
@@ -47,10 +59,10 @@ class WebsocketTransport extends EventEmitter {
 			return;
 		}
 		
-		if (id in this.TransportSpin.spinIds) {
+		if (id in this.WebsocketSpin.spinIds) {
 			// log('SPIN UPDATING', id, changes);
 			
-			let spin = this.TransportSpin.spinIds[id];
+			let spin = this.WebsocketSpin.spinIds[id];
 			spin.setState(changes);
 			if ('knobPushed' in changes) {
 				log('emit button', changes.knobPushed);
@@ -102,6 +114,7 @@ class WebsocketTransport extends EventEmitter {
 		}
 		else {
 			log('updateSpin CREATING', id, changes);
+			// debugger;
 			return this.createSpin(id, changes);
 		}
 		
@@ -109,19 +122,23 @@ class WebsocketTransport extends EventEmitter {
 	
 	disconnectSpin(id, changes) {
 		log('disconnectSpin', id, changes);
-		if (id in this.TransportSpin.spinIds) {
-			let spin = this.TransportSpin.spinIds[id];
+		if (id in this.WebsocketSpin.spinIds) {
+			let spin = this.WebsocketSpin.spinIds[id];
+			if (!changes) changes = {};
 			changes.connected = false;
 			spin.setState(changes);
 			this.emit('spin-disconnected', spin);
 			spin.emit('disconnect');
+		}
+		else {
+			console.log('invalid id', id, this.WebsocketSpin.spinIds);
 		}
 	}
 	
 	update(id, changes) {
 		log('transport update', id, changes);
 		
-		var spin = this.Spin.spinIds[id];
+		var spin = this.WebsocketSpin.spinIds[id];
 		
 		for (let c in changes) {
 			spin.state[c] = changes[c];
@@ -166,6 +183,21 @@ class WebsocketTransport extends EventEmitter {
 		this.emit('spin-command-'+id, id, method, args);
 	}
 	
+	socketConnected(socket) {
+		this.socket = socket;
+		
+	}
+	
+	socketDisconnected(socket) {
+		console.log('disconnect all', this.WebsocketSpin.spinIds);
+		// debugger;
+		for (let id in this.WebsocketSpin.spinIds) {
+			// if (this.WebsocketSpin.spinIds[id].connected) {
+				this.disconnectSpin(id);
+			// }
+		}
+		this.socket = null;
+	}
 }
 
 module.exports = WebsocketTransport;

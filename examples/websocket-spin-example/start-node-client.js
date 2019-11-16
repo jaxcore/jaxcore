@@ -16,15 +16,32 @@ const websocketClientConfig = {
 	}
 };
 
-jaxcore.connectWebsocket(websocketClientConfig, function(err, websocketClient) {
-	if (err) {
-		console.log('websocketClient error', err);
-		process.exit();
-	}
-	else if (websocketClient) {
-		console.log('websocketClient connected');
-	}
+jaxcore.on('service-disconnected', (type, device) => {
+	console.log('x service-disconnected', type, device.id);
+	// process.exit();
+	connectSocket();
 });
+
+jaxcore.on('service-connected', (type, device) => {
+	console.log('service-connected', type, device.id);
+	
+	// process.exit();
+	// if (type === 'websocketClient') {
+	//
+	// }
+});
+
+function connectSocket() {
+	jaxcore.connectWebsocket(websocketClientConfig, function (err, websocketClient) {
+		if (err) {
+			console.log('websocketClient error', err);
+			process.exit();
+		}
+		else if (websocketClient) {
+			console.log('websocketClient connected');
+		}
+	});
+}
 
 jaxcore.on('device-connected', function(type, device) {
 	if (type === 'websocketSpin') {
@@ -38,3 +55,5 @@ jaxcore.on('device-connected', function(type, device) {
 	}
 });
 
+
+connectSocket();

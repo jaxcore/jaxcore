@@ -153,8 +153,8 @@ class WebsocketClient extends Client {
 				// 	// spin.once('connect', function () {
 				// 	// 	WebsocketSpin.onSpinConnected(id);
 				// 	// });
-				// 	// spin.connect();s
-				// 	// spin.connect();s
+				// 	// spin.connect();
+				// 	// spin.connect();
 				//
 				// 	spin.once('connect', function() {
 				// 		console.log('onSpinConnect connect', id);

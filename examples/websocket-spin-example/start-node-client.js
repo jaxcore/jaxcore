@@ -3,18 +3,11 @@ const jaxcore = new Jaxcore();
 
 jaxcore.addAdapter('basic', require('../../adapters/basic-adapter'));
 
+// host and port must match the websocket-server
+const WEBSOCKET_HOST = 'localhost';
+// const WEBSOCKET_HOST = '192.168.1.29';
 const WEBSOCKET_PORT = 37500;
-
-const websocketClientConfig = {
-	protocol: 'http',
-	// host: '127.0.0.1',
-	// host: '192.168.1.29',
-	host: 'localhost',
-	port: WEBSOCKET_PORT,
-	options: {
-		reconnection: true
-	}
-};
+// const WEBSOCKET_HOST = '127.0.0.1';
 
 jaxcore.on('service-disconnected', (type, device) => {
 	console.log('x service-disconnected', type, device.id);
@@ -32,7 +25,14 @@ jaxcore.on('service-connected', (type, device) => {
 });
 
 function connectSocket() {
-	jaxcore.connectWebsocket(websocketClientConfig, function (err, websocketClient) {
+	jaxcore.connectWebsocket({
+		protocol: 'http',
+		host: WEBSOCKET_HOST,
+		port: WEBSOCKET_PORT,
+		options: {
+			reconnection: true
+		}
+	}, function (err, websocketClient) {
 		if (err) {
 			console.log('websocketClient error', err);
 			process.exit();

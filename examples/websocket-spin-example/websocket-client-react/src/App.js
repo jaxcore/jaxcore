@@ -119,11 +119,11 @@ class App extends Component {
 	render() {
 		return (
 			<div>
-				<h4>Server:</h4>
+				<h4>Websocket Server:</h4>
 				{this.renderServer()}
 				<h4>Spins Connected:</h4>
 				{this.renderSpins()}
-				<h4>Updates:</h4>
+				<h4>Spin Updates:</h4>
 				{this.renderUpdates()}
 			</div>
 		);

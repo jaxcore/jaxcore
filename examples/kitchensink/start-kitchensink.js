@@ -2,7 +2,7 @@ const Jaxcore = require('../../jaxcore');
 const jaxcore = new Jaxcore();
 
 // SERVICES
-jaxcore.addService('volume', require('../../services/volume-service'));
+jaxcore.addService('volume', require('../../services/volume-service'), 'service');
 // TODO: jaxcore.addPlugin(require('jaxcore-volume-macosx-plugin'));
 
 // PLUGINS
@@ -48,28 +48,29 @@ jaxcore.addAdapter('basic', require('../../adapters/basic-adapter'));
 
 let defaultAdapter = process.argv[2];
 
-// jaxcore.on('spin-connected', function(spin) {
-jaxcore.on('device-connected', function(type, device) {
-	if (type === 'spin') {
-		const spin = device;
+jaxcore.on('spin-connected', function(spin) {
+// jaxcore.on('device-connected', function(type, device) {
+// 	if (type === 'spin') {
+// 		const spin = device;
 		console.log('connected', spin.id);
-		const adapterConfig = jaxcore.findSpinAdapter(spin);
-		if (adapterConfig) {
-			console.log('found adapter', adapterConfig);
-			jaxcore.relaunchAdapter(adapterConfig, spin);
-			// jaxcore.emit('device-connected', 'spin', spin, adapterConfig);
-		}
-		else {
-			console.log('DID NOT FIND ADAPTER FOR:', spin.id);
+		
+		// const adapterConfig = jaxcore.findSpinAdapter(spin);
+		// if (adapterConfig) {
+		// 	console.log('found adapter', adapterConfig);
+		// 	jaxcore.relaunchAdapter(adapterConfig, spin);
+		// 	// jaxcore.emit('device-connected', 'spin', spin, adapterConfig);
+		// }
+		// else {
+		// 	console.log('DID NOT FIND ADAPTER FOR:', spin.id);
 			// jaxcore.emit('device-connected', 'spin', spin, null);
 			
-			if (defaultAdapter === 'keyboard') jaxcore.createAdapter(spin, 'keyboard');
-			if (defaultAdapter === 'media') jaxcore.createAdapter(spin, 'media');
-			if (defaultAdapter === 'mouse') jaxcore.createAdapter(spin, 'mouse');
-			if (defaultAdapter === 'scroll') jaxcore.createAdapter(spin, 'scroll');
+			if (defaultAdapter === 'keyboard') jaxcore.launchAdapter(spin, 'keyboard');
+			if (defaultAdapter === 'media') jaxcore.launchAdapter(spin, 'media');
+			if (defaultAdapter === 'mouse') jaxcore.launchAdapter(spin, 'mouse');
+			if (defaultAdapter === 'scroll') jaxcore.launchAdapter(spin, 'scroll');
 			
 			if (defaultAdapter === 'kodi') {
-				jaxcore.createAdapter(spin, 'kodi', {
+				jaxcore.launchAdapter(spin, 'kodi', {
 					services: {
 						kodi: {
 							host: '192.168.0.33',
@@ -77,31 +78,15 @@ jaxcore.on('device-connected', function(type, device) {
 							port: 9090
 						}
 					}
-				}, function(err, config, adapter) {
-					if (err) {
-						console.log('kodi error', err);
-						// process.exit();
-					}
-					else {
-						console.log('launched adapter', config, adapter);
-					}
 				});
 			}
 			
 			if (defaultAdapter === 'chromecast') {
-				jaxcore.createAdapter(spin, 'chromecast', {
+				jaxcore.launchAdapter(spin, 'chromecast', {
 					services: {
 						chromecast: {
 							name: 'Family room TV'
 						}
-					}
-				}, function(err, config, adapter) {
-					if (err) {
-						console.log('chromecast error', err);
-						// process.exit();
-					}
-					else {
-						console.log('launched chromecast', config, adapter);
 					}
 				});
 			}
@@ -114,7 +99,7 @@ jaxcore.on('device-connected', function(type, device) {
 				// });
 				// sonos.scan();
 				
-				jaxcore.createAdapter(spin, 'sonos', {
+				jaxcore.launchAdapter(spin, 'sonos', {
 					services: {
 						sonos: {
 							host: '192.168.1.231',
@@ -130,42 +115,42 @@ jaxcore.on('device-connected', function(type, device) {
 						// 	maxVolume: 100
 						// }
 					}
-				}, function(err, config, adapter) {
-					if (err) {
-						console.log('sonos error', err);
-						process.exit();
-					}
-					else {
-						console.log('launched sonos', config, adapter);
-					}
 				});
 				
 			}
 			
 			if (defaultAdapter === 'websocket') {
-				jaxcore.createAdapter(spin, 'websocket', {
+				// jaxcore.createAdapter(spin, 'websocket', {
+				// 	services: {
+				// 		websocket: {
+				// 			port: 37524
+				// 		}
+				// 	}
+				// }, function(err, config, adapter) {
+				// 	if (err) {
+				// 		console.log('websocket error', err);
+				// 		process.exit();
+				// 	}
+				// 	else {
+				// 		console.log('launched websocket adapter', config, adapter);
+				// 		// process.exit();
+				// 	}
+				// });
+				
+				jaxcore.launchAdapter(spin, 'websocket', {
 					services: {
 						websocket: {
 							port: 37524
 						}
 					}
-				}, function(err, config, adapter) {
-					if (err) {
-						console.log('websocket error', err);
-						process.exit();
-					}
-					else {
-						console.log('launched websocket adapter', config, adapter);
-						// process.exit();
-					}
 				});
 			}
 			
 			if (defaultAdapter === 'console-test') {
-				jaxcore.createAdapter(spin, 'console-test');
+				jaxcore.launchAdapter(spin, 'console-test');
 			}
-		}
-	}
+		// }
+	// }
 });
 
 jaxcore.startDevice('spin');

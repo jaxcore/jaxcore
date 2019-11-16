@@ -1,61 +1,79 @@
 const Jaxcore = require('../../jaxcore');
 const jaxcore = new Jaxcore();
-
-// PLUGINS
 jaxcore.addPlugin(require('jaxcore-spin'));
 jaxcore.addPlugin(require('../../plugins/websocket-server'));
 
+// host and port must match the websocket-client
 const WEBSOCKET_PORT = 37500;
-// const WEBSOCKET_HOST = '127.0.0.1'; // <---- Restrict to localhost here
-const WEBSOCKET_HOST = '192.168.1.29'; // <---- Restrict to 192.168.1.29 here
-// const WEBSOCKET_HOST = '*'; // <---- Allow any origin here
+const WEBSOCKET_HOST = 'localhost'; // <---- Listen on localhost
+// const WEBSOCKET_HOST = '127.0.0.1'; // <---- Listen on localhost
+// const WEBSOCKET_HOST = '192.168.1.29'; // <---- Listen on specific IP address
 
-// jaxcore.on('spin-connected', function(spin) {
-jaxcore.on('device-connected', function(type, device) {
-	if (type === 'spin') {
-		const spin = device;
+jaxcore.on('spin-connected', function(spin) {
+// jaxcore.on('device-connected', function(type, device) {
+// 	if (type === 'spin') {
+// 		const spin = device;
 		console.log('connected', spin.id);
-		const adapterConfig = jaxcore.findSpinAdapter(spin);
-		if (adapterConfig) {
-			console.log('found adapter', adapterConfig);
-			jaxcore.relaunchAdapter(adapterConfig, spin);
-			// jaxcore.emit('device-connected', 'spin', spin, adapterConfig);
-		}
-		else {
-			console.log('DID NOT FIND ADAPTER FOR:', spin.id);
-			// jaxcore.emit('device-connected', 'spin', spin, null);
-			
-			// START WEBSOCKET SERVER
-			jaxcore.createAdapter(spin, 'websocketServer', {
-				services: {
-					'websocketServer': {
-						// host: '0.0.0.0',
-						// host: '127.0.0.1',
-						// host: 'localhost',
-						port: WEBSOCKET_PORT,
-						// allowHosts: ['::ffff:192.168.1.29'],
-						allowClients: ['::1', '::ffff:127.0.0.1'], // only allow clients to connect on localhost or 127.0.0.1
-						options: {
-							// transports: [ 'websocket' ],
-							// transports: [ 'polling' ],
-							// origins: '*:*'  // <---- Allow any origin here
-							// origins: WEBSOCKET_HOST + ':*'
-							// origins: 'http://localhost:*'
-						}
+	
+		jaxcore.launchAdapter(spin, 'websocketServer', {
+			services: {
+				'websocketServer': {
+					host: WEBSOCKET_HOST,
+					port: WEBSOCKET_PORT,
+					allowClients: ['::1', '::ffff:127.0.0.1', '127.0.0.1'],   // only allow clients to connect from localhost or 127.0.0.1
+					// allowClients: ['192.168.1.29', '::ffff:192.168.1.29'], // only allow clients to connect from a specific IP address
+					options: {
+						allowUpgrades: true,
+						transports: [ 'polling', 'websocket' ]
 					}
 				}
-			}, function(err, config, adapter) {
-				if (err) {
-					console.log('websocket error', err);
-					process.exit();
-				}
-				else {
-					console.log('launched websocket adapter', config, adapter);
-					// process.exit();
-				}
+			}
+		}, function(err, adapterInstance, adapterConfig, didCreate) {
+			console.log('adapter '+(didCreate?'launched':'relaunched'), adapterConfig);
+			console.log('websocketServer settings', adapterConfig.settings.services.websocketServer);
+			
+			adapterInstance.on('teardown', function() {
+				console.log('adapter is destroying', adapterConfig);
+				// process.exit();
 			});
-		}
-	}
+			
+			// process.exit();
+		});
+		
+		// const adapterConfig = jaxcore.findSpinAdapter(spin);
+		// if (adapterConfig) {
+		// 	console.log('found adapter', adapterConfig);
+		// 	jaxcore.relaunchAdapter(adapterConfig, spin);
+		// }
+		// else {
+		// 	console.log('DID NOT FIND ADAPTER FOR:', spin.id);
+		// 	// jaxcore.emit('device-connected', 'spin', spin, null);
+		//
+		// 	jaxcore.createAdapter(spin, 'websocketServer', {
+		// 		services: {
+		// 			'websocketServer': {
+		// 				host: WEBSOCKET_HOST,
+		// 				port: WEBSOCKET_PORT,
+		// 				allowClients: ['::1', '::ffff:127.0.0.1', '127.0.0.1'],   // only allow clients to connect from localhost or 127.0.0.1
+		// 				// allowClients: ['192.168.1.29', '::ffff:192.168.1.29'], // only allow clients to connect from a specific IP address
+		// 				options: {
+		// 					allowUpgrades: true,
+		// 					transports: [ 'polling', 'websocket' ]
+		// 				}
+		// 			}
+		// 		}
+		// 	});
+		// }
+	// }
 });
 
+
+// stop scanning after one Spin controller has connected
 jaxcore.startDevice('spin');
+
+// keep scanning until both these Spin controllers have connected
+// let spinIds = [
+// 	'4a2cee65c67f4fdd9784da6af2bf57cf',
+// 	'025e6331f4b34bd2bf50d0e9f11f808e'
+// ];
+// jaxcore.startDevice('spin', spinIds);

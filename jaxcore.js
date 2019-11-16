@@ -134,6 +134,7 @@ class Jaxcore extends Service {
 		if (serviceStoreType === 'service') serviceStore = createServiceStore('JAXCORE '+serviceType+' ServiceStore');
 		else if (serviceStoreType === 'client') serviceStore = createClientStore('JAXCORE '+serviceType+' ClientStore');
 		this.stores.services[serviceType] = serviceStore;
+		this.state.servicesEnabled[serviceType] = true;
 	}
 	
 	enableServices(services) {
@@ -229,7 +230,7 @@ class Jaxcore extends Service {
 			let callback = (device) => {
 				this.log('connected Device', device.id);
 				this.emit('device-connected', type, device);
-				//this.emit(type+'-device-connected', device);
+				this.emit(type+'-connected', device);
 			};
 			deviceClass.startJaxcoreDevice(deviceConfig, deviceStore, callback);
 		// }
@@ -508,7 +509,7 @@ class Jaxcore extends Service {
 				if (deviceInstance) {
 					if (deviceInstance.state.connected) {
 						this.log('relaunching...', deviceInstance);
-						this.relaunchAdapter(adapterConfig, deviceInstance);
+						this.relaunchAdapter(adapterConfig, deviceInstance, callback);
 						callback(null, true);
 					}
 					else {
@@ -587,14 +588,12 @@ class Jaxcore extends Service {
 					}
 					else {
 						let error = {};
-						console.log('not enabled', type, this.state.servicesEnabled);
-						process.exit();
+						this.log('service "'+type+'" not enabled', this.state.servicesEnabled);
 						error[type] = {
 							notEnabled: config
 						};
 						asyncCallback(error);
 					}
-					
 				}
 			})(serviceType, serviceConfig);
 			
@@ -606,7 +605,7 @@ class Jaxcore extends Service {
 		
 		async.series(serviceConfigFns, (err, results) => {
 			if (err) {
-				this.log('async.series', err);
+				this.log('getServicesForAdapter error', err);
 				callback(err);
 			}
 			else {
@@ -630,7 +629,7 @@ class Jaxcore extends Service {
 		});
 	}
 	
-	relaunchAdapter(adapterConfig, spin) {
+	relaunchAdapter(adapterConfig, spin, callback) {
 		this.log('RELAUNCHING ADAPTER', adapterConfig, spin.id);
 		
 		this.getServicesForAdapter(adapterConfig, (err, services) => {
@@ -644,7 +643,7 @@ class Jaxcore extends Service {
 					process.exit();
 				}
 				this.log('RELAUNCH ADAPTER:', adapterConfig);
-				this.startSpinAdapter(adapterConfig, spin, services);
+				this.startSpinAdapter(adapterConfig, spin, services, callback);
 			}
 		});
 	}
@@ -706,6 +705,46 @@ class Jaxcore extends Service {
 		});
 		
 		return adapterId;
+	}
+	
+	launchAdapter(device, adapterType, config, callback) {
+		const adapterConfig = this.findSpinAdapter(device);
+		if (adapterConfig) {
+			console.log('found adapter', adapterConfig);
+			this.relaunchAdapter(adapterConfig, device, (err, adapterInstance, adapterConfig) => {
+				if (err) {
+					this.log('launchAdapter relaunch error', err);
+					if (callback) callback(err);
+					else {
+						this.log('exiting');
+						process.exit();
+					}
+				}
+				else {
+					this.log('adapter relaunched', adapterConfig);
+					callback(err, adapterInstance, adapterConfig, false);
+				}
+			});
+		}
+		else {
+			console.log('DID NOT FIND ADAPTER FOR:', device.id);
+			// jaxcore.emit('device-connected', 'spin', spin, null);
+			
+			this.createAdapter(device, adapterType, config, (err, adapterInstance, adapterConfig) => {
+				if (err) {
+					this.log('launchAdapter create error', err);
+					if (callback) callback(err);
+					else {
+						this.log('exiting');
+						process.exit();
+					}
+				}
+				else {
+					this.log('adapter launched', adapterConfig);
+					if (callback) callback(err, adapterInstance, adapterConfig, false);
+				}
+			});
+		}
 	}
 	
 	startSpinAdapter(adapterConfig, spin, services, callback) {
@@ -776,7 +815,7 @@ class Jaxcore extends Service {
 		adapterInstance.connect();
 		
 		if (callback) {
-			callback(null, adapterConfig, adapterInstance);
+			callback(null, adapterInstance, adapterConfig);
 		}
 	}
 	
@@ -832,19 +871,23 @@ class Jaxcore extends Service {
 		this.log('destroyAdapter', adapterId, adapterConfig);
 		
 		if (this.adapterInstances[adapterId].instance) {
-			this.adapterInstances[adapterId].instance.destroy();
-			delete this.adapterInstances[adapterId].instance;
-			delete this.adapterInstances[adapterId];
-			adapterConfig.destroyed = true;
-			
-			for (let serviceType in adapterConfig.serviceIds) {
-				let serviceId = adapterConfig.serviceIds[serviceType];
-				let index = this.state.services[serviceType][serviceId].adapters.indexOf(adapterId);
-				this.state.services[serviceType][serviceId].adapters.splice(index, 1);
-				this.log('service adapter Ids', this.state.services[serviceType][serviceId].adapters);
-			}
+			this.adapterInstances[adapterId].instance.emit('teardown');
+			setTimeout(() => {
+				this.adapterInstances[adapterId].instance.destroy();
+				delete this.adapterInstances[adapterId].instance;
+				delete this.adapterInstances[adapterId];
+				adapterConfig.destroyed = true;
+				
+				for (let serviceType in adapterConfig.serviceIds) {
+					let serviceId = adapterConfig.serviceIds[serviceType];
+					let index = this.state.services[serviceType][serviceId].adapters.indexOf(adapterId);
+					this.state.services[serviceType][serviceId].adapters.splice(index, 1);
+					this.log('service adapter Ids', this.state.services[serviceType][serviceId].adapters);
+				}
+				this.log('destroyed adapter', adapterId);
+			},1);
 		}
-		this.log('done destroy adapter');
+		else this.log('destroyed adapter', adapterId);
 	}
 	
 	connectWebsocket(webSocketClientConfig, callback) {

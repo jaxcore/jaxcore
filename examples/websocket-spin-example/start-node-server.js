@@ -17,7 +17,7 @@ jaxcore.on('spin-connected', function(spin) {
 	
 		jaxcore.launchAdapter(spin, 'websocketServer', {
 			services: {
-				'websocketServer': {
+				websocketServer: {
 					host: WEBSOCKET_HOST,
 					port: WEBSOCKET_PORT,
 					allowClients: ['::1', '::ffff:127.0.0.1', '127.0.0.1'],   // only allow clients to connect from localhost or 127.0.0.1

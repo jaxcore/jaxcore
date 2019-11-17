@@ -11,6 +11,14 @@
     "socket.io-client": "^2.3.0"
   },
   "devDependencies": {},
-  "scripts": {},
+  "scripts": {
+    "keyboard": "NODE_ENV=dev node launcher.js keyboard",
+    "mouse": "NODE_ENV=dev node launcher.js mouse",
+    "scroll": "NODE_ENV=dev node launcher.js scroll",
+    "volume": "NODE_ENV=dev node launcher.js volume",
+    "chromecast": "NODE_ENV=dev node launcher.js chromecast",
+    "kodi": "NODE_ENV=dev node launcher.js kodi",
+    "sonos": "NODE_ENV=dev node launcher.js sonos"
+  },
   "license": "MIT"
 }

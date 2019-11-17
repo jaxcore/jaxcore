@@ -1,6 +1,6 @@
 const {Adapter} = require('jaxcore-plugin');
 
-class MediaAdapter extends Adapter {
+class VolumeAdapter extends Adapter {
 	static getDefaultState() {
 		return {
 			didKnobSpin: false,
@@ -161,4 +161,4 @@ class MediaAdapter extends Adapter {
 	}
 }
 
-module.exports = MediaAdapter;
+module.exports = VolumeAdapter;

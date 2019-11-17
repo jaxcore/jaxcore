@@ -531,6 +531,8 @@ class Jaxcore extends Service {
 	}
 	
 	getServicesForAdapter(adapterConfig, callback) {
+		this.log('getServicesForAdapter', adapterConfig);
+		
 		const adapterInstance = this.adapterClasses[adapterConfig.type];
 		if (!adapterInstance) {
 			console.log('no adapterClasses', adapterConfig.type, Object.keys(this.adapterClasses));
@@ -566,7 +568,7 @@ class Jaxcore extends Service {
 								this.log('connect err', err);
 								let error = {};
 								error[type] = err;
-								asyncCallback();
+								asyncCallback(err);
 							}
 							else {
 								if (serviceInstance) {
@@ -748,7 +750,7 @@ class Jaxcore extends Service {
 	}
 	
 	startSpinAdapter(adapterConfig, spin, services, callback) {
-		this.log('Starting Adapter:', adapterConfig);
+		this.log('Starting Adapter:', adapterConfig, spin.deviceType, Object.keys(services));
 		
 		const devices = {
 			spin
@@ -911,6 +913,13 @@ class Jaxcore extends Service {
 		debugger;
 		if (callback) callback(err, websocketClient);
 	}
+}
+
+if (process.env.NODE_ENV === 'prod') {
+	console.log = function () {
+	};
+	process.on('uncaughtException', function (err) {
+	});
 }
 
 module.exports = Jaxcore;

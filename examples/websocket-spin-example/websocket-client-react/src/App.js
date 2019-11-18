@@ -62,55 +62,46 @@ class App extends Component {
 			}
 		});
 		
-		jaxcore.on('device-connected', (type, device) => {
-			if (type === 'websocketSpin') {
-				
-				debugger;
-				
-				const spin = device;
-				console.log('connected', spin);
+		jaxcore.on('spin-connected', (spin) => {
+			console.log('connected', spin);
+			
+			const {spins} = this.state;
+			spins.push(spin.id);
+			this.setState({
+				spins
+			});
+			
+			spin.on('spin', (diff, time) => {
+				const {updates} = this.state;
+				updates.unshift('spin ' + diff);
+				if (updates.length > 50) updates.length = 50;
+				this.setState({updates});
+			});
+			spin.on('knob', (pushed) => {
+				const {updates} = this.state;
+				updates.unshift('knob ' + pushed);
+				if (updates.length > 50) updates.length = 50;
+				this.setState({updates});
+			});
+			spin.on('button', (pushed) => {
+				const {updates} = this.state;
+				updates.unshift('button ' + pushed);
+				if (updates.length > 50) updates.length = 50;
+				this.setState({updates});
+			});
+			
+			spin.on('disconnect', () => {
+				spin.removeAllListeners();
 				
 				const {spins} = this.state;
-				spins.push(spin.id);
+				let i = spins.indexOf(spin.id);
+				spins.splice(i, 1);
 				this.setState({
 					spins
 				});
-				
-				spin.on('spin', (diff, time) => {
-					const {updates} = this.state;
-					updates.unshift('spin ' + diff);
-					if (updates.length > 50) updates.length = 50;
-					this.setState({updates});
-				});
-				spin.on('knob', (pushed) => {
-					const {updates} = this.state;
-					updates.unshift('knob ' + pushed);
-					if (updates.length > 50) updates.length = 50;
-					this.setState({updates});
-				});
-				spin.on('button', (pushed) => {
-					const {updates} = this.state;
-					updates.unshift('button ' + pushed);
-					if (updates.length > 50) updates.length = 50;
-					this.setState({updates});
-				});
-				
-				spin.on('disconnect', () => {
-					spin.removeAllListeners();
-					
-					const {spins} = this.state;
-					let i = spins.indexOf(spin.id);
-					spins.splice(i, 1);
-					this.setState({
-						spins
-					});
-				});
-				
-				jaxcore.createAdapter(spin, 'basic');
-			}
-			else {
-				console.log('device-connected', type);
-			}
+			});
+			
+			jaxcore.createAdapter(spin, 'basic');
 		});
 		
 		connectSocket();

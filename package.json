@@ -17,8 +17,10 @@
     "scroll": "NODE_ENV=dev node launcher.js scroll",
     "volume": "NODE_ENV=dev node launcher.js volume",
     "chromecast": "NODE_ENV=dev node launcher.js chromecast",
+    "sonos": "NODE_ENV=dev node launcher.js sonos",
     "kodi": "NODE_ENV=dev node launcher.js kodi",
-    "sonos": "NODE_ENV=dev node launcher.js sonos"
+    "websocketServer": "NODE_ENV=dev node launcher.js websocketServer",
+    "browserExtension": "NODE_ENV=dev node launcher.js browserExtension"
   },
   "license": "MIT"
 }

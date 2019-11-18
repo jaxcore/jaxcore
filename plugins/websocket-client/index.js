@@ -7,7 +7,7 @@ module.exports = {
 	},
 	services: {
 		websocketClient: {
-			service: require('./websocket-client-service'),
+			service: require('./websocket-client'),
 			storeType: 'client'
 		}
 	}

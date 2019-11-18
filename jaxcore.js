@@ -2,6 +2,7 @@ const {createLogger, createServiceStore, createClientStore, Service} = require('
 const async = require('async');
 
 const WebSocketClientPlugin = require('./plugins/websocket-client');
+const BrowserPlugin = require('./plugins/browser');
 
 // const Spin = require('jaxcore-spin');
 //
@@ -131,8 +132,14 @@ class Jaxcore extends Service {
 		this.serviceClasses[serviceType] = serviceClass;
 		// if (serviceStore) this.setServiceStore(serviceType, serviceStore);
 		let serviceStore;
-		if (serviceStoreType === 'service') serviceStore = createServiceStore('JAXCORE '+serviceType+' ServiceStore');
-		else if (serviceStoreType === 'client') serviceStore = createClientStore('JAXCORE '+serviceType+' ClientStore');
+		if (serviceStoreType === 'service') {
+			serviceStore = createServiceStore('JAXCORE '+serviceType+' ServiceStore');
+			serviceStore.type = 'service';
+		}
+		else if (serviceStoreType === 'client') {
+			serviceStore = createClientStore('JAXCORE '+serviceType+' ClientStore');
+			serviceStore.type = 'client';
+		}
 		this.stores.services[serviceType] = serviceStore;
 		this.state.servicesEnabled[serviceType] = true;
 	}
@@ -206,8 +213,7 @@ class Jaxcore extends Service {
 		const deviceClass = this.deviceClasses[type];
 		const deviceStore = this.stores.devices[type];
 		if (this.devicesStarted[type]) {
-			console.log('device already started', type);
-			debugger;
+			this.log('device already started', type);
 			return;
 		}
 		
@@ -368,7 +374,7 @@ class Jaxcore extends Service {
 					callback(serviceErr);
 					return;
 				}
-				this.log('got serviceInstance', serviceInstance);
+				this.log('got serviceInstance', serviceId);
 				
 				if (!serviceInstance) {
 					this.log('no service instance found', serviceType, serviceId);
@@ -618,7 +624,7 @@ class Jaxcore extends Service {
 							combinedServices[type] = serviceInstance[type];
 						}
 					});
-					this.log('serviceInstances combinedServices', combinedServices);
+					this.log('serviceInstances combinedServices', Object.keys(combinedServices));
 					callback(null, combinedServices);
 				}
 				else {
@@ -724,7 +730,7 @@ class Jaxcore extends Service {
 				}
 				else {
 					this.log('adapter relaunched', adapterConfig);
-					callback(err, adapterInstance, adapterConfig, false);
+					if (callback) callback(err, adapterInstance, adapterConfig, false);
 				}
 			});
 		}
@@ -775,7 +781,7 @@ class Jaxcore extends Service {
 			}
 		}
 		
-		this.log('adapterConfig', adapterConfig);
+		// this.log('adapterConfig', adapterConfig);
 		this.log('adapter devices', Object.keys(devices));
 		this.log('adapter services', Object.keys(services));
 		
@@ -910,8 +916,20 @@ class Jaxcore extends Service {
 	
 	connectBrowserExtension(callback) {
 		this.isBrowserExtension = true;
-		debugger;
-		if (callback) callback(err, websocketClient);
+		
+		if (!this.serviceClasses.browserService) {
+			this.addPlugin(BrowserPlugin);
+		}
+		
+		this.startService('browserService', 'browserService', null, null, (err, browserService) => {
+			// console.log('websocketClient', websocketClient);
+			// process.exit();
+			if (callback) {
+				callback(err, browserService);
+			}
+		});
+		
+		// this.startDevice('websocketSpin');
 	}
 }
 

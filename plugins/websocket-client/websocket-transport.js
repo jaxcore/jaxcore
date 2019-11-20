@@ -65,7 +65,7 @@ class WebsocketTransport extends EventEmitter {
 			let spin = this.WebsocketSpin.spinIds[id];
 			spin.setState(changes);
 			if ('knobPushed' in changes) {
-				log('emit button', changes.knobPushed);
+				log('emit knob', changes.knobPushed);
 				spin.emit('knob', changes.knobPushed);
 			}
 			if ('buttonPushed' in changes) {

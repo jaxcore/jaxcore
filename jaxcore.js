@@ -675,7 +675,7 @@ class Jaxcore extends Service {
 					process.exit();
 				}
 				this.log('RELAUNCH ADAPTER:', adapterConfig);
-				this.startSpinAdapter(adapterConfig, spin, services, callback);
+				this.startDeviceAdapter(adapterConfig, spin, services, callback);
 			}
 		});
 	}
@@ -734,7 +734,7 @@ class Jaxcore extends Service {
 				
 				this.log('CREATED ADAPTER:', adapterConfig, 'services:', serviceTypes);
 				
-				this.startSpinAdapter(this.state.adapters[adapterId], device, services, callback);
+				this.startDeviceAdapter(this.state.adapters[adapterId], device, services, callback);
 			}
 		});
 		
@@ -788,16 +788,15 @@ class Jaxcore extends Service {
 		}
 	}
 	
-	startSpinAdapter(adapterConfig, spin, services, callback) {
-		this.log('Starting Adapter:', adapterConfig, spin.deviceType, Object.keys(services));
+	startDeviceAdapter(adapterConfig, device, services, callback) {
+		this.log('Starting Adapter:', adapterConfig, device.deviceType, Object.keys(services));
 		
-		const devices = {
-			spin
-		};
+		const devices = {};
+		devices[device.deviceType] = device;
 		
 		for (let serviceType in services) {
 			if (!services[serviceType].state.connected) {
-				console.log('startSpinAdapter service not connected', serviceType);
+				console.log('startDeviceAdapter service not connected', serviceType);
 				if (callback) {
 					callback({
 						serviceNotConnected: serviceType
@@ -912,21 +911,27 @@ class Jaxcore extends Service {
 		this.log('destroyAdapter', adapterId, adapterConfig);
 		
 		if (this.adapterInstances[adapterId].instance) {
-			this.adapterInstances[adapterId].instance.emit('teardown');
-			setTimeout(() => {
-				this.adapterInstances[adapterId].instance.destroy();
-				delete this.adapterInstances[adapterId].instance;
-				delete this.adapterInstances[adapterId];
-				adapterConfig.destroyed = true;
-				
-				for (let serviceType in adapterConfig.serviceIds) {
-					let serviceId = adapterConfig.serviceIds[serviceType];
-					let index = this.state.services[serviceType][serviceId].adapters.indexOf(adapterId);
-					this.state.services[serviceType][serviceId].adapters.splice(index, 1);
-					this.log('service adapter Ids', this.state.services[serviceType][serviceId].adapters);
-				}
-				this.log('destroyed adapter', adapterId);
-			},1);
+			let adapterInstance = this.adapterInstances[adapterId].instance;
+			adapterInstance.emit('teardown');
+			// setTimeout(() => {
+			if (adapterInstance.destroy) {
+				adapterInstance.destroy();
+			}
+			else {
+				debugger;
+			}
+			delete this.adapterInstances[adapterId].instance;
+			delete this.adapterInstances[adapterId];
+			adapterConfig.destroyed = true;
+			
+			for (let serviceType in adapterConfig.serviceIds) {
+				let serviceId = adapterConfig.serviceIds[serviceType];
+				let index = this.state.services[serviceType][serviceId].adapters.indexOf(adapterId);
+				this.state.services[serviceType][serviceId].adapters.splice(index, 1);
+				this.log('service adapter Ids', this.state.services[serviceType][serviceId].adapters);
+			}
+			this.log('destroyed adapter', adapterId);
+			// },1);
 		}
 		else this.log('destroyed adapter', adapterId);
 	}

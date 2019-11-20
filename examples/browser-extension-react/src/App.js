@@ -18,8 +18,12 @@ class App extends Component {
         super(props);
         this.state = {
             loading: true,
-            browserConnected: false,
+            extensionReady: false,
+            extensionConnected: false,
+            websocketConnected: false,
             browserServiceId: null,
+            portConnected: false,
+            tabActive: false,
             spins: [],
             updates: []
         }
@@ -28,25 +32,67 @@ class App extends Component {
     componentDidMount() {
         jaxcore.on('service-disconnected', (type, device) => {
             if (type === 'browserService') {
+                debugger;
                 this.setState({
-                    browserConnected: false,
+                    extensionReady: false,
+                    extensionConnected: false,
                     browserServiceId: null
                 });
                 console.log('browserService disconnected', type, device.id, 'reconnecting...');
-                debugger;
+                
                 connectBrowser();
             }
         });
         
         jaxcore.on('service-connected', (type, device) => {
-            debugger;
             if (type === 'browserService') {
+                
+                const browserService = device;
+                
+                browserService.on('extension-connected', (msg) => {
+                    console.log('extension-connected !!!!', msg);
+                    debugger;
+                    this.setState({
+                        extensionConnected: msg.extensionConnected,
+                        tabActive: msg.tabActive,
+                        grantedPrivileges: msg.grantedPrivileges,
+                        websocketConnected: msg.websocketConnected
+                    });
+                });
+                // browserService.on('port-connected', (msg) => {
+                //     debugger;
+                //     console.log('port-connected', msg);
+                //     this.setState({
+                //         // portConnected: msg.portConnected,
+                //         extensionConnected: msg.portConnected,
+                //         tabActive: msg.portActive,
+                //     });
+                // });
+    
+                browserService.on('websocket-connected', (websocketConnected) => {
+                    console.log('App browserService on websocketConnected', websocketConnected);
+                    debugger;
+                    this.setState({
+                        websocketConnected
+                    });
+                });
+                
+                
+                browserService.on('port-active', (portActive) => {
+                    debugger;
+                    this.setState({
+                        portActive
+                    });
+                });
+                
+                // debugger;
                 this.setState({
-                    browserConnected: true,
-                    browserServiceId: device.is
+                    extensionReady: true,
+                    extensionConnected: false,
+                    tabActive: false,
+                    browserServiceId: device.id
                 });
                 console.log('browserService connected', type, device.id);
-                debugger;
             }
         });
         
@@ -109,12 +155,19 @@ class App extends Component {
     }
     
     renderBrowserExtension() {
-        if (this.state.browserConnected) {
-            return (<div>Connected {this.state.browserServiceId}</div>);
-        }
-        else {
-            return (<div>Connecting...</div>);
-        }
+        // if (this.state.extensionConnected) {
+        return (<div>
+                <div>Extension: {this.state.extensionConnected? this.state.browserServiceId+' Connected': 'Disconnected'}</div>
+                <div>WebSocket: {this.state.websocketConnected? 'Connected':'Disconnected'}</div>
+                <div>Tab: {this.state.tabActive? 'Active':'Inactive'}</div>
+            </div>);
+        // }
+        // else if (this.state.extensionReady) {
+        //     return (<div>Extension Connecting...</div>);
+        // }
+        // else {
+        //     return (<div>Extension Disconnected</div>);
+        // }
     }
     
     renderSpins() {

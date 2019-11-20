@@ -21,7 +21,8 @@ function postMessage(data) {
 		}
 	}, window.document.location.protocol + window.document.location.host);
 }
-function postHandshake(data) {
+
+function postHandshakeToContentPort(data) {
 	window.postMessage({
 		jaxcore: {
 			protocol: JAXCORE_PROTOCOL_VERSION,
@@ -35,6 +36,15 @@ const schema = {
 		type: 'string'
 	},
 	connected: {
+		type: 'boolean'
+	},
+	grantedPrivileges: {
+		type: 'object'
+	},
+	websocketConnected: {
+		type: 'boolean'
+	},
+	portActive: {
 		type: 'boolean'
 	}
 };
@@ -55,7 +65,7 @@ class BrowserService extends Service {
 		window.addEventListener("message", this._onMessage);
 	}
 	
-	onMessage(event) {
+	onMessage(event) {  // message from Content Script
 		if (document.location.href.indexOf(event.origin) === 0) {
 			if (event.data.jaxcore) {
 				if (event.data.jaxcore.protocol !== JAXCORE_PROTOCOL_VERSION) {
@@ -63,22 +73,70 @@ class BrowserService extends Service {
 					return;
 				}
 				
+				let msg = event.data.jaxcore;
+				
+				// if ('portConnected' in msg) {
+				// 	debugger;
+				// 	this.emit('port-connected', msg);
+				// }
+				// else if ('portActive' in msg) {
+				// 	debugger;
+				// 	this.emit('port-active', msg.portActive);
+				// }
+				
 				if ('contentHandshake' in event.data.jaxcore) {
-					if ('extensionReady' in event.data.jaxcore.contentHandshake) {
-						debugger;
-						postHandshake({
+					const contentHandshake = event.data.jaxcore.contentHandshake;
+					if ('extensionReady' in contentHandshake) {
+						
+						this._connected();
+						
+						postHandshakeToContentPort({
 							connectExtension: {
-								requestPermissions: {
+								requestPrivileges: {
 									spin: true,
 									speech: true
 								}
 							}
 						});
 					}
-					else if ('extensionConnected' in event.data.jaxcore.contentHandshake) {
+					
+					else if ('extensionDisconnected' in contentHandshake) {
 						debugger;
-						this.emit('extension-connected');
-						
+						this.emit('extension-disconnected');
+					}
+					
+					else if ('portConnected' in contentHandshake) {
+						let portConnected = contentHandshake.portConnected;
+						let portActive = contentHandshake.portActive;
+						let grantedPrivileges = contentHandshake.grantedPrivileges;
+						let websocketConnected = contentHandshake.websocketConnected;
+						// console.log('grantedPrivileges', grantedPrivileges);
+						console.log('portConnected', portConnected);
+						console.log('portActive', portActive);
+						this.setState({
+							portConnected,
+							portActive
+						});
+						this.emit('extension-connected', {
+							// grantedPrivileges,
+							extensionConnected: portConnected,
+							tabActive: portActive,
+							websocketConnected,
+							grantedPrivileges
+						});
+					}
+					else if ('portActive' in contentHandshake) {
+						debugger;
+					}
+					
+					else if ('websocketConnected' in contentHandshake) {
+						const websocketConnected = contentHandshake.websocketConnected;
+						console.log('websocketConnected', websocketConnected);
+						debugger;
+						this.setState({
+							websocketConnected
+						});
+						this.emit('websocket-connected', websocketConnected);
 						
 					}
 					else {
@@ -95,18 +153,28 @@ class BrowserService extends Service {
 		}
 	}
 	
+	_connected() {
+		this.setState({
+			connected: true
+		});
+		this.emit('connect'); // emits to jaxcore.on('service-connected')
+		
+	}
+	
 	connect() {
 		this.log('connecting to extension');
 		// debugger;
 		
-		this.once('extension-connected', () => {
-			debugger;
-			this.emit('connect');
-		});
+		// this.once('extension-connected', () => {
+		// 	// this.emit('connect'); // emits to jaxcore.on('service-connected')
+		// 	// this.setState();
+		// });
 		
 		this.once('extension-ready', () => {
 			console.log('extension ready');
 			
+			// this.emit('connect'); // emits to jaxcore.on('service-connected')
+			debugger;
 		});
 		
 		

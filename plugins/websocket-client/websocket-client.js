@@ -45,7 +45,7 @@ class WebsocketClient extends Client {
 		this.log('create', defaults);
 		this._instance = _instance;
 		clients[this.state.id] = this;
-		debugger;
+		// debugger;
 	}
 	
 	connect() {
@@ -77,7 +77,7 @@ class WebsocketClient extends Client {
 		
 		const onSpinConnect = function(id, state) {
 			log('ON spin-connect', id, state);
-			debugger;
+			// debugger;
 			
 			// if (typeof id !== 'string') {
 			// 	console.log('NOOOO');
@@ -98,7 +98,7 @@ class WebsocketClient extends Client {
 				console.log('onSpinConnect connect', id);
 				
 				spin.on('disconnect', function() {
-					debugger;
+					// debugger;
 					socketTransport.removeListener('spin-command-'+id, onSpinCommand);
 				});
 				socketTransport.on('spin-command-'+id, onSpinCommand);
@@ -175,7 +175,7 @@ class WebsocketClient extends Client {
 		
 		socket.once('connect', () => {
 			log('socket connect');
-			debugger;
+			// debugger;
 			
 			socketTransport.socketConnected(socket);
 			
@@ -188,7 +188,7 @@ class WebsocketClient extends Client {
 		
 		socket.once('disconnect', () => {
 			log('socket disconnect');
-			debugger;
+			// debugger;
 			
 			socketTransport.socketDisconnected(socket);
 			
@@ -196,7 +196,7 @@ class WebsocketClient extends Client {
 			socket.removeListener('spin-disconnect', onSpinDisconnect);
 			socket.removeListener('spin-connect', onSpinConnect);
 			
-			debugger;
+			// debugger;
 			socket.destroy();
 			
 			this.emit('disconnect');
@@ -212,7 +212,7 @@ class WebsocketClient extends Client {
 		this.removeAllListeners();
 		delete this.socket;
 		delete clients[this.state.id];
-		debugger;
+		// debugger;
 	}
 	
 	static id(serviceConfig) {

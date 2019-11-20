@@ -11,8 +11,10 @@ const WEBSOCKET_PORT = 37500;
 
 jaxcore.on('service-disconnected', (type, device) => {
 	console.log('x service-disconnected', type, device.id);
-	// process.exit();
-	connectSocket();
+	if (type === 'websocketClient') {
+		// process.exit();
+		connectSocket();
+	}
 });
 
 jaxcore.on('service-connected', (type, device) => {

@@ -17,7 +17,7 @@ function postMessage(data) {
 	window.postMessage({
 		jaxcore: {
 			protocol: JAXCORE_PROTOCOL_VERSION,
-			extensionMessage: data
+			pageMessage: data
 		}
 	}, window.document.location.protocol + window.document.location.host);
 }
@@ -25,7 +25,7 @@ function postHandshake(data) {
 	window.postMessage({
 		jaxcore: {
 			protocol: JAXCORE_PROTOCOL_VERSION,
-			extensionHandshake: data
+			pageHandshake: data
 		}
 	}, window.document.location.protocol + window.document.location.host);
 }
@@ -76,6 +76,7 @@ class BrowserService extends Service {
 						});
 					}
 					else if ('extensionConnected' in event.data.jaxcore.contentHandshake) {
+						debugger;
 						this.emit('extension-connected');
 						
 						
@@ -99,6 +100,7 @@ class BrowserService extends Service {
 		// debugger;
 		
 		this.once('extension-connected', () => {
+			debugger;
 			this.emit('connect');
 		});
 		

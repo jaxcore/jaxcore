@@ -17,6 +17,13 @@ const BrowserPlugin = require('./plugins/browser');
 
 const cyberTheme = require('./themes/cyber');
 
+function quit(msg) {
+	console.log('exiting', msg);
+	if (typeof process === 'object' && process.exit) {
+		process.exit();
+	}
+}
+
 class Jaxcore extends Service {
 	constructor() {
 		super();
@@ -175,9 +182,6 @@ class Jaxcore extends Service {
 				if ('storeType' in plugin.services[serviceType]) {
 					storeType = plugin.services[serviceType].storeType;
 				}
-				else if ('stores' in plugin && serviceType in plugin.stores) {
-					storeType = plugin.stores[serviceType];
-				}
 				else {
 					storeType = 'service';
 				}
@@ -209,7 +213,6 @@ class Jaxcore extends Service {
 	}
 	
 	startDevice(type, deviceConfig) {
-		// if (!ids) ids = [];
 		const deviceClass = this.deviceClasses[type];
 		const deviceStore = this.stores.devices[type];
 		if (this.devicesStarted[type]) {
@@ -217,7 +220,7 @@ class Jaxcore extends Service {
 			return;
 		}
 		
-		this.devicesStarted[type] = true;
+		
 		
 		// if (type === 'websocketSpin') {
 		// 	let spinMonitor = deviceClass.startJaxcoreDevice(deviceConfig, deviceStore);
@@ -233,12 +236,19 @@ class Jaxcore extends Service {
 		// 	spinMonitor.on('spin-connected', onSpinConnected);
 		// }
 		// else {
-			let callback = (device) => {
-				this.log('connected Device', device.id);
-				this.emit('device-connected', type, device);
-				this.emit(type+'-connected', device);
-			};
+		let callback = (device) => {
+			this.log('connected Device', device.id);
+			this.emit('device-connected', type, device);
+			this.emit(type+'-connected', device);
+		};
+		
+		if (deviceClass.startJaxcoreDevice) {
 			deviceClass.startJaxcoreDevice(deviceConfig, deviceStore, callback);
+			this.devicesStarted[type] = true;
+		}
+		else {
+			debugger;
+		}
 		// }
 	}
 	
@@ -377,15 +387,13 @@ class Jaxcore extends Service {
 				this.log('got serviceInstance', serviceId);
 				
 				if (!serviceInstance) {
-					this.log('no service instance found', serviceType, serviceId);
-					process.exit();
+					quit('no service instance found', serviceType, serviceId);
 				}
 				
 				if (serviceInstance.id === serviceId) {
 					if (!this.state.services[serviceType][serviceId]) {
 						if (this.serviceInstances[serviceId]) {
-							this.log('service instance exists', serviceId);
-							process.exit();
+							quit('service instance exists', serviceId);
 						}
 						
 						this.state.services[serviceType][serviceId] = {
@@ -399,23 +407,25 @@ class Jaxcore extends Service {
 							instance: serviceInstance
 						};
 					}
-					this.log('usage 3');
 					this.state.services[serviceType][serviceId].adapters.push(adapterConfig.id);
 					adapterConfig.serviceIds[serviceType] = serviceId;
+					
+					// debugger;
 				}
 				else {
-					this.log('wrong id', serviceInstance.id, serviceId);
-					process.exit();
+					quit('wrong id', serviceInstance.id, serviceId);
 				}
 				
 				if (serviceInstance.state.connected) {
 					this.log('service already connected', serviceType, serviceId);
-					process.exit();
-					callback(null, serviceInstance);
+					debugger;
+					// process.exit();
+					// callback(null, serviceInstance);
 				}
 				else {
 					this.log('waiting for service to connect', serviceType, serviceId);
 					
+					// debugger;
 					
 					let connectTimeout = setTimeout(() => {
 						
@@ -453,6 +463,7 @@ class Jaxcore extends Service {
 						clearTimeout(connectTimeout);
 						this.log(serviceType + ' service connected');
 						
+						
 						// serviceInstance.removeListener('connect', onConnect);
 						
 						// serviceInstance.on('disconnect', () => {
@@ -474,6 +485,7 @@ class Jaxcore extends Service {
 						
 						serviceInstance.on('disconnect', onDisconnect);
 						
+						// debugger;
 						callback(null, serviceInstance);
 					};
 					
@@ -496,6 +508,7 @@ class Jaxcore extends Service {
 					//
 					// });
 					
+					// debugger;
 					serviceInstance.connect();
 				}
 				
@@ -541,11 +554,13 @@ class Jaxcore extends Service {
 		
 		const adapterInstance = this.adapterClasses[adapterConfig.type];
 		if (!adapterInstance) {
-			console.log('no adapterClasses', adapterConfig.type, Object.keys(this.adapterClasses));
-			process.exit();
+			debugger;
+			quit('no adapterClasses', adapterConfig.type, Object.keys(this.adapterClasses));
 		}
 		let servicesConfig;
-		if (adapterInstance.getServicesConfig) servicesConfig = adapterInstance.getServicesConfig(adapterConfig);
+		if (adapterInstance.getServicesConfig) {
+			servicesConfig = adapterInstance.getServicesConfig(adapterConfig);
+		}
 		else {
 			this.log('adapter', adapterConfig.type, 'has no getServicesConfig');
 			servicesConfig = {};
@@ -557,11 +572,13 @@ class Jaxcore extends Service {
 		
 		for (let serviceType in servicesConfig) {
 			this.log('loop serviceType', serviceType);
+			
 			// for (let serviceId in servicesConfig[serviceType]) {
 			// 	this.log('loop serviceId', serviceId, servicesConfig[serviceType]);
 			
 			let serviceConfig = servicesConfig[serviceType];
 			
+			// debugger;
 			if (serviceConfig === true) serviceConfig = {}; // override for keyboard: true, mouse: true returned by adapter.getServicesConf()
 			
 			let fn = ((type, config) => {
@@ -572,15 +589,18 @@ class Jaxcore extends Service {
 							
 							if (err) {
 								this.log('connect err', err);
+								debugger;
 								let error = {};
 								error[type] = err;
 								asyncCallback(err);
 							}
 							else {
+								
 								if (serviceInstance) {
 									// console.log('getServicesForAdapter callback');
 									const serviceInstances = {};
 									serviceInstances[type] = serviceInstance;
+									// debugger;
 									asyncCallback(null, serviceInstances);
 								}
 								else {
@@ -589,6 +609,7 @@ class Jaxcore extends Service {
 									ersror[type] = {
 										noServiceInstance: config
 									};
+									debugger;
 									asyncCallback(error);
 								}
 							}
@@ -610,10 +631,12 @@ class Jaxcore extends Service {
 		}
 		
 		this.log('serviceConfigFns', serviceConfigFns.length, serviceConfigFns);
+		// debugger;
 		
 		async.series(serviceConfigFns, (err, results) => {
 			if (err) {
 				this.log('getServicesForAdapter error', err);
+				debugger;
 				callback(err);
 			}
 			else {
@@ -629,6 +652,7 @@ class Jaxcore extends Service {
 				}
 				else {
 					this.log('no results');
+					debugger;
 					callback({
 						error: 'no results'
 					});
@@ -665,11 +689,10 @@ class Jaxcore extends Service {
 		const deviceIds = {};
 		
 		if (!device.deviceType) {
-			this.log('device has no deviceType');
-			process.exit();
+			debugger;
+			return quit('device has no deviceType');
 		}
 		
-		// console.log('jaxcoreDeviceType', device.deviceType);
 		
 		deviceIds[device.deviceType] = device.id;
 		
@@ -684,9 +707,12 @@ class Jaxcore extends Service {
 		
 		const adapterConfig = this.state.adapters[adapterId];
 		
+		// debugger;
 		this.getServicesForAdapter(adapterConfig, (err, services) => {
 			if (err) {
 				this.log('createAdapter error', err);
+				debugger;
+				
 				if (callback) callback(err);
 				else {
 					console.log('Service error', err);
@@ -719,6 +745,7 @@ class Jaxcore extends Service {
 		const adapterConfig = this.findSpinAdapter(device);
 		if (adapterConfig) {
 			console.log('found adapter', adapterConfig);
+			
 			this.relaunchAdapter(adapterConfig, device, (err, adapterInstance, adapterConfig) => {
 				if (err) {
 					this.log('launchAdapter relaunch error', err);
@@ -735,20 +762,26 @@ class Jaxcore extends Service {
 			});
 		}
 		else {
-			console.log('DID NOT FIND ADAPTER FOR:', device.id);
+			console.log('DID NOT FIND ADAPTER FOR:', device.id, config);
 			// jaxcore.emit('device-connected', 'spin', spin, null);
+			// console.log(config);
 			
 			this.createAdapter(device, adapterType, config, (err, adapterInstance, adapterConfig) => {
 				if (err) {
 					this.log('launchAdapter create error', err);
-					if (callback) callback(err);
+					// debugger;
+					if (callback) {
+						callback(err);
+					}
 					else {
-						this.log('exiting');
-						process.exit();
+						quit(err);
+						
 					}
 				}
 				else {
 					this.log('adapter launched', adapterConfig);
+					console.log(adapterConfig);
+					// debugger;
 					if (callback) callback(err, adapterInstance, adapterConfig, false);
 				}
 			});

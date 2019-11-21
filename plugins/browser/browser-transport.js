@@ -1,12 +1,12 @@
 const EventEmitter = require('events');
 const {createLogger} = require('jaxcore-plugin');
-const log = createLogger('BrowserTransport');
 
 class BrowserTransport extends EventEmitter {
 	constructor(WebsocketSpin, spinStore) {
 		super();
 		this.WebsocketSpin = WebsocketSpin;
 		this.spinStore = spinStore;
+		this.log = createLogger('BrowserTransport');
 		global.browserTransport = this;
 	}
 	
@@ -16,35 +16,39 @@ class BrowserTransport extends EventEmitter {
 		}
 		else {
 			if (state && state.connected) state.connected = false;
-			log('WebsocketSpin.createSpin', typeof id, id, typeof state, state);
+			this.log('WebsocketSpin.createSpin', typeof id, id, typeof state, state);
 			
 			let device = {
 				transport: this,
 				id
 			};
-			console.log('createSpin', id);
+			this.log('createSpin', id);
 			if (typeof id !== 'string') {
 				debugger;
 				return;
 			}
-			return new this.WebsocketSpin(device, this.spinStore, state);
+			let spin = new this.WebsocketSpin(device, this.spinStore, state);
+			this.WebsocketSpin.onSpinConnected(id);
+			return spin;
 		}
 	}
 	
 	connectSpin(id, state) {
-		console.log('connectSpin', id, state);
+		this.log('connectSpin', id, state);
 		
 		if (state && state.connected) state.connected = false;
 		
 		if (id in this.WebsocketSpin.spinIds) {
-			log('WebsocketSpin.connectSpin', id, state);
+			this.log('WebsocketSpin.connectSpin', id, state);
 			
 			let spin = this.WebsocketSpin.spinIds[id];
 			spin.setState(state);
+			
+			this.WebsocketSpin.onSpinConnected(id);
 			return spin;
 		}
 		else {
-			log('connectSpin CREATING', id, state);
+			this.log('connectSpin CREATING', id, state);
 			// debugger;
 			return this.createSpin(id, state);
 		}
@@ -52,22 +56,30 @@ class BrowserTransport extends EventEmitter {
 	
 	updateSpin(id, changes) {
 		if (!changes) {
-			log('no changes?');
+			this.log('no changes?');
 			return;
 		}
 		
+		
+		
 		if (id in this.WebsocketSpin.spinIds) {
-			// log('SPIN UPDATING', id, changes);
+			this.log('SPIN UPDATING', id, changes);
 			
 			let spin = this.WebsocketSpin.spinIds[id];
 			spin.setState(changes);
+			
+			// if ('connected' in changes) {
+			// 	if (changes.connected) this.WebsocketSpin.onSpinConnected(id);
+			// 	else this.WebsocketSpin.onSpinDisconnected(id);
+			// }
+			
 			if ('knobPushed' in changes) {
-				log('emit button', changes.knobPushed);
+				this.log('spin emit button', changes.knobPushed);
 				spin.emit('knob', changes.knobPushed);
 			}
 			if ('buttonPushed' in changes) {
-				// log('emit button pushed', spin.state.id, changes.buttonPushed);
-				log('emit button', changes.buttonPushed);
+				// this.log('emit button pushed', spin.state.id, changes.buttonPushed);
+				this.log('spin emit button', changes.buttonPushed);
 				spin.emit('button', changes.buttonPushed);
 			}
 			if ('spinPosition' in changes) {
@@ -82,17 +94,17 @@ class BrowserTransport extends EventEmitter {
 				let diff = spin.state.spinPosition - previousSpinPosition;
 				let time = spin.state.spinTime - previousSpinTime;
 				if (!isNaN(diff)) {
-					log('emit spin', diff, time);
+					this.log('spin emit spin', diff, time);
 					spin.emit('spin', diff, time);
 				}
 			}
 			
 			if ('knobHold' in changes) {
-				log('emit knob', changes.knobHold);
+				this.log('emit knob', changes.knobHold);
 				spin.emit('knob-hold', changes.knobHold);
 			}
 			if ('buttonHold' in changes) {
-				log('emit button', changes.buttonHold);
+				this.log('emit button', changes.buttonHold);
 				spin.emit('button-hold', changes.buttonHold);
 			}
 			
@@ -110,7 +122,7 @@ class BrowserTransport extends EventEmitter {
 			return spin;
 		}
 		else {
-			log('updateSpin CREATING', id, changes);
+			this.log('updateSpin CREATING', id, changes);
 			// debugger;
 			return this.createSpin(id, changes);
 		}
@@ -118,7 +130,7 @@ class BrowserTransport extends EventEmitter {
 	}
 	
 	disconnectSpin(id, changes) {
-		log('disconnectSpin', id, changes);
+		this.log('disconnectSpin', id, changes);
 		if (id in this.WebsocketSpin.spinIds) {
 			let spin = this.WebsocketSpin.spinIds[id];
 			if (!changes) changes = {};
@@ -126,14 +138,15 @@ class BrowserTransport extends EventEmitter {
 			spin.setState(changes);
 			this.emit('spin-disconnected', spin);
 			spin.emit('disconnect');
+			this.WebsocketSpin.onSpinConnected(id);
 		}
 		else {
-			console.log('invalid id', id, this.WebsocketSpin.spinIds);
+			this.log('invalid id', id, this.WebsocketSpin.spinIds);
 		}
 	}
 	
 	update(id, changes) {
-		log('transport update', id, changes);
+		this.log('transport update', id, changes);
 		
 		var spin = this.WebsocketSpin.spinIds[id];
 		
@@ -141,13 +154,13 @@ class BrowserTransport extends EventEmitter {
 			spin.state[c] = changes[c];
 		}
 		
-		// log('update changed', changed);
+		// this.log('update changed', changed);
 		
 		if ('knobPushed' in changes) {
 			spin.emit('knob', changes.knobPushed);
 		}
 		if ('buttonPushed' in changes) {
-			// log('emit button pushed', spin.state.id, changes.buttonPushed);
+			// this.log('emit button pushed', spin.state.id, changes.buttonPushed);
 			spin.emit('button', changes.buttonPushed);
 		}
 		if ('spinPosition' in changes) {
@@ -166,17 +179,17 @@ class BrowserTransport extends EventEmitter {
 			}
 		}
 		
-		log('update', changes);
+		this.log('update', changes);
 		spin.emit('update', changes);
 	}
 	
 	sendCommand(spin, args) {
-		log('WebsocketTransport sendCommand', args);
+		this.log('WebsocketTransport sendCommand', args);
 		
 		let id = args.shift();
 		let method = args.shift();
 		// this.emit('spin-command', id, method, args);
-		log('emit spin-command-'+id, method, args);
+		this.log('emit spin-command-'+id, method, args);
 		this.emit('spin-command-'+id, id, method, args);
 	}
 	
@@ -185,7 +198,7 @@ class BrowserTransport extends EventEmitter {
 	}
 	
 	socketDisconnected(socket) {
-		console.log('disconnect all', this.WebsocketSpin.spinIds);
+		this.log('disconnect all', this.WebsocketSpin.spinIds);
 		// debugger;
 		for (let id in this.WebsocketSpin.spinIds) {
 			// if (this.WebsocketSpin.spinIds[id].connected) {

@@ -39,86 +39,45 @@ class WebsocketClient extends Client {
 	constructor(defaults, store) {
 		super(schema, store, defaults);
 		
-		// this.socketTransport = socketTransport;
-		
 		this.log = createLogger('WebsocketClient ' + (_instance++));
 		this.log('create', defaults);
 		this._instance = _instance;
 		clients[this.state.id] = this;
-		// debugger;
 	}
 	
 	connect() {
-		this.log('connecting x', this.state.host + ':' + this.state.port);
-		// console.log('wsc state', this.state);
-		// process.exit();
-		
-		// this.setState({
-		// 	connecting: true,
-		// 	status: 'connecting'
-		// });
-		// if (!socketTransport) socketTransport = new WebsocketTransport(WebsocketSpin, spinStore);
-		
 		let socketConfig = this.state;
-		
 		const url = socketConfig.protocol + '://' + socketConfig.host + ':' + socketConfig.port;
 		this.log('connecting websocket ' + url + ' ...');
 		
 		const socket = io.connect(url, socketConfig.options);
-		
 		this.socket = socket;
-		// const socketTransport = this.socketTransport;
 		
 		const onSpinCommand = function(id, method, args) {
-			console.log('RECEIVED SPIN COMMAND', id, method, args);
-			// process.exit();
+			//console.log('RECEIVED SPIN COMMAND', id, method, args);
 			socket.emit('spin-command', id, method, args);
 		};
 		
 		const onSpinConnect = function(id, state) {
-			log('ON spin-connect', id, state);
-			// debugger;
-			
-			// if (typeof id !== 'string') {
-			// 	console.log('NOOOO');
-			// 	debugger;
-			// 	return;
-			// }
-			if (!socketTransport.connectSpin) {
-				console.log('no socketTransport.connectSpin');
-				process.exit();
-			}
-			
 			let spin = socketTransport.connectSpin(id, state);
-			// console.log('spin-connect CONNECTING...', spin.state.connected);
-			log('spin-connect spin created', spin.id);
-			// process.exit();
+			//log('spin-connect spin created', spin.id);
 			
 			spin.once('connect', function() {
-				console.log('onSpinConnect connect', id);
-				
 				spin.on('disconnect', function() {
-					// debugger;
 					socketTransport.removeListener('spin-command-'+id, onSpinCommand);
 				});
 				socketTransport.on('spin-command-'+id, onSpinCommand);
-				
 				WebsocketSpin.onSpinConnected(id);
 			}, 'connect');
+			
 			spin.connect();
-			
-			// process.exit();
-			
-			// WebsocketSpin.createSpin(this.transport, id, state);
-			
 		};
+		
 		const onSpinDisconnect = function(id, state) {
-			log('ON spin-disconnect', id, state);
+			//log('ON spin-disconnect', id, state);
 			
-			// debugger;
 			WebsocketSpin.onSpinDisconnected(id);
 			
-			// socket.removeListener('spin-connect', onSpinConnect);
 			socket.removeListener('spin-update', onSpinUpdate);
 			socket.removeListener('spin-disconnect', onSpinDisconnect);
 			
@@ -126,9 +85,9 @@ class WebsocketClient extends Client {
 		};
 		
 		const onSpinUpdate = function(id, changes) {
-			console.log('spin-update', changes);
+			//console.log('spin-update', changes);
 			
-			if ('connected' in changes) {//} && !changes.connected) {
+			if ('connected' in changes) {
 				if (changes.connected) {
 					onSpinConnect(id, changes);
 				}
@@ -138,38 +97,7 @@ class WebsocketClient extends Client {
 				}
 			}
 			else {
-				let spin = socketTransport.updateSpin(id, changes);
-				
-				// if (spin.state.connected) {
-				// 	// console.log('already connected');
-				// 	// debugger;
-				// 	// process.exit();
-				// }
-				//
-				// else if (!spin.state.connected) {
-				// 	console.log('spin-update CONNECTING...');
-				// 	debugger;
-				//
-				// 	// spin.once('connect', function () {
-				// 	// 	WebsocketSpin.onSpinConnected(id);
-				// 	// });
-				// 	// spin.connect();
-				// 	// spin.connect();
-				//
-				// 	spin.once('connect', function() {
-				// 		console.log('onSpinConnect connect', id);
-				// 		// process.exit();
-				// 		spin.on('disconnect', function() {
-				// 			socketTransport.removeListener('spin-command-'+id, onSpinCommand);
-				// 		});
-				// 		socketTransport.on('spin-command-'+id, onSpinCommand);
-				//
-				// 		WebsocketSpin.onSpinConnected(id);
-				// 	}, 'connect');
-				//
-				//
-				// 	spin.connect();
-				// }
+				socketTransport.updateSpin(id, changes);
 			}
 		};
 		

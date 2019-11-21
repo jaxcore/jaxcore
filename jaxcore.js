@@ -238,9 +238,13 @@ class Jaxcore extends Service {
 		// else {
 		let callback = (device) => {
 			this.log('connected Device', device.id);
+			debugger;
 			this.emit('device-connected', type, device);
 			this.emit(type+'-connected', device);
 		};
+		
+		this.log('startDevice', type);
+		debugger;
 		
 		if (deviceClass.startJaxcoreDevice) {
 			deviceClass.startJaxcoreDevice(deviceConfig, deviceStore, callback);
@@ -284,13 +288,13 @@ class Jaxcore extends Service {
 						instance: service
 					};
 					
-					this.log('did create', serviceType);
+					// this.log('did create', serviceType);
 					// process.exit();
 					// service.once('connect', () => {
 					
 					service.once('connect', () => {
 						this.emit('service-connected', serviceType, service);
-						callback(null, service);
+						if (callback) callback(null, service);
 					});
 					service.once('disconnect', () => {
 						console.log('service teardown', serviceType, serviceId);
@@ -303,9 +307,8 @@ class Jaxcore extends Service {
 					service.connect();
 				}
 				else {
-					console.log('did not create', serviceType);
-					callback(null, service);
-					//process.exit();
+					if (callback) callback(null, service);
+					else quit('did not create', serviceType);
 				}
 			}
 			
@@ -939,20 +942,25 @@ class Jaxcore extends Service {
 	connectWebsocket(webSocketClientConfig, callback) {
 		this.isWebsocket = true;
 		
-		if (!this.serviceClasses.websocketClient) {
-			this.addPlugin(WebSocketClientPlugin);
-		}
+		this.addWebsocketSpin();
 		
 		this.startService('websocketClient', null, null, webSocketClientConfig, (err, websocketClient) => {
 			// console.log('websocketClient', websocketClient);
 			// process.exit();
 			if (callback) callback(err, websocketClient);
 		});
-		
+	}
+	
+	addWebsocketSpin() {
+		if (!this.serviceClasses.websocketClient) {
+			this.addPlugin(WebSocketClientPlugin);
+		}
 		this.startDevice('websocketSpin');
 	}
 	
 	connectBrowserExtension(callback) {
+		this.addWebsocketSpin();
+		
 		this.isBrowserExtension = true;
 		
 		if (!this.serviceClasses.browserService) {

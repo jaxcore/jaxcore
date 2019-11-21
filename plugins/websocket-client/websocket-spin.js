@@ -300,6 +300,8 @@ class WebsocketSpin extends Client {
 	static onSpinConnected(id) {
 		let spin = WebsocketSpin.spinIds[id];
 		console.log('onSpinConnected', id);
+		debugger;
+		
 		// process.exit();
 		
 		if (spin) {
@@ -329,7 +331,7 @@ class WebsocketSpin extends Client {
 		// spinMonitor.on('spin-connected', callback);
 		WebsocketSpin.connect(function(spin) {
 			console.log('transport spin connected', spin.id);
-			
+			debugger;
 			callback(spin);
 			
 			// function onSpin(diff, time) {

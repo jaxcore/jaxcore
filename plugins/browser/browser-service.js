@@ -1,8 +1,8 @@
 const {Service, createLogger, createClientStore} = require('jaxcore-plugin');
 const BrowserTransport = require('./browser-transport');
 const WebsocketSpin = require('../websocket-client/websocket-spin');
-// const io = require('socket.io-client');
 
+const JAXCORE_EXTENSION_VERSION = '0.0.3';
 const JAXCORE_PROTOCOL_VERSION = 2;
 
 const log = createLogger('BrowserServiceS');
@@ -17,6 +17,7 @@ function postMessage(data) {
 	window.postMessage({
 		jaxcore: {
 			protocol: JAXCORE_PROTOCOL_VERSION,
+			version: JAXCORE_EXTENSION_VERSION,
 			pageMessage: data
 		}
 	}, window.document.location.protocol + window.document.location.host);
@@ -26,6 +27,7 @@ function postHandshakeToContentPort(data) {
 	window.postMessage({
 		jaxcore: {
 			protocol: JAXCORE_PROTOCOL_VERSION,
+			version: JAXCORE_EXTENSION_VERSION,
 			pageHandshake: data
 		}
 	}, window.document.location.protocol + window.document.location.host);
@@ -68,28 +70,21 @@ class BrowserService extends Service {
 	onMessage(event) {  // message from Content Script
 		if (document.location.href.indexOf(event.origin) === 0) {
 			if (event.data.jaxcore) {
+				
 				if (event.data.jaxcore.protocol !== JAXCORE_PROTOCOL_VERSION) {
 					console.error('JAXCORE PROTOCOL MISMATCH, REQUIRE PROTOCOL ',JAXCORE_PROTOCOL_VERSION);
 					return;
 				}
+				if (event.data.jaxcore.version !== JAXCORE_EXTENSION_VERSION) {
+					console.error('JAXCORE VERSION MISMATCH, REQUIRE VERSION ',JAXCORE_EXTENSION_VERSION);
+					return;
+				}
 				
-				let msg = event.data.jaxcore;
-				
-				// if ('portConnected' in msg) {
-				// 	debugger;
-				// 	this.emit('port-connected', msg);
-				// }
-				// else if ('portActive' in msg) {
-				// 	debugger;
-				// 	this.emit('port-active', msg.portActive);
-				// }
 				
 				if ('contentHandshake' in event.data.jaxcore) {
 					const contentHandshake = event.data.jaxcore.contentHandshake;
 					if ('extensionReady' in contentHandshake) {
-						
 						this._connected();
-						
 						postHandshakeToContentPort({
 							connectExtension: {
 								requestPrivileges: {
@@ -101,24 +96,18 @@ class BrowserService extends Service {
 					}
 					
 					else if ('extensionDisconnected' in contentHandshake) {
-						debugger;
 						this.emit('extension-disconnected');
 					}
-					
 					else if ('portConnected' in contentHandshake) {
 						let portConnected = contentHandshake.portConnected;
 						let portActive = contentHandshake.portActive;
 						let grantedPrivileges = contentHandshake.grantedPrivileges;
 						let websocketConnected = contentHandshake.websocketConnected;
-						// console.log('grantedPrivileges', grantedPrivileges);
-						console.log('portConnected', portConnected);
-						console.log('portActive', portActive);
 						this.setState({
 							portConnected,
 							portActive
 						});
 						this.emit('extension-connected', {
-							// grantedPrivileges,
 							extensionConnected: portConnected,
 							tabActive: portActive,
 							websocketConnected,
@@ -126,27 +115,31 @@ class BrowserService extends Service {
 						});
 					}
 					else if ('portActive' in contentHandshake) {
-						this.log('browser got port-active');
 						this.emit('port-active', contentHandshake.portActive);
-						// debugger;
 					}
-					
 					else if ('websocketConnected' in contentHandshake) {
 						const websocketConnected = contentHandshake.websocketConnected;
-						console.log('websocketConnected', websocketConnected);
-						// debugger;
 						this.setState({
 							websocketConnected
 						});
 						this.emit('websocket-connected', websocketConnected);
-						
 					}
 					else {
 						debugger;
 					}
 				}
 				else if ('contentMessage' in event.data.jaxcore) {
-					debugger;
+					const msg = event.data.jaxcore.contentMessage;
+					if ('spinUpdate' in msg) {
+						this.log('spinUpdate', msg);
+						
+						const changes = msg.spinUpdate.changes;
+						
+						
+						
+						browserTransport.updateSpin(msg.spinUpdate.id, changes);
+						//debugger;
+					}
 				}
 				else {
 					// debugger;
@@ -159,124 +152,23 @@ class BrowserService extends Service {
 		this.setState({
 			connected: true
 		});
-		this.emit('connect'); // emits to jaxcore.on('service-connected')
-		
+		this.emit('connect');
 	}
 	
 	connect() {
 		this.log('connecting to extension');
-		// debugger;
 		
-		// this.once('extension-connected', () => {
+		// this.once('extension-ready', () => {
+		// 	console.log('extension ready');
+		//
 		// 	// this.emit('connect'); // emits to jaxcore.on('service-connected')
-		// 	// this.setState();
-		// });
-		
-		this.once('extension-ready', () => {
-			console.log('extension ready');
-			
-			// this.emit('connect'); // emits to jaxcore.on('service-connected')
-			debugger;
-		});
-		
-		
-		
-		// let socketConfig = this.state;
-		//
-		// let socket;
-		//
-		// const onSpinCommand = function(id, method, args) {
-		// 	console.log('RECEIVED SPIN COMMAND', id, method, args);
-		// 	socket.emit('spin-command', id, method, args);
-		// };
-		//
-		// const onSpinConnect = function(id, state) {
-		// 	log('ON spin-connect', id, state);
-		// 	let spin = browserTransport.connectSpin(id, state);
-		// 	log('spin-connect spin created', spin.id);
-		// 	// process.exit();
-		//
-		// 	spin.once('connect', function() {
-		// 		console.log('onSpinConnect connect', id);
-		//
-		// 		spin.on('disconnect', function() {
-		// 			debugger;
-		// 			browserTransport.removeListener('spin-command-'+id, onSpinCommand);
-		// 		});
-		// 		browserTransport.on('spin-command-'+id, onSpinCommand);
-		//
-		// 		WebsocketSpin.onSpinConnected(id);
-		// 	}, 'connect');
-		// 	spin.connect();
-		// };
-		// const onSpinDisconnect = function(id, state) {
-		// 	log('ON spin-disconnect', id, state);
-		//
-		// 	WebsocketSpin.onSpinDisconnected(id);
-		//
-		// 	// socket.removeListener('spin-connect', onSpinConnect);
-		// 	socket.removeListener('spin-update', onSpinUpdate);
-		// 	socket.removeListener('spin-disconnect', onSpinDisconnect);
-		//
-		// 	socketTransport.removeListener('spin-command-'+id, onSpinCommand);
-		// };
-		//
-		// const onSpinUpdate = function(id, changes) {
-		// 	console.log('spin-update', changes);
-		//
-		// 	if ('connected' in changes) {//} && !changes.connected) {
-		// 		if (changes.connected) {
-		// 			onSpinConnect(id, changes);
-		// 		}
-		// 		else {
-		// 			console.log('spin-update disconnecting', changes);
-		// 			socketTransport.disconnectSpin(id, changes);
-		// 		}
-		// 	}
-		// 	else {
-		// 		socketTransport.updateSpin(id, changes);
-		// 	}
-		// };
-		//
-		// socket.once('connect', () => {
-		// 	log('socket connect');
 		// 	debugger;
-		//
-		// 	socketTransport.socketConnected(socket);
-		//
-		// 	socket.on('spin-update', onSpinUpdate);
-		// 	socket.on('spin-disconnect', onSpinDisconnect);
-		// 	socket.on('spin-connect', onSpinConnect);
-		//
-		// 	this.emit('connect', socket);
 		// });
-		//
-		// socket.once('disconnect', () => {
-		// 	log('socket disconnect');
-		// 	debugger;
-		//
-		// 	socketTransport.socketDisconnected(socket);
-		//
-		// 	socket.removeListener('spin-update', onSpinUpdate);
-		// 	socket.removeListener('spin-disconnect', onSpinDisconnect);
-		// 	socket.removeListener('spin-connect', onSpinConnect);
-		//
-		// 	debugger;
-		// 	socket.destroy();
-		//
-		// 	this.emit('disconnect');
-		// });
-		//
-		// return socket;
 	};
 	
 	
 	destroy() {
 		this.emit('teardown');
-		// if (this.socket) this.socket.destroy();
-		// this.removeAllListeners();
-		// delete this.socket;
-		// delete clients[this.state.id];
 		debugger;
 	}
 	

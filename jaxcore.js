@@ -238,13 +238,13 @@ class Jaxcore extends Service {
 		// else {
 		let callback = (device) => {
 			this.log('connected Device', device.id);
-			debugger;
+			// debugger;
 			this.emit('device-connected', type, device);
 			this.emit(type+'-connected', device);
 		};
 		
-		this.log('startDevice', type);
-		debugger;
+		// this.log('startDevice', type);
+		// debugger;
 		
 		if (deviceClass.startJaxcoreDevice) {
 			deviceClass.startJaxcoreDevice(deviceConfig, deviceStore, callback);

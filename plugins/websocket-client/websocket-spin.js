@@ -299,8 +299,8 @@ class WebsocketSpin extends Client {
 	
 	static onSpinConnected(id) {
 		let spin = WebsocketSpin.spinIds[id];
-		console.log('onSpinConnected', id);
-		debugger;
+		// console.log('onSpinConnected', id);
+		// debugger;
 		
 		// process.exit();
 		
@@ -321,42 +321,11 @@ class WebsocketSpin extends Client {
 	}
 	
 	static startJaxcoreDevice(ids, deviceStore, callback) {
-		console.log('WebsocketSpin startJaxcoreDevice', deviceStore);
-		// process.exit();
-		// ble.connectBLE(store, Spin.create, spinIds, callback);
-		// websocketClient.on('connect', function() {
-		//
-		// });
-		// websocketClient.connect();
-		// spinMonitor.on('spin-connected', callback);
+		// console.log('WebsocketSpin startJaxcoreDevice', deviceStore);
 		WebsocketSpin.connect(function(spin) {
-			console.log('transport spin connected', spin.id);
-			debugger;
+			// console.log('WebsocketSpin connected', spin.id);
 			callback(spin);
-			
-			// function onSpin(diff, time) {
-			// 	console.log('transport ON SPIN', diff, time);
-			// }
-			// function onButton(pushed) {
-			// 	console.log('transport ON BUTTON', pushed);
-			// }
-			// function onKnob(pushed) {
-			// 	console.log('transport ON KNOB', pushed);
-			// }
-			// spin.on('spin', onSpin);
-			// spin.on('button', onButton);
-			// spin.on('knob', onKnob);
-			//
-			// spin.once('disconnect', function() {
-			// 	console.log('final disconnected');
-			//
-			// 	spin.removeListener('spin', onSpin);
-			// 	spin.removeListener('button', onButton);
-			// 	spin.removeListener('knob', onKnob);
-			// });
 		});
-		
-		// return spinMonitor; //.on('spin-connected', callback);
 	}
 }
 

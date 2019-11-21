@@ -32,7 +32,7 @@ class App extends Component {
     componentDidMount() {
         jaxcore.on('service-disconnected', (type, device) => {
             if (type === 'browserService') {
-                debugger;
+                // debugger;
                 this.setState({
                     extensionReady: false,
                     extensionConnected: false,
@@ -51,7 +51,7 @@ class App extends Component {
                 
                 browserService.on('extension-connected', (msg) => {
                     console.log('extension-connected !!!!', msg);
-                    debugger;
+                    // debugger;
                     this.setState({
                         extensionConnected: msg.extensionConnected,
                         tabActive: msg.tabActive,
@@ -71,7 +71,7 @@ class App extends Component {
     
                 browserService.on('websocket-connected', (websocketConnected) => {
                     console.log('App browserService on websocketConnected', websocketConnected);
-                    debugger;
+                    // debugger;
                     this.setState({
                         websocketConnected
                     });
@@ -79,9 +79,9 @@ class App extends Component {
                 
                 
                 browserService.on('port-active', (portActive) => {
-                    debugger;
+                    // debugger;
                     this.setState({
-                        portActive
+                        tabActive: portActive
                     });
                 });
                 

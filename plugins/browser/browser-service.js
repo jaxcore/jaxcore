@@ -126,13 +126,15 @@ class BrowserService extends Service {
 						});
 					}
 					else if ('portActive' in contentHandshake) {
-						debugger;
+						this.log('browser got port-active');
+						this.emit('port-active', contentHandshake.portActive);
+						// debugger;
 					}
 					
 					else if ('websocketConnected' in contentHandshake) {
 						const websocketConnected = contentHandshake.websocketConnected;
 						console.log('websocketConnected', websocketConnected);
-						debugger;
+						// debugger;
 						this.setState({
 							websocketConnected
 						});

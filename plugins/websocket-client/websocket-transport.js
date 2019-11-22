@@ -16,6 +16,8 @@ class WebsocketTransport extends EventEmitter {
 		}
 		else {
 			if (state && state.connected) state.connected = false;
+			// debugger;
+			// state.connected = true;
 			log('WebsocketSpin.createSpin', typeof id, id, typeof state, state);
 			
 			let device = {
@@ -27,7 +29,11 @@ class WebsocketTransport extends EventEmitter {
 				debugger;
 				return;
 			}
-			return new this.WebsocketSpin(device, this.spinStore, state);
+			
+			let spin = new this.WebsocketSpin(device, this.spinStore, state);
+			spin.connect();
+			// spin.state.connected = true;
+			return spin;
 		}
 	}
 	
@@ -49,7 +55,9 @@ class WebsocketTransport extends EventEmitter {
 		else {
 			log('connectSpin CREATING', id, state);
 			// debugger;
-			return this.createSpin(id, state);
+			let spin = this.createSpin(id, state);
+			// spin.connect();
+			return spin;
 		}
 	}
 	
@@ -124,11 +132,13 @@ class WebsocketTransport extends EventEmitter {
 		log('disconnectSpin', id, changes);
 		if (id in this.WebsocketSpin.spinIds) {
 			let spin = this.WebsocketSpin.spinIds[id];
-			if (!changes) changes = {};
-			changes.connected = false;
-			spin.setState(changes);
+			// if (!changes) changes = {};
+			// changes.connected = false;
+			// spin.setState(changes);
+			// spin.emit('disconnect');
+			spin.disconnect();
+			
 			this.emit('spin-disconnected', spin);
-			spin.emit('disconnect');
 		}
 		else {
 			console.log('invalid id', id, this.WebsocketSpin.spinIds);

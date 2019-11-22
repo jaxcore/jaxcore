@@ -71,7 +71,6 @@ class BrowserService extends Service {
 	}
 	
 	onSpinCommand(id, method, args) {
-		debugger;
 		postToContentPortMessage({
 			spin: {
 				command: {
@@ -150,8 +149,6 @@ class BrowserService extends Service {
 						this.log('spinUpdate', msg);
 						
 						const changes = msg.spinUpdate.changes;
-						
-						
 						
 						browserTransport.updateSpin(msg.spinUpdate.id, changes);
 						//debugger;

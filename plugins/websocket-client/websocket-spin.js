@@ -149,17 +149,7 @@ class WebsocketSpin extends Client {
 	}
 	
 	connect() {
-		if (!this.transport.connectSpin) {
-			console.log('no this.transport.connectSpin');
-			process.exit();
-		}
-		// this.transport.connectSpin(this);
-		this._connected();
-	}
-	
-	_connected() {
-		this.resetDefaults();
-		this.setState({
+		this.resetDefaults({
 			connected: true,
 			sleeping: false
 		});
@@ -297,9 +287,13 @@ class WebsocketSpin extends Client {
 		delete spinIds[id];
 	}
 	
+	static destroySpin(id) {
+		WebsocketSpin.spinIds[id].destroy();
+	}
 	
 	static onSpinConnected(id) {
 		let spin = WebsocketSpin.spinIds[id];
+		// spin.state.connected = true;
 		// console.log('onSpinConnected', id);
 		// debugger;
 		

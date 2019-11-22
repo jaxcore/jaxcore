@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 
 const Jaxcore = require('jaxcore');
 const jaxcore = new Jaxcore();
+global.jaxcore = jaxcore;
 
 const BasicAdapter = require('jaxcore/adapters/basic-adapter');
 jaxcore.addAdapter('basic', BasicAdapter);
@@ -95,7 +96,8 @@ class App extends Component {
 				
 				spin.on('spin', (diff, time) => {
 					this.updateDisplay(spin.id, 'spin', diff);
-					// spin.rotate(diff, [0, 0, 255], [255, 0, 0]);
+					let dir = diff>0? 1:-1;
+					spin.rotate(dir, [0, 0, 255], [255, 0, 0]);
 				});
 				spin.on('knob', (pushed) => {
 					this.updateDisplay(spin.id, 'knob', pushed);

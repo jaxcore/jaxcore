@@ -93,6 +93,7 @@ class WebsocketClient extends Client {
 				}
 				else {
 					console.log('spin-update disconnecting', changes);
+					
 					socketTransport.disconnectSpin(id, changes);
 				}
 			}

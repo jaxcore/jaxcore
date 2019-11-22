@@ -11,11 +11,14 @@ class BrowserTransport extends EventEmitter {
 	}
 	
 	createSpin(id, state) {
+		
 		if (id in this.WebsocketSpin.spinIds) {
 			// return spinIds[id];
+			debugger;
 		}
 		else {
-			if (state && state.connected) state.connected = false;
+			// if (state && state.connected) state.connected = false;
+			
 			this.log('WebsocketSpin.createSpin', typeof id, id, typeof state, state);
 			
 			let device = {
@@ -28,14 +31,24 @@ class BrowserTransport extends EventEmitter {
 				return;
 			}
 			let spin = new this.WebsocketSpin(device, this.spinStore, state);
-			this.WebsocketSpin.onSpinConnected(id);
+			spin.once('connect', () => {
+				this.WebsocketSpin.onSpinConnected(id);
+			});
+			
+			spin.connect();
 			return spin;
 		}
+	}
+	
+	destroySpin(id) {
+		this.WebsocketSpin.destroySpin(id);
+		
 	}
 	
 	connectSpin(id, state) {
 		this.log('connectSpin', id, state);
 		
+		// debugger;
 		if (state && state.connected) state.connected = false;
 		
 		if (id in this.WebsocketSpin.spinIds) {
@@ -60,8 +73,6 @@ class BrowserTransport extends EventEmitter {
 			return;
 		}
 		
-		
-		
 		if (id in this.WebsocketSpin.spinIds) {
 			this.log('SPIN UPDATING', id, changes);
 			
@@ -73,6 +84,23 @@ class BrowserTransport extends EventEmitter {
 			// 	else this.WebsocketSpin.onSpinDisconnected(id);
 			// }
 			
+			if ('connected' in changes) {
+				if (changes.connected) {
+					this.emit('spin-connected', spin);
+					spin.emit('connect');
+					// reconnect
+					this.WebsocketSpin.onSpinConnected(id);
+				}
+				else {
+					// debugger;
+					this.emit('spin-disconnected', spin);
+					spin.emit('disconnect');
+					this.WebsocketSpin.onSpinDisconnected(id);
+					// this.destroySpin(id);
+				}
+			}
+			
+			// else {
 			if ('knobPushed' in changes) {
 				this.log('spin emit button', changes.knobPushed);
 				spin.emit('knob', changes.knobPushed);
@@ -108,16 +136,7 @@ class BrowserTransport extends EventEmitter {
 				spin.emit('button-hold', changes.buttonHold);
 			}
 			
-			if ('connected' in changes) {
-				if (changes.connected) {
-					this.emit('spin-connected', spin);
-					spin.emit('connect');
-				}
-				else {
-					this.emit('spin-disconnected', spin);
-					spin.emit('disconnect');
-				}
-			}
+			
 			
 			return spin;
 		}
@@ -138,7 +157,7 @@ class BrowserTransport extends EventEmitter {
 			spin.setState(changes);
 			this.emit('spin-disconnected', spin);
 			spin.emit('disconnect');
-			this.WebsocketSpin.onSpinConnected(id);
+			this.WebsocketSpin.onSpinDisconnected(id);
 		}
 		else {
 			this.log('invalid id', id, this.WebsocketSpin.spinIds);
@@ -170,10 +189,12 @@ class BrowserTransport extends EventEmitter {
 		
 		if ('connected' in changes) {
 			if (changes.connected) {
+				debugger;
 				this.emit('spin-connected', spin);
 				spin.emit('connect');
 			}
 			else {
+				debugger;
 				this.emit('spin-disconnected', spin);
 				spin.emit('disconnect');
 			}

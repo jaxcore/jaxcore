@@ -94,22 +94,16 @@ class App extends Component {
 				});
 				
 				spin.on('spin', (diff, time) => {
-					const {updates} = this.state;
-					updates.unshift('spin ' + diff);
-					if (updates.length > 50) updates.length = 50;
-					this.setState({updates});
+					this.updateDisplay(spin.id, 'spin', diff);
+					// spin.rotate(diff, [0, 0, 255], [255, 0, 0]);
 				});
 				spin.on('knob', (pushed) => {
-					const {updates} = this.state;
-					updates.unshift('knob ' + pushed);
-					if (updates.length > 50) updates.length = 50;
-					this.setState({updates});
+					this.updateDisplay(spin.id, 'knob', pushed);
+					if (pushed) spin.flash([255, 0, 0]);
 				});
 				spin.on('button', (pushed) => {
-					const {updates} = this.state;
-					updates.unshift('button ' + pushed);
-					if (updates.length > 50) updates.length = 50;
-					this.setState({updates});
+					this.updateDisplay(spin.id, 'button', pushed);
+					if (pushed) spin.flash([0, 0, 255]);
 				});
 				
 				spin.on('disconnect', () => {
@@ -128,6 +122,14 @@ class App extends Component {
 		});
 		
 		connectBrowser();
+	}
+	
+	updateDisplay(id, type, data) {
+		const {updates} = this.state;
+		id = id.substring(0, 8);
+		updates.unshift(id + ': ' + type + ' ' + data);
+		if (updates.length > 50) updates.length = 50;
+		this.setState({updates});
 	}
 	
 	render() {

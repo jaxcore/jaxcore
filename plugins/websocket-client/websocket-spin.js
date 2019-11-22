@@ -193,9 +193,10 @@ class WebsocketSpin extends Client {
 		return d;
 	}
 	
-	sendCommand() {
+	sendCommand() { // method, arg1, arg2, arg3...
 		let args = Array.prototype.slice.call(arguments);
 		args.unshift(this.id);
+		this.log('sendCommand', args);
 		this.transport.sendCommand(this, args);
 	}
 	

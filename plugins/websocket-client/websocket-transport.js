@@ -179,7 +179,10 @@ class WebsocketTransport extends EventEmitter {
 		let id = args.shift();
 		let method = args.shift();
 		// this.emit('spin-command', id, method, args);
+		
 		log('emit spin-command-'+id, method, args);
+		
+		// debugger;
 		this.emit('spin-command-'+id, id, method, args);
 	}
 	

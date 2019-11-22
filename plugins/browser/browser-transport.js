@@ -184,13 +184,11 @@ class BrowserTransport extends EventEmitter {
 	}
 	
 	sendCommand(spin, args) {
-		this.log('WebsocketTransport sendCommand', args);
-		
 		let id = args.shift();
 		let method = args.shift();
 		// this.emit('spin-command', id, method, args);
-		this.log('emit spin-command-'+id, method, args);
-		this.emit('spin-command-'+id, id, method, args);
+		this.log('BrowserTransport emit spin-command', id, method, args);
+		this.emit('spin-command', id, method, args);
 	}
 	
 	socketConnected(socket) {

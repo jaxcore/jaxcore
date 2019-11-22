@@ -13,7 +13,7 @@ let browserTransport;
 transportSpinStore = createClientStore('WebsocketSpin Store');
 browserTransport = new BrowserTransport(WebsocketSpin, transportSpinStore);
 
-function postMessage(data) {
+function postToContentPortMessage(data) {
 	window.postMessage({
 		jaxcore: {
 			protocol: JAXCORE_PROTOCOL_VERSION,
@@ -65,6 +65,22 @@ class BrowserService extends Service {
 		
 		this._onMessage = this.onMessage.bind(this);
 		window.addEventListener("message", this._onMessage);
+		
+		this._onSpinCommand = this.onSpinCommand.bind(this);
+		browserTransport.on('spin-command', this._onSpinCommand);
+	}
+	
+	onSpinCommand(id, method, args) {
+		debugger;
+		postToContentPortMessage({
+			spin: {
+				command: {
+					id,
+					method,
+					args
+				}
+			}
+		});
 	}
 	
 	onMessage(event) {  // message from Content Script

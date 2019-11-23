@@ -1,25 +1,25 @@
 const {Service, createLogger} = require('jaxcore-plugin');
 const http = require('http');
 const socketIO = require('socket.io');
-const express = require('express');
-const app = http.createServer(express());
+// const express = require('express');
+// const app = http.createServer(express());
 
-// const app = http.createServer(function (req, res) {
-// 	// fs.readFile(__dirname + '/index.html',
-// 	// 	function (err, data) {
-// 	// 		if (err) {
-// 	// 			res.writeHead(500);
-// 	// 			return res.end('Error loading index.html');
-// 	// 		}
-// 	//
-// 	// 		res.writeHead(200);
-// 	// 		res.end(data);
-// 	// 	});
-// 	// }
-// 	res.writeHead(200);
-// 	res.write('jaxcore');
-// 	res.end();
-// });
+const app = http.createServer(function (req, res) {
+	// fs.readFile(__dirname + '/index.html',
+	// 	function (err, data) {
+	// 		if (err) {
+	// 			res.writeHead(500);
+	// 			return res.end('Error loading index.html');
+	// 		}
+	//
+	// 		res.writeHead(200);
+	// 		res.end(data);
+	// 	});
+	// }
+	res.writeHead(200);
+	res.write('jaxcore');
+	res.end();
+});
 
 const Spin = require('jaxcore-spin');
 

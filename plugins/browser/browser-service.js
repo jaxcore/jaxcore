@@ -7,11 +7,8 @@ const JAXCORE_PROTOCOL_VERSION = 2;
 
 const log = createLogger('BrowserServiceS');
 
-let transportSpinStore;
-let browserTransport;
-
-transportSpinStore = createClientStore('WebsocketSpin Store');
-browserTransport = new BrowserTransport(WebsocketSpin, transportSpinStore);
+let transportSpinStore = createClientStore('WebsocketSpin Store');
+let browserTransport = new BrowserTransport(WebsocketSpin, transportSpinStore);
 
 function postToContentPortMessage(data) {
 	window.postMessage({

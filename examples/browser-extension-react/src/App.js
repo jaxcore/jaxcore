@@ -4,7 +4,7 @@ const Jaxcore = require('jaxcore');
 const jaxcore = new Jaxcore();
 global.jaxcore = jaxcore;
 
-const BasicAdapter = require('jaxcore/adapters/basic-adapter');
+const BasicAdapter = require('jaxcore/examples/spin-basic/spin-basic-adapter');
 jaxcore.addAdapter('basic', BasicAdapter);
 
 function connectBrowser() {

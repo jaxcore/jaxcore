@@ -1,6 +1,6 @@
-const {Adapter} = require('jaxcore-plugin');;
+const {Adapter} = require('jaxcore-plugin');
 
-class BasicAdapter extends Adapter {
+class SpinBasicAdapter extends Adapter {
 	constructor(store, config, theme, devices, services) {
 		super(store, config, theme, devices, services);
 		const {spin} = devices;
@@ -28,4 +28,4 @@ class BasicAdapter extends Adapter {
 	}
 }
 
-module.exports = BasicAdapter;
+module.exports = SpinBasicAdapter;

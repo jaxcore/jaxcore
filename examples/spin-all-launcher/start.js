@@ -1,29 +1,29 @@
-const Jaxcore = require('./jaxcore');
+const Jaxcore = require('../../index');
 const jaxcore = new Jaxcore();
 
 // PLUGINS
 jaxcore.addPlugin(require('jaxcore-spin'));
-jaxcore.addPlugin(require('./plugins/keyboard'));
-jaxcore.addPlugin(require('./plugins/mouse'));
-jaxcore.addPlugin(require('./plugins/scroll'));
-jaxcore.addPlugin(require('./plugins/volume'));
-jaxcore.addPlugin(require('./plugins/websocket-server'));
-jaxcore.addPlugin(require('./plugins/websocket-client'));
+jaxcore.addPlugin(require('../../plugins/keyboard'));
+jaxcore.addPlugin(require('../../plugins/mouse'));
+jaxcore.addPlugin(require('../../plugins/scroll'));
+jaxcore.addPlugin(require('../../plugins/volume'));
+jaxcore.addPlugin(require('../../plugins/websocket-server'));
+jaxcore.addPlugin(require('../../plugins/websocket-client'));
 jaxcore.addPlugin(require('jaxcore-chromecast-plugin'));
 jaxcore.addPlugin(require('jaxcore-kodi-plugin'));
 jaxcore.addPlugin(require('jaxcore-sonos-plugin'));
 
 // ADAPTERS
-jaxcore.addAdapter('basic', require('./adapters/basic-adapter'));
+// jaxcore.addAdapter('basic', require('./adapters/basic-adapter'));
 
 let defaultAdapter = process.argv[2];
 
 jaxcore.on('spin-connected', function(spin) {
 	console.log('connected', spin.id);
 	
-	if (defaultAdapter === 'basic') {
+	/*if (defaultAdapter === 'basic') {
 		jaxcore.launchAdapter(spin, 'basic');
-	}
+	}*/
 	if (defaultAdapter === 'keyboard') {
 		jaxcore.launchAdapter(spin, 'keyboard');
 	}
@@ -31,7 +31,7 @@ jaxcore.on('spin-connected', function(spin) {
 		jaxcore.launchAdapter(spin, 'mouse');
 	}
 	if (defaultAdapter === 'scroll') {
-		jaxcore.launchAdapter(spin, 'scroll');
+		jaxcre.launchAdapter(spin, 'scroll');
 	}
 	if (defaultAdapter === 'volume') {
 		jaxcore.launchAdapter(spin, 'volume');

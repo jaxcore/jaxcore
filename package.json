@@ -5,20 +5,21 @@
   "author": "Dan Steinman",
   "dependencies": {
     "async": "^3.1.0",
+    "robotjs": "git+https://github.com/octalmage/robotjs.git#fix/node13",
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.0"
   },
   "devDependencies": {},
   "scripts": {
-    "keyboard": "NODE_ENV=dev node launcher.js keyboard",
-    "mouse": "NODE_ENV=dev node launcher.js mouse",
-    "scroll": "NODE_ENV=dev node launcher.js scroll",
-    "volume": "NODE_ENV=dev node launcher.js volume",
-    "chromecast": "NODE_ENV=dev node launcher.js chromecast",
-    "sonos": "NODE_ENV=dev node launcher.js sonos",
-    "kodi": "NODE_ENV=dev node launcher.js kodi",
-    "websocketServer": "NODE_ENV=dev node launcher.js websocketServer",
-    "browserExtension": "NODE_ENV=dev node launcher.js browserExtension"
+    "spin-keyboard": "NODE_ENV=dev node ./examples/spin-keyboard/start.js",
+    "spin-mouse": "NODE_ENV=dev node ./examples/spin-mouse/start.js",
+    "spin-scroll": "NODE_ENV=dev node ./examples/spin-scroll/start.js",
+    "spin-volume": "NODE_ENV=dev node ./examples/spin-volume/start.js",
+    "spin-chromecast": "NODE_ENV=dev node ./examples/spin-chromecast/start.js",
+    "spin-sonos": "NODE_ENV=dev node ./examples/spin-sonos/start.js",
+    "spin-kodi": "NODE_ENV=dev node ./examples/spin-kodi/start.js",
+    "websocketServer": "NODE_ENV=dev node ./examples/spin-all-launcher/start.js websocketServer",
+    "browserExtension": "NODE_ENV=dev node ./examples/spin-all-launcher/start.js browserExtension"
   },
   "license": "MIT"
 }

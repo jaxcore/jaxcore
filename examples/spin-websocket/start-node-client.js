@@ -1,4 +1,4 @@
-const Jaxcore = require('../../jaxcore');
+const Jaxcore = require('../../index');
 const jaxcore = new Jaxcore();
 
 jaxcore.addAdapter('basic', require('../../adapters/basic-adapter'));

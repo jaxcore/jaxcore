@@ -1,1 +1,1 @@
-module.exports = require('./jaxcore');
+module.exports = require('./lib/jaxcore');

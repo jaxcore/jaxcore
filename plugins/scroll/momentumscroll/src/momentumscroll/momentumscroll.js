@@ -1,20 +1,15 @@
 
-import {Engine, Render, Runner, World, Bodies, Body} from 'matter-js';
+
 // let matterjs = require('matter-js');
-// const {Engine, Render, World, Bodies, Body} = matterjs;
+const {Engine, Render, World, Bodies, Body} = require('matter-js');
 // import {Engine, Render, World, Bodies, Body} from 'matter-js';
 
-import EventEmitter from 'events';
-// const EventEmitter = require('events');
-
-// global.Body = Body;
+const EventEmitter = require('events');
 
 class MomentumScroll extends EventEmitter {
 	
 	constructor(config) {
 		super();
-		
-		global.momentum = this;
 		
 		this.intervalTime = config.intervalTime || 50;
 		
@@ -254,4 +249,4 @@ class MomentumScroll extends EventEmitter {
 	}
 }
 
-export default MomentumScroll;
+module.exports = MomentumScroll;

@@ -1,4 +1,4 @@
-const Jaxcore = require('../../index');
+const Jaxcore = require('../../lib/jaxcore');
 const jaxcore = new Jaxcore();
 
 jaxcore.addPlugin(require('jaxcore-spin'));

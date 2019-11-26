@@ -1,4 +1,4 @@
-const {Adapter} = require('jaxcore-plugin');
+const {Adapter} = require('../../lib/jaxcore');
 
 class VolumeAdapter extends Adapter {
 	static getDefaultState() {

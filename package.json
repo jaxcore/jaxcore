@@ -3,10 +3,11 @@
   "version": "0.0.1",
   "description": "Jaxcore - a real-time control and connectivity hub for IoT devices, computers, smart homes, and home theater equipment",
   "author": "Dan Steinman",
+  "main": "lib/jaxcore.js",
   "dependencies": {
     "async": "^3.1.0",
     "chalk": "^3.0.0",
-    "robotjs": "git+https://github.com/octalmage/robotjs.git#fix/node13",
+    "robotjs": "git+https://github.com/octalmage/robotjs.git#master",
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.0"
   },

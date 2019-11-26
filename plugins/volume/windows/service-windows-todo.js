@@ -1,7 +1,7 @@
 var EventEmitter = require('events');
 var net = require("net");
-var plugin = require('jaxcore-plugin');
-var log = plugin.createLogger('Desktop');
+var {createLogger} = require('jaxcore');
+var log = createLogger('Desktop');
 var Client = plugin.Client;
 
 var windowsAudio = require('win-audio');

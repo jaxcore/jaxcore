@@ -1,4 +1,4 @@
-const {Adapter} = require('jaxcore-plugin');
+const {Adapter} = require('../../index');
 
 class WebsocketAdapter extends Adapter {
 	static getDefaultState() {

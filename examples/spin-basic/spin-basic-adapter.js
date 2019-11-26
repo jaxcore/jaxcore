@@ -1,4 +1,4 @@
-const {Adapter} = require('jaxcore-plugin');
+const Adapter = require('../../lib/adapter');
 
 class SpinBasicAdapter extends Adapter {
 	constructor(store, config, theme, devices, services) {

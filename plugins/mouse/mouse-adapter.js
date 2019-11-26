@@ -1,4 +1,4 @@
-const {Adapter} = require('jaxcore-plugin');
+const Adapter = require('../../lib/adapter');
 
 function startInterval(fn, t) {
 	fn();

@@ -1,4 +1,4 @@
-const {Adapter} = require('jaxcore-plugin');
+const Adapter = require('../../lib/adapter');
 
 class KeyboardAdapter extends Adapter {
 	static getDefaultState() {

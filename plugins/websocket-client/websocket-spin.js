@@ -1,5 +1,11 @@
-const {Client, createLogger, createClientStore} = require('jaxcore-plugin');
-const SpinBuffer = require('jaxcore-spin/lib/buffer');
+// const {Client, createLogger, createClientStore} = require('../../lib/jaxcore');
+// const {createLogger} = require('../../lib/logger');
+const Client = require('../../lib/client');
+const Store = require('../../lib/store');
+const {createClientStore} = Store;
+const {createLogger} = require('../../lib/logger');
+
+const SpinBuffer = require('./spin-buffer');
 const EventEmitter = require('events');
 const spinMonitor = new EventEmitter();
 

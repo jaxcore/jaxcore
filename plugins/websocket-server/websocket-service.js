@@ -1,4 +1,4 @@
-const {Service, createLogger} = require('jaxcore-plugin');
+const {Service, createLogger} = require('../../index');
 const http = require('http');
 const socketIO = require('socket.io');
 // const express = require('express');

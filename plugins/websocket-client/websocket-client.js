@@ -1,4 +1,7 @@
-const {Client, createLogger, createClientStore} = require('jaxcore-plugin');
+const Client = require('../../lib/client');
+const Store = require('../../lib/store');
+const {createClientStore} = Store;
+const {createLogger} = require('../../lib/logger');
 const WebsocketTransport = require('./websocket-transport');
 const WebsocketSpin = require('./websocket-spin');
 const io = require('socket.io-client');

@@ -1,4 +1,4 @@
-const Jaxcore = require('../../index');
+const Jaxcore = require('../../lib/jaxcore');
 const jaxcore = new Jaxcore();
 
 jaxcore.addPlugin(require('jaxcore-spin'));
@@ -12,4 +12,11 @@ jaxcore.on('spin-connected', function(spin) {
 	jaxcore.launchAdapter(spin, 'volume');
 });
 
-jaxcore.startDevice('spin');
+try {
+	jaxcore.startDevice('spin');
+}
+catch(e) {
+		console.log('err', e);
+		process.exit();
+}
+

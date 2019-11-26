@@ -1,4 +1,4 @@
-const {Service, createLogger} = require('jaxcore-plugin');
+const {Service, createLogger} = require('../../lib/jaxcore');
 var child_process = require('child_process');
 
 const schema = {

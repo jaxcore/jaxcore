@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const {createLogger} = require('jaxcore-plugin');
+const {createLogger} = require('../../lib/logger');
 
 class BrowserTransport extends EventEmitter {
 	constructor(WebsocketSpin, spinStore) {

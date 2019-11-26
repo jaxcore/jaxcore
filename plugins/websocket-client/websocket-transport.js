@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const {createLogger} = require('jaxcore-plugin');
+const {createLogger} = require('../../lib/logger');
 const log = createLogger('WebsocketTransport');
 
 class WebsocketTransport extends EventEmitter {

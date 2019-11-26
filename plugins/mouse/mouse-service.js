@@ -1,4 +1,5 @@
-const {Service, createLogger} = require('jaxcore-plugin');
+const Service = require('../../lib/client');
+const {createLogger} = require('../../lib/logger');
 const robot = require("robotjs");
 
 let mouseInstance = null;

@@ -31,6 +31,10 @@ class MouseScrollAdapter extends Adapter {
 					return;
 				}
 				
+				this.setState({
+					spin: spin.state.spinPosition
+				});
+				
 				var mousePos = mouse.getMousePos();
 				let size = mouse.getScreenSize();
 				this.log('spin', diff, time);
@@ -45,7 +49,7 @@ class MouseScrollAdapter extends Adapter {
 					console.log('TODO: shuttleHorizontal', diff);
 				}
 				else if (spin.state.knobPushed) {
-					this.state.didKnobSpin = true;
+					this.setState({didKnobSpin : true});
 					
 					clearInterval(this.balanceInterval);
 					let shuttleDiff = scroll.shuttleVertical(spin.state.spinPosition);
@@ -59,7 +63,7 @@ class MouseScrollAdapter extends Adapter {
 					}, 500);
 				}
 				else if (spin.state.buttonPushed) {
-					this.state.didButtonSpin = true;
+					this.setState({didButtonSpin : true});
 					
 					let y = mousePos.y + distance;
 					if (y < 1) y = 1;
@@ -97,7 +101,7 @@ class MouseScrollAdapter extends Adapter {
 					if (this.state.didKnobHold) {
 						mouse.mouseToggle('up', 'left');
 						spin.quickFlash(theme.low, 2);
-						this.state.didKnobHold = false;
+						this.setState({didKnobHold : false});
 					}
 					else {
 						
@@ -106,7 +110,7 @@ class MouseScrollAdapter extends Adapter {
 						}
 						else {
 							scroll.startShuttleVertical(spin.state.spinPosition);
-							this.state.didKnobSpin = false;
+							this.setState({didKnobSpin : false});
 						}
 					}
 				}
@@ -122,7 +126,7 @@ class MouseScrollAdapter extends Adapter {
 					}
 					
 					if (this.state.didKnobSpin) {
-						this.state.didKnobSpin = false;
+						this.setState({didKnobSpin : false});
 					}
 					else if (this.state.didKnobHold) {
 					
@@ -142,7 +146,7 @@ class MouseScrollAdapter extends Adapter {
 				this.log('button', pushed);
 				
 				if (pushed) {
-					this.state.didButtonSpin = false;
+					this.setState({didButtonSpin : false});
 					
 					if (this.state.didKnobHold) {
 					}
@@ -173,7 +177,7 @@ class MouseScrollAdapter extends Adapter {
 				}
 				else {
 					this.log('knob hold');
-					this.state.didKnobHold = true;
+					this.setState({didKnobHold : true});
 					mouse.mouseToggle('down', 'left');
 					spin.quickFlash(theme.white, 3);
 				}
@@ -183,15 +187,20 @@ class MouseScrollAdapter extends Adapter {
 	
 	pushBoth() {
 		this.log('PUSH BOTH');
-		this.state.didBothPush = true;
-		this.state.didBothHold = true;
+		this.setState({
+			didBothPush : true,
+			didBothHold : true
+		});
 		this.log('CLICK MIDDLE');
 		this.services.mouse.mouseClick('middle');
 		this.devices.spin.flash(this.theme.tertiary);
 	}
 	
 	releaseBoth() {
-		this.state.didBothHold = false;
+		this.setState({
+			didBothPush : false,
+			didBothHold : false
+		});
 		this.log('RELEASE BOTH');
 	}
 	

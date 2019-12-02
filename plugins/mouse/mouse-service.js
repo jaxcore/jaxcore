@@ -12,6 +12,10 @@ const schema = {
 	connected: {
 		type: 'boolean',
 		defaultValue: false
+	},
+	mouse: {
+		type: 'number',
+		defaultValue: 1234
 	}
 };
 

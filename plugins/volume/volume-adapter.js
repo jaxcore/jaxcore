@@ -40,7 +40,7 @@ class VolumeAdapter extends Adapter {
 				
 				if (spin.state.knobPushed) {
 					if (!volume.state.muted) {
-						this.state.didKnobSpin = true;
+						this.setState({didKnobSpin: true});
 						let posDiff = spin.state.spinPosition - this.state.knobPushPosition;
 						if (posDiff === 0) {
 							this.stopFastForward();
@@ -74,8 +74,8 @@ class VolumeAdapter extends Adapter {
 			knob: function (pushed) {
 				this.log('knob', pushed);
 				if (pushed) {
-					this.state.didKnobSpin = false;
-					this.state.knobPushPosition = spin.state.spinPosition;
+					this.setState({didKnobSpin: false});
+					this.setState({knobPushPosition: spin.state.spinPosition});
 				}
 				else {
 					if (this.state.didKnobSpin) {
@@ -103,8 +103,8 @@ class VolumeAdapter extends Adapter {
 			this.stopFastForward();
 		}
 		if (!this.state.isRewinding) {
-			this.state.isRewinding = true;
-			this.state.rewindTime = new Date().getTime();
+			this.setState({isRewinding: true});
+			this.setState({rewindTime: new Date().getTime()});
 			this.log('audio_prev', 'down');
 			this.services.keyboard.keyToggle('audio_prev', 'down');
 			this.devices.spin.orbit(-1, 150, this.theme.low, this.theme.low);
@@ -119,7 +119,7 @@ class VolumeAdapter extends Adapter {
 	
 	stopRewind() {
 		if (this.state.isRewinding) {
-			this.state.isRewinding = false;
+			this.setState({isRewinding: false});
 			this.services.keyboard.keyToggle('audio_prev', 'up');
 			clearInterval(this.rewindInterval);
 			this.devices.spin.lightsOff();
@@ -131,8 +131,8 @@ class VolumeAdapter extends Adapter {
 			this.stopRewind();
 		}
 		if (!this.state.isFastForwarding) {
-			this.state.isFastForwarding = true;
-			this.state.fastForwardTime = new Date().getTime();
+			this.setState({isFastForwarding: true});
+			this.setState({fastForwardTime: new Date().getTime()});
 			this.services.keyboard.keyToggle('audio_next', 'down');
 			this.devices.spin.orbit(1, 150, this.theme.high, this.theme.high);
 			this.fastForwardInterval = setInterval(() => {
@@ -146,7 +146,7 @@ class VolumeAdapter extends Adapter {
 	
 	stopFastForward() {
 		if (this.state.isFastForwarding) {
-			this.state.isFastForwarding = false;
+			this.setState({isFastForwarding: false});
 			this.services.keyboard.keyToggle('audio_next', 'up');
 			clearInterval(this.fastForwardInterval);
 			this.devices.spin.lightsOff();

@@ -27,12 +27,16 @@ class ScrollAdapter extends Adapter {
 				console.log('rotate', 'diff=' + diff, 'time=' + time, 'button=' + spin.state.buttonPushed, 'knob=' + spin.state.knobPushed);
 				let dir = diff > 0 ? 1 : -1;
 				
-				if (spin.state.knobPushed) this.state.didKnobSpin = true;
-				if (spin.state.buttonPushed) this.state.didButtonSpin = true;
-				if (spin.state.buttonPushed && spin.state.knobPushed) this.state.didBothSpin = true;
+				if (spin.state.knobPushed) this.setState({didKnobSpin: true});
+				if (spin.state.buttonPushed) this.setState({didButtonSpin: true});
+				if (spin.state.buttonPushed && spin.state.knobPushed) this.setState({didBothSpin: true});
+				
+				this.setState({
+					spin: spin.state.spinPosition
+				});
 				
 				if (spin.state.buttonPushed && spin.state.knobPushed) {
-					this.state.didBothSpin = true;
+					this.setState({didBothSpin: true});
 					clearInterval(this.balanceInterval);
 					let shuttleDiff = scroll.shuttleHorizontal(spin.state.spinPosition);
 					let balance = 0;
@@ -46,7 +50,7 @@ class ScrollAdapter extends Adapter {
 					
 				}
 				else if (spin.state.buttonPushed) {
-					this.state.didButtonSpin = true;
+					this.setState({didButtonSpin: true});
 					
 					scroll.scrollHorizontal(diff, time);
 					if (diff > 0) spin.rotate(dir, theme.primary);
@@ -54,7 +58,7 @@ class ScrollAdapter extends Adapter {
 					
 				}
 				else if (spin.state.knobPushed) {
-					this.state.didKnobSpin = true;
+					this.setState({didKnobSpin: true});
 					
 					clearInterval(this.balanceInterval);
 					let shuttleDiff = scroll.shuttleVertical(spin.state.spinPosition);
@@ -76,19 +80,19 @@ class ScrollAdapter extends Adapter {
 			button: function (pushed) {
 				console.log('button', pushed, 'knob=' + spin.state.knobPushed);
 				if (pushed) {
-					this.state.didButtonSpin = false;
+					this.setState({didButtonSpin : false});
 					if (spin.state.knobPushed) {
 						clearInterval(this.balanceInterval);
 						scroll.stopShuttleVertical();
 						
 						scroll.startShuttleHorizontal(spin.state.spinPosition);
-						this.state.didBothSpin = false;
-						this.state.didBothPush = true;
+						this.setState({didBothSpin: false});
+						this.setState({didBothPush: true});
 					}
 				}
 				else {
 					if (this.state.didBothPush) {
-						this.state.didBothPush = false;
+						this.setState({didBothPush: false});
 						clearInterval(this.balanceInterval);
 						scroll.stopShuttleHorizontal();
 					}
@@ -102,23 +106,23 @@ class ScrollAdapter extends Adapter {
 			knob: function (pushed) {
 				console.log('knob', pushed, 'button=' + spin.state.buttonPushed);
 				if (pushed) {
-					this.state.didKnobSpin = false;
+					this.setState({didKnobSpin: false});
 					
 					if (spin.state.buttonPushed) {
 						scroll.startShuttleHorizontal(spin.state.spinPosition);
-						this.state.didBothSpin = false;
-						this.state.didBothPush = true;
+						this.setState({didBothSpin: false});
+						this.setState({didBothPush: true});
 					}
 					else {
 						scroll.startShuttleVertical(spin.state.spinPosition);
-						this.state.didKnobSpin = false;
+						this.setState({didKnobSpin: false});
 					}
 				}
 				else {
 					
 					
 					if (this.state.didBothPush) {
-						this.state.didBothPush = false;
+						this.setState({didBothPush: false});
 						clearInterval(this.balanceInterval);
 						scroll.stopShuttleHorizontal();
 					}

@@ -1,7 +1,7 @@
 const Service = require('../../lib/client');
 const {createLogger} = require('../../lib/logger');
 const robot = require("robotjs");
-const MomentumScroll = require('./momentumscroll/src/momentumscroll/momentumscroll.js').default;
+const MomentumScroll = require('./momentumscroll/src/momentumscroll/momentumscroll.js');
 
 let scrollInstance = null;
 

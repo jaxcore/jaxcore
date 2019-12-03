@@ -5,18 +5,18 @@ jaxcore.addPlugin(require('jaxcore-spin'));
 jaxcore.addPlugin(require('../../plugins/keyboard'));
 jaxcore.addPlugin(require('../../plugins/volume'));
 
+jaxcore.defineAdapter('volume-default', {
+	adapterType: 'volume',
+	deviceType: 'spin',
+	services: {
+		volume: 'volume'
+	}
+});
+
 jaxcore.on('spin-connected', function(spin) {
 	console.log('connected', spin.id);
 
-	// volume plugin adds the 'volume' adapter
-	jaxcore.launchAdapter(spin, 'volume');
+	jaxcore.connectAdapter(spin, 'volume-default');
 });
 
-try {
-	jaxcore.startDevice('spin');
-}
-catch(e) {
-		console.log('err', e);
-		process.exit();
-}
-
+jaxcore.startDevice('spin');

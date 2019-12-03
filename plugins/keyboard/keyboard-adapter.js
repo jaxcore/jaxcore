@@ -122,6 +122,7 @@ class KeyboardAdapter extends Adapter {
 	
 	constructor(store, config, theme, devices, services) {
 		super(store, config, theme, devices, services);
+		
 		const {spin} = devices;
 		const {keyboard} = services;
 		spin.rainbow(2);

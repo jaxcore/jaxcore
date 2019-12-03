@@ -1,29 +1,26 @@
 const Jaxcore = require('../../lib/jaxcore');
 const jaxcore = new Jaxcore();
 
-jaxcore.addAdapter('basic', require('../../adapters/basic-adapter'));
+jaxcore.addAdapter('basic', require('../spin-basic/spin-basic-adapter'));
 
-// host and port must match the websocket-server
+jaxcore.defineAdapter('basic-spin-adapter', {
+	adapterType: 'basic',
+	deviceType: 'spin'
+});
+
+// the host and port must match the websocket-server settings in start-node-server.js
 const WEBSOCKET_HOST = 'localhost';
-// const WEBSOCKET_HOST = '192.168.1.29';
 const WEBSOCKET_PORT = 37500;
-// const WEBSOCKET_HOST = '127.0.0.1';
 
 jaxcore.on('service-disconnected', (type, device) => {
-	console.log('x service-disconnected', type, device.id);
 	if (type === 'websocketClient') {
-		// process.exit();
+		console.log('websocket service-disconnected', type, device.id);
 		connectSocket();
 	}
 });
 
 jaxcore.on('service-connected', (type, device) => {
 	console.log('service-connected', type, device.id);
-	
-	// process.exit();
-	// if (type === 'websocketClient') {
-	//
-	// }
 });
 
 function connectSocket() {
@@ -49,13 +46,12 @@ jaxcore.on('device-connected', function(type, device) {
 	if (type === 'websocketSpin') {
 		const spin = device;
 		console.log('connected', spin);
-		jaxcore.createAdapter(spin, 'basic');
+		jaxcore.connectAdapter(spin, 'basic-spin-adapter');
 	}
 	else {
 		console.log('device-connected', type);
 		process.exit();
 	}
 });
-
 
 connectSocket();

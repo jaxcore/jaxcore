@@ -48,7 +48,7 @@ class WebsocketAdapter extends Adapter {
 	
 	static getServicesConfig(adapterConfig) {
 		return {
-			websocketServer: adapterConfig.settings.services.websocketServer
+			websocketServer: adapterConfig.profile.services.websocketServer
 		};
 	}
 }

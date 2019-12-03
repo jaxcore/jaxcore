@@ -202,7 +202,7 @@ class MomentumScroll extends EventEmitter {
 			this.deltaTotalY = this.deltaTotalY + dy - deltaTotalInt;
 		
 			if (deltaTotalInt !== 0) {
-				this.emit('scroll', 0, deltaTotalInt);
+				this.emit('scroll', 0, deltaTotalInt, this.scroller.velocity.x, this.scroller.velocity.y);
 			}
 			
 			clearTimeout(this.timeout);
@@ -232,7 +232,7 @@ class MomentumScroll extends EventEmitter {
 			this.deltaTotalX = this.deltaTotalX + dy - deltaTotalInt;
 			
 			if (deltaTotalInt !== 0) {
-				this.emit('scroll', deltaTotalInt, 0);
+				this.emit('scroll', deltaTotalInt, 0, this.scroller.velocity.x, this.scroller.velocity.y);
 			}
 			
 			clearTimeout(this.timeout);

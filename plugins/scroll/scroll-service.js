@@ -13,14 +13,84 @@ const schema = {
 	connected: {
 		type: 'boolean',
 		defaultValue: false
+	},
+	abc: {
+		type: 'number',
+		defaultValue: 123
+	},
+	// scrollX: {
+	// 	type: 'number'
+	// },
+	// scrollY: {
+	// 	type: 'number'
+	// },
+	// velocityX: {
+	// 	type: 'number'
+	// },
+	// velocityY: {
+	// 	type: 'number'
+	// },
+	scrollForce: {
+		type: 'number',
+		defaultValue: 0.01
+	},
+	scrollForceFactorSlow: {
+		type: 'number',
+		defaultValue: 1
+	},
+	scrollSpeedSlow: {
+		type: 'number',
+		defaultValue: 1
+	},
+	scrollForceFactorMedium: {
+		type: 'number',
+		defaultValue: 1.05
+	},
+	scrollSpeedMedium: {
+		type: 'number',
+		defaultValue: 1.2
+	},
+	scrollScrollFactorFast: {
+		type: 'number',
+		defaultValue: 1.1
+	},
+	scrollSpeedFast: {
+		type: 'number',
+		defaultValue: 1.5
+	},
+	scrollFriction: {
+		type: 'number',
+		defaultValue: 0.05
+	},
+	shuttleForce: {
+		type: 'number',
+		defaultValue: 0.001
+	},
+	shuttleAcceleration: {
+		type: 'number',
+		defaultValue: 2
+	},
+	shuttleFriction: {
+		type: 'number',
+		defaultValue: 0.05
+	},
+	shuttleIntervalTime: {
+		type: 'number',
+		defaultValue: 30
+	},
+	shuttlePositionH: {
+		type: 'number',
+		defaultValue: 0
+	},
+	shuttlePositionV: {
+		type: 'number',
+		defaultValue: 0
 	}
 };
 
 class ScrollService extends Service {
 	constructor(defaults, store) {
 		super(schema, store, defaults);
-		// super(defaults);
-		// this.createStore('Scroll Store', true);
 		
 		this.log = createLogger('Scroll');
 		this.log('created');
@@ -29,41 +99,17 @@ class ScrollService extends Service {
 			intervalTime: 1
 		});
 		
-		this._onScroll = (scrollX, scrollY) => {
+		this._onScroll = (scrollX, scrollY, velocityX, velocityY) => {
+			// this.setState({
+			// 	scrollX,
+			// 	scrollY,
+			// 	velocityX,
+			// 	velocityY
+			// });
 			robot.scrollMouse(-scrollX, -scrollY);
-			this.emit('scroll', scrollX, scrollY);
+			this.emit('scroll', scrollX, scrollY, velocityX, velocityY);
 		};
 		this.momentumScroll.addListener('scroll', this._onScroll);
-		
-		// this.setStates({
-		// 	id: {
-		// 		type: 'string',
-		// 		defaultValue: 'scroll'
-		// 	},
-		// 	connected: {
-		// 		type: 'boolean',
-		// 		defaultValue: false
-		// 	}
-		// }, defaults);
-		
-		this.setState({
-			scrollForce: 0.01,
-			scrollForceFactorSlow: 1,
-			scrollSpeedSlow: 1,
-			scrollForceFactorMedium: 1.05,
-			scrollSpeedMedium: 1.2,
-			scrollScrollFactorFast: 1.1,
-			scrollSpeedFast: 1.5,
-			scrollFriction: 0.05,
-			shuttleForce: 0.001,
-			shuttleAcceleration: 2,
-			shuttleFriction: 0.05,
-			shuttleIntervalTime: 30,
-			shuttlePositionH: 0,
-			shuttlePositionV: 0
-		});
-		
-		// this.id = this.state.id;
 	}
 	
 	connect() {

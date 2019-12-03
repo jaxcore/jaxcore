@@ -31,10 +31,6 @@ class ScrollAdapter extends Adapter {
 				if (spin.state.buttonPushed) this.setState({didButtonSpin: true});
 				if (spin.state.buttonPushed && spin.state.knobPushed) this.setState({didBothSpin: true});
 				
-				this.setState({
-					spin: spin.state.spinPosition
-				});
-				
 				if (spin.state.buttonPushed && spin.state.knobPushed) {
 					this.setState({didBothSpin: true});
 					clearInterval(this.balanceInterval);
@@ -47,34 +43,44 @@ class ScrollAdapter extends Adapter {
 					this.balanceInterval = startInterval(function () {
 						spin.balance(balance, theme.primary, theme.secondary, theme.tertiary);
 					}, 500);
-					
-				}
-				else if (spin.state.buttonPushed) {
-					this.setState({didButtonSpin: true});
-					
-					scroll.scrollHorizontal(diff, time);
-					if (diff > 0) spin.rotate(dir, theme.primary);
-					else spin.rotate(dir, theme.secondary);
-					
-				}
-				else if (spin.state.knobPushed) {
-					this.setState({didKnobSpin: true});
-					
-					clearInterval(this.balanceInterval);
-					let shuttleDiff = scroll.shuttleVertical(spin.state.spinPosition);
-					let balance = 0;
-					if (shuttleDiff !== 0) {
-						let d = shuttleDiff > 0 ? 1 : -1;
-						balance = d * Math.min(Math.abs(shuttleDiff), 24) / 24;
-					}
-					this.balanceInterval = startInterval(function () {
-						spin.balance(balance, theme.low, theme.high, theme.middle);
-					}, 500);
 				}
 				else {
-					scroll.scrollVertical(diff, time);
-					if (dir === 1) spin.rotate(dir, theme.high);
-					else spin.rotate(dir, theme.low);
+					this.setState({didBothSpin: false});
+					
+					if (spin.state.buttonPushed) {
+						this.setState({didButtonSpin: true});
+						
+						scroll.scrollHorizontal(diff, time);
+						if (diff > 0) spin.rotate(dir, theme.primary);
+						else spin.rotate(dir, theme.secondary);
+					}
+					else {
+						this.setState({didButtonSpin: false});
+					}
+					
+					if (spin.state.knobPushed) {
+						this.setState({didKnobSpin: true});
+						
+						clearInterval(this.balanceInterval);
+						let shuttleDiff = scroll.shuttleVertical(spin.state.spinPosition);
+						let balance = 0;
+						if (shuttleDiff !== 0) {
+							let d = shuttleDiff > 0 ? 1 : -1;
+							balance = d * Math.min(Math.abs(shuttleDiff), 24) / 24;
+						}
+						this.balanceInterval = startInterval(function () {
+							spin.balance(balance, theme.low, theme.high, theme.middle);
+						}, 500);
+					}
+					else {
+						this.setState({didKnobSpin: false});
+					}
+					
+					if (!spin.state.buttonPushed && !spin.state.knobPushed) {
+						scroll.scrollVertical(diff, time);
+						if (dir === 1) spin.rotate(dir, theme.high);
+						else spin.rotate(dir, theme.low);
+					}
 				}
 			},
 			button: function (pushed) {
@@ -86,8 +92,10 @@ class ScrollAdapter extends Adapter {
 						scroll.stopShuttleVertical();
 						
 						scroll.startShuttleHorizontal(spin.state.spinPosition);
-						this.setState({didBothSpin: false});
-						this.setState({didBothPush: true});
+						this.setState({
+							didBothSpin: false,
+							didBothPush: true
+						});
 					}
 				}
 				else {
@@ -110,8 +118,10 @@ class ScrollAdapter extends Adapter {
 					
 					if (spin.state.buttonPushed) {
 						scroll.startShuttleHorizontal(spin.state.spinPosition);
-						this.setState({didBothSpin: false});
-						this.setState({didBothPush: true});
+						this.setState({
+							didBothSpin: false,
+							didBothPush: true
+						});
 					}
 					else {
 						scroll.startShuttleVertical(spin.state.spinPosition);
@@ -147,7 +157,6 @@ class ScrollAdapter extends Adapter {
 		this.on('teardown', () => {
 			scroll.stop();
 		});
-		
 	}
 	
 	static getServicesConfig(adapterConfig) {

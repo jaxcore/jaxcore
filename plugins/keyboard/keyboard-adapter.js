@@ -133,7 +133,7 @@ class KeyboardAdapter extends Adapter {
 				
 				if (spin.state.knobPushed && spin.state.buttonPushed) {
 					if (!this.state.didKnobHold && !this.state.didButtonHold && !this.state.didBothHold) {
-						this.state.didBothSpin = true;
+						this.setState({didBothSpin: true});
 						const settings = diff > 0 ? this.state.settings.bothSpinRight : this.state.settings.bothSpinLeft;
 						
 						diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
@@ -143,51 +143,72 @@ class KeyboardAdapter extends Adapter {
 						}
 					}
 				}
-				else if (spin.state.knobPushed) {
-					if (!this.state.didKnobHold) {
-						this.state.didKnobSpin = true;
-						const settings = diff > 0 ? this.state.settings.knobSpinRight : this.state.settings.knobSpinLeft;
-						diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
-						if (diff !== 0) {
-							keyboard.keyPressMultiple(spin, Math.abs(diff), settings.key, settings.modifiers);
-							spin.rotate(diff, theme.primary, theme.primary);
+				else {
+					if (this.state.didBothSpin) {
+						this.setState({ didBothSpin: false});
+					}
+					
+					if (spin.state.knobPushed) {
+						if (!this.state.didKnobHold) {
+							this.setState({didKnobSpin : true});
+							const settings = diff > 0 ? this.state.settings.knobSpinRight : this.state.settings.knobSpinLeft;
+							diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
+							if (diff !== 0) {
+								keyboard.keyPressMultiple(spin, Math.abs(diff), settings.key, settings.modifiers);
+								spin.rotate(diff, theme.primary, theme.primary);
+							}
 						}
 					}
-				}
-				else if (spin.state.buttonPushed) {
-					if (!this.state.didButtonHold) {
-						this.state.didButtonSpin = true;
-						const settings = diff > 0 ? this.state.settings.buttonSpinRight : this.state.settings.buttonSpinLeft;
+					else {
+						if (this.state.didKnobSpin) {
+							this.setState({ didKnobSpin: false});
+						}
+					}
+					
+					if (spin.state.buttonPushed) {
+						if (!this.state.didButtonHold) {
+							this.setState({didButtonSpin : true});
+							const settings = diff > 0 ? this.state.settings.buttonSpinRight : this.state.settings.buttonSpinLeft;
+							diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
+							if (diff !== 0) {
+								const adiff = Math.abs(diff);
+								keyboard.keyPressMultiple(spin, adiff, settings.key, settings.modifiers);
+								const dir = diff > 0 ? 1 : -1;
+								if (adiff > 1) spin.rotate(dir, theme.high, theme.high);
+								else spin.rotate(dir, theme.high);
+							}
+						}
+					}
+					else {
+						if (this.state.didButtonSpin) {
+							this.setState({ didButtonSpin: false});
+						}
+					}
+					
+					if (!spin.state.knobPushed && !spin.state.buttonPushed) {
+						const settings = diff > 0 ? this.state.settings.spinRight : this.state.settings.spinLeft;
 						diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
 						if (diff !== 0) {
 							const adiff = Math.abs(diff);
 							keyboard.keyPressMultiple(spin, adiff, settings.key, settings.modifiers);
 							const dir = diff > 0 ? 1 : -1;
-							if (adiff > 1) spin.rotate(dir, theme.high, theme.high);
-							else spin.rotate(dir, theme.high);
+							if (adiff > 1) spin.rotate(dir, theme.low, theme.low);
+							else spin.rotate(dir, theme.low);
 						}
 					}
 				}
-				else {
-					const settings = diff > 0 ? this.state.settings.spinRight : this.state.settings.spinLeft;
-					diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
-					if (diff !== 0) {
-						const adiff = Math.abs(diff);
-						keyboard.keyPressMultiple(spin, adiff, settings.key, settings.modifiers);
-						const dir = diff > 0 ? 1 : -1;
-						if (adiff > 1) spin.rotate(dir, theme.low, theme.low);
-						else spin.rotate(dir, theme.low);
-					}
-				}
+				
 			},
 			knob: function (pushed) {
 				this.log('knob', pushed);
 				if (pushed) {
-					this.state.didKnobSpin = false;
-					this.state.didKnobHold = false;
-					this.state.didBothSpin = false;
-					this.state.bothPushed = false;
-					this.state.bothReleased = false;
+					this.setState({
+						didKnobSpin : false,
+						didKnobHold : false,
+						didBothSpin : false,
+						bothPushed : false,
+						bothReleased : false
+					});
 					
 					if (spin.state.buttonPushed) {
 						this.pushedBoth(spin);
@@ -216,12 +237,13 @@ class KeyboardAdapter extends Adapter {
 			button: function (pushed) {
 				this.log('button', pushed);
 				if (pushed) {
-					this.state.didButtonSpin = false;
-					this.state.didButtonHold = false;
-					this.state.didBothSpin = false;
-					this.state.bothPushed = false;
-					this.state.bothReleased = false;
-					
+					this.setState({
+						didButtonSpin : false,
+						didButtonHold : false,
+						didBothSpin : false,
+						bothPushed : false,
+						bothReleased : false
+					});
 					if (spin.state.knobPushed) {
 						this.pushedBoth();
 					}
@@ -254,7 +276,7 @@ class KeyboardAdapter extends Adapter {
 				
 				if (!this.state.bothPushed && !this.state.bothReleased) {
 					this.log('knob HOLD');
-					this.state.didKnobHold = true;
+					this.setState({didKnobHold : true});
 					const settings = this.state.settings.knobHold;
 					keyboard.keyPress(settings.key, settings.modifiers);
 					spin.flash(theme.primary);
@@ -277,7 +299,7 @@ class KeyboardAdapter extends Adapter {
 				
 				if (!this.state.bothPushed && !this.state.bothReleased) {
 					this.log('button HOLD');
-					this.state.didButtonHold = true;
+					this.setState({didButtonHold : true});
 					const settings = this.state.settings.buttonHold;
 					keyboard.keyPress(settings.key, settings.modifiers);
 					spin.flash(theme.secondary);
@@ -296,8 +318,10 @@ class KeyboardAdapter extends Adapter {
 	}
 	
 	pushedBoth() {
-		this.state.bothPushed = true;
-		this.state.didBothHold = false;
+		this.setState({
+			bothPushed : true,
+			didBothHold : false
+		});
 		this.log('PUSHED BOTH');
 		
 		if (this.state.didKnobHold) {
@@ -313,13 +337,13 @@ class KeyboardAdapter extends Adapter {
 	holdBoth(spin) {
 		if (!this.state.didBothSpin) {
 			this.log('BOTH HOLD');
-			this.state.didBothHold = true;
+			this.setState({didBothHold : true});
 			const settings = this.state.settings.bothHold;
 			if (this.state.isBothRepeating) {
 				this.log('ALREDY BOTH REPEATING');
 			}
 			if (settings.repeat && !this.state.isBothRepeating) {
-				this.state.isBothRepeating = true;
+				this.setState({isBothRepeating : true});
 				this.services.keyboard.keyPress(settings.key, settings.modifiers);
 				this.bothRepeatTimeout = setTimeout(() => {
 					this.bothRepeatInterval = setInterval(() => {
@@ -336,8 +360,10 @@ class KeyboardAdapter extends Adapter {
 	cancelHoldBoth() {
 		this.log('CANCEL BOTH HOLD');
 		if (this.state.bothPushed) {
-			this.state.didBothHold = true;
-			this.state.isBothRepeating = false;
+			this.setState({
+				didBothHold: true,
+				isBothRepeating: false
+			});
 			clearTimeout(this.bothRepeatTimeout);
 			this.log('clearTimeout(this.bothRepeatTimeout);');
 			clearInterval(this.bothRepeatInterval);
@@ -348,13 +374,13 @@ class KeyboardAdapter extends Adapter {
 	
 	releasedBoth(spin) {
 		if (this.state.bothPushed) {
-			this.state.bothReleased = true;
+			this.setState({bothReleased : true});
 			if (this.state.didBothHold) {
 				this.cancelHoldBoth();
-				this.state.bothPushed = false;
+				this.setState({bothPushed : false});
 			}
 			else {
-				this.state.bothPushed = false;
+				this.setState({bothPushed : false});
 				this.log('RELEASED BOTH');
 				this.services.keyboard.keyPress(this.state.settings.bothPress.key, this.state.settings.bothPress.modifiers);
 				this.devices.spin.flash(this.theme.tertiary);

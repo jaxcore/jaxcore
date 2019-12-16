@@ -16,7 +16,7 @@ jaxcore.defineAdapter('scroll-default', {
 jaxcore.on('spin-connected', function(spin) {
 	console.log('connected', spin.id);
 	
-	jaxcore.connectAdapter(spin, 'scroll');
+	jaxcore.connectAdapter(spin, 'scroll-default');
 });
 
 jaxcore.startDevice('spin');

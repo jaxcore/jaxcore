@@ -58,6 +58,10 @@ class MouseService extends Service {
 		mouseInstance = null;
 	}
 	
+	scroll(x, y) {
+		robot.scrollMouse(-x, -y);
+	}
+	
 	static id() {
 		return 'mouse';
 	}
@@ -78,12 +82,13 @@ class MouseService extends Service {
 }
 
 MouseService.prototype.moveMouse = robot.moveMouse.bind(robot);
+MouseService.prototype.moveMouseSmooth = robot.moveMouseSmooth.bind(robot);
 MouseService.prototype.dragMouse = robot.dragMouse.bind(robot);
 MouseService.prototype.mouseToggle = robot.mouseToggle.bind(robot);
 MouseService.prototype.mouseClick = robot.mouseClick.bind(robot);
 MouseService.prototype.getMousePos = robot.getMousePos.bind(robot);
 MouseService.prototype.getScreenSize = robot.getScreenSize.bind(robot);
-MouseService.prototype.scroll = robot.scrollMouse.bind(robot);
+
 
 module.exports = MouseService;
 

@@ -226,7 +226,6 @@ class ScrollService extends Service {
 		return 'scroll';
 	}
 	
-	// static getOrCreateInstance(serviceId, serviceConfig, callback) {
 	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
 		if (!scrollInstance) {
 			console.log('CREATE SCROLL');

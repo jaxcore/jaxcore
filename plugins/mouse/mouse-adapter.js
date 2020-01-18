@@ -206,8 +206,8 @@ class MouseScrollAdapter extends Adapter {
 	
 	static getServicesConfig(adapterConfig) {
 		return {
-			scroll: true,
-			mouse: true
+			mouse: true,
+			scroll: true
 		};
 	};
 }

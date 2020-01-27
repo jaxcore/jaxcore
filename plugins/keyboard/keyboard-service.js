@@ -73,6 +73,11 @@ class KeyboardService extends Service {
 		robot.keyToggle.apply(robot, args);
 	}
 	
+	typeString(str, cpm) {
+		if (typeof cpm !== 'undefined') robot.typeString(str, cpm);
+		else robot.typeString(str);
+	}
+	
 	destroy() {
 		this.emit('teardown');
 		keyboardInstance = null;

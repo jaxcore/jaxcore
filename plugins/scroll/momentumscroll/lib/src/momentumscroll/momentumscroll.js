@@ -1,33 +1,26 @@
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _matterJs = require('matter-js');
-
-var _events = require('events');
-
-var _events2 = _interopRequireDefault(_events);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 // let matterjs = require('matter-js');
-// const {Engine, Render, World, Bodies, Body} = matterjs;
+var _require = require('matter-js'),
+    Engine = _require.Engine,
+    Render = _require.Render,
+    Runner = _require.Runner,
+    World = _require.World,
+    Bodies = _require.Bodies,
+    Body = _require.Body;
 // import {Engine, Render, World, Bodies, Body} from 'matter-js';
 
-// const EventEmitter = require('events');
-
-// global.Body = Body;
+var EventEmitter = require('events');
 
 var MomentumScroll = function (_EventEmitter) {
 	_inherits(MomentumScroll, _EventEmitter);
@@ -36,8 +29,6 @@ var MomentumScroll = function (_EventEmitter) {
 		_classCallCheck(this, MomentumScroll);
 
 		var _this = _possibleConstructorReturn(this, (MomentumScroll.__proto__ || Object.getPrototypeOf(MomentumScroll)).call(this));
-
-		global.momentum = _this;
 
 		_this.intervalTime = config.intervalTime || 50;
 
@@ -48,11 +39,11 @@ var MomentumScroll = function (_EventEmitter) {
 
 		_this.midpoint = _this.w / 2 - _this.scrollerSize / 2;
 
-		_this.engine = _matterJs.Engine.create();
+		_this.engine = Engine.create();
 		_this.engine.world.gravity.y = 0;
 
 		if (config.domNode) {
-			_this.render = _matterJs.Render.create({
+			_this.render = Render.create({
 				element: config.domNode,
 				engine: _this.engine,
 				options: {
@@ -72,21 +63,21 @@ var MomentumScroll = function (_EventEmitter) {
 		// Engine.run(this.engine);
 		//Matter.Render.stop(this.debugRender);
 
-		_this.runner = _matterJs.Runner.create();
+		_this.runner = Runner.create();
 
-		if (_this.render) _matterJs.Render.run(_this.render);
+		if (_this.render) Render.run(_this.render);
 
 		var size = _this.scrollerSize;
 
-		_this.scroller = _matterJs.Bodies.rectangle(size / 2, size / 2, size, size, {
+		_this.scroller = Bodies.rectangle(size / 2, size / 2, size, size, {
 			frictionAir: config.friction || 0,
 			friction: 0,
 			restitution: 0,
 			background: "#F00"
 		});
 
-		_matterJs.Body.setPosition(_this.scroller, { x: _this.midpoint, y: _this.midpoint });
-		_matterJs.World.add(_this.engine.world, [_this.scroller]);
+		Body.setPosition(_this.scroller, { x: _this.midpoint, y: _this.midpoint });
+		World.add(_this.engine.world, [_this.scroller]);
 
 		_this.isScrolling = false;
 
@@ -125,7 +116,7 @@ var MomentumScroll = function (_EventEmitter) {
 				console.log('ENGINE STOPPED');
 				return;
 			}
-			_matterJs.Runner.tick(this.runner, this.engine, this.interval);
+			Runner.tick(this.runner, this.engine, this.interval);
 			if ((typeof window === 'undefined' ? 'undefined' : _typeof(window)) === 'object' && window.requestAnimationFrame) {
 				requestAnimationFrame(this._tick);
 			} else {
@@ -136,8 +127,8 @@ var MomentumScroll = function (_EventEmitter) {
 	}, {
 		key: 'stopVertical',
 		value: function stopVertical() {
-			_matterJs.Body.setVelocity(this.scroller, { x: this.scroller.velocity.x, y: 0 });
-			_matterJs.Body.setPosition(this.scroller, { x: this.scroller.position.x, y: this.midpoint });
+			Body.setVelocity(this.scroller, { x: this.scroller.velocity.x, y: 0 });
+			Body.setPosition(this.scroller, { x: this.scroller.position.x, y: this.midpoint });
 			this.lastPosY = 0;
 			this.deltaTotalY = 0;
 		}
@@ -160,8 +151,8 @@ var MomentumScroll = function (_EventEmitter) {
 	}, {
 		key: 'stopHorizontal',
 		value: function stopHorizontal() {
-			_matterJs.Body.setVelocity(this.scroller, { x: 0, y: this.scroller.velocity.y });
-			_matterJs.Body.setPosition(this.scroller, { x: this.midpoint, y: this.scroller.position.y });
+			Body.setVelocity(this.scroller, { x: 0, y: this.scroller.velocity.y });
+			Body.setPosition(this.scroller, { x: this.midpoint, y: this.scroller.position.y });
 			this.lastPosX = 0;
 			this.deltaTotalX = 0;
 		}
@@ -222,7 +213,7 @@ var MomentumScroll = function (_EventEmitter) {
 				this.isScrolling = true;
 				this.interval = setInterval(this.update.bind(this), this.intervalTime);
 			}
-			_matterJs.Body.applyForce(this.scroller, {
+			Body.applyForce(this.scroller, {
 				x: this.scroller.position.x,
 				y: this.scroller.position.y
 			}, {
@@ -255,7 +246,7 @@ var MomentumScroll = function (_EventEmitter) {
 				this.deltaTotalY = this.deltaTotalY + dy - deltaTotalInt;
 
 				if (deltaTotalInt !== 0) {
-					this.emit('scroll', 0, deltaTotalInt);
+					this.emit('scroll', 0, deltaTotalInt, this.scroller.velocity.x, this.scroller.velocity.y);
 				}
 
 				clearTimeout(this.timeout);
@@ -288,7 +279,7 @@ var MomentumScroll = function (_EventEmitter) {
 				this.deltaTotalX = this.deltaTotalX + dy - deltaTotalInt;
 
 				if (deltaTotalInt !== 0) {
-					this.emit('scroll', deltaTotalInt, 0);
+					this.emit('scroll', deltaTotalInt, 0, this.scroller.velocity.x, this.scroller.velocity.y);
 				}
 
 				clearTimeout(this.timeout);
@@ -297,7 +288,7 @@ var MomentumScroll = function (_EventEmitter) {
 					clearInterval(_this5.interval);
 					_this5.stop();
 					console.log('horizontal timed out =====================');
-					_matterJs.Body.setVelocity(_this5.scroller, { x: 0, y: 0 });
+					Body.setVelocity(_this5.scroller, { x: 0, y: 0 });
 				}, 1000);
 
 				this.lastPosX = roundedPos;
@@ -306,6 +297,6 @@ var MomentumScroll = function (_EventEmitter) {
 	}]);
 
 	return MomentumScroll;
-}(_events2.default);
+}(EventEmitter);
 
-exports.default = MomentumScroll;
+module.exports = MomentumScroll;

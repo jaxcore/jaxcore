@@ -14,15 +14,6 @@
   },
   "devDependencies": {},
   "scripts": {
-    "spin-keyboard": "NODE_ENV=dev node ./examples/spin-keyboard/start.js",
-    "spin-mouse": "NODE_ENV=dev node ./examples/spin-mouse/start.js",
-    "spin-scroll": "NODE_ENV=dev node ./examples/spin-scroll/start.js",
-    "spin-volume": "NODE_ENV=dev node ./examples/spin-volume/start.js",
-    "spin-chromecast": "NODE_ENV=dev node ./examples/spin-chromecast/start.js",
-    "spin-sonos": "NODE_ENV=dev node ./examples/spin-sonos/start.js",
-    "spin-kodi": "NODE_ENV=dev node ./examples/spin-kodi/start.js",
-    "websocketServer": "NODE_ENV=dev node ./examples/spin-all-launcher/start.js websocketServer",
-    "browserExtension": "NODE_ENV=dev node ./examples/spin-all-launcher/start.js browserExtension"
   },
   "license": "MIT"
 }

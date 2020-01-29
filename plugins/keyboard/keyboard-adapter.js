@@ -65,25 +65,25 @@ class KeyboardAdapter extends Adapter {
 					momentumTimeout: 300
 				},
 				knobSpinLeft: {
-					// key: 'pageup',
-					key: 'left',
+					key: 'pageup',
+					// key: 'left',
 					modifiers: [],
-					shuttle: true, // TODO
+					// shuttle: true, // TODO
 					bufferKinetic: 1,
 					bufferStatic: 1,
 					momentumTimeout: 300
 				},
 				knobSpinRight: {
-					// key: 'pagedown',
-					key: 'right',
+					key: 'pagedown',
+					// key: 'right',
 					modifiers: [],
-					shuttle: true, // TODO
+					// shuttle: true, // TODO
 					bufferKinetic: 1,
 					bufferStatic: 1,
 					momentumTimeout: 300
 				},
 				buttonSpinLeft: {
-					// key: 'left',
+					// key: 'pageup',
 					key: 'up',
 					modifiers: [],
 					bufferKinetic: 1,
@@ -101,20 +101,20 @@ class KeyboardAdapter extends Adapter {
 				bothSpinLeft: {
 					// key: 'left',
 					// modifiers: ['alt'],
-					key: 'pageup',
-					modifiers: [],
-					bufferKinetic: 1,
-					bufferStatic: 1,
-					momentumTimeout: 300
+					// key: 'pageup',
+					// modifiers: [],
+					// bufferKinetic: 1,
+					// bufferStatic: 1,
+					// momentumTimeout: 300
 				},
 				bothSpinRight: {
 					// key: 'right',
 					// modifiers: ['alt'],
-					key: 'pagedown',
-					modifiers: [],
-					bufferKinetic: 1,
-					bufferStatic: 1,
-					momentumTimeout: 300
+					// key: 'pagedown',
+					// modifiers: [],
+					// bufferKinetic: 1,
+					// bufferStatic: 1,
+					// momentumTimeout: 300
 				}
 			}
 		};
@@ -151,10 +151,15 @@ class KeyboardAdapter extends Adapter {
 					
 					if (spin.state.knobPushed) {
 						if (!this.state.didKnobHold) {
+							
 							this.setState({didKnobSpin : true});
 							const settings = diff > 0 ? this.state.settings.knobSpinRight : this.state.settings.knobSpinLeft;
 							diff = spin.buffer(diff, settings.bufferKinetic, settings.bufferStatic, settings.momentumTimeout);
 							if (diff !== 0) {
+								
+								console.log('this.state.settings.knobSpinRight', this.state.settings.knobSpinRight);
+								console.log('knobSpin', diff, settings.key);
+								
 								keyboard.keyPressMultiple(spin, Math.abs(diff), settings.key, settings.modifiers);
 								spin.rotate(diff, theme.primary, theme.primary);
 							}

@@ -3,6 +3,6 @@ module.exports = {
 		scroll: require('./scroll-service')
 	},
 	adapters: {
-		scroll: require('./scroll-adapter')
+		'spin-scroll': require('./scroll-adapter')
 	}
 }

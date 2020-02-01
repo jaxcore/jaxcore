@@ -3,6 +3,6 @@ module.exports = {
 		volume: require('./volume-service')
 	},
 	adapters: {
-		volume: require('./volume-adapter')
+		'spin-volume': require('./volume-adapter')
 	}
 }

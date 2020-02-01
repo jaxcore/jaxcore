@@ -204,12 +204,12 @@ class MouseScrollAdapter extends Adapter {
 		this.log('RELEASE BOTH');
 	}
 	
-	static getServicesConfig(adapterConfig) {
-		return {
-			mouse: true,
-			scroll: true
-		};
-	};
+	// static getServicesConfig(adapterConfig) {
+	// 	return {
+	// 		mouse: true,
+	// 		scroll: true
+	// 	};
+	// };
 }
 
 

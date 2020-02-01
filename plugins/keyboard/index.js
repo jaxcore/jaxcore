@@ -3,6 +3,6 @@ module.exports = {
 		keyboard: require('./keyboard-service')
 	},
 	adapters: {
-		keyboard: require('./keyboard-adapter')
+		'spin-keyboard': require('./keyboard-adapter')
 	}
 }

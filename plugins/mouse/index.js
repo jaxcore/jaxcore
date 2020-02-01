@@ -3,6 +3,6 @@ module.exports = {
 		mouse: require('./mouse-service')
 	},
 	adapters: {
-		mouse: require('./mouse-adapter')
+		'spin-mouse': require('./mouse-adapter')
 	}
 }

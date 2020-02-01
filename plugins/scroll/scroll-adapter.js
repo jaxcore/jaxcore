@@ -159,12 +159,12 @@ class ScrollAdapter extends Adapter {
 		});
 	}
 	
-	static getServicesConfig(adapterConfig) {
-		return {
-			scroll: true,
-			keyboard: true
-		};
-	}
+	// static getServicesConfig(adapterConfig) {
+	// 	return {
+	// 		scroll: true,
+	// 		keyboard: true
+	// 	};
+	// }
 }
 
 module.exports = ScrollAdapter;

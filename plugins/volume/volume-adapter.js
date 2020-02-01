@@ -153,12 +153,12 @@ class VolumeAdapter extends Adapter {
 		}
 	}
 	
-	static getServicesConfig(adapterConfig) {
-		return {
-			keyboard: true,
-			volume: true
-		};
-	}
+	// static getServicesConfig(adapterConfig) {
+	// 	return {
+	// 		keyboard: true,
+	// 		volume: true
+	// 	};
+	// }
 }
 
 module.exports = VolumeAdapter;

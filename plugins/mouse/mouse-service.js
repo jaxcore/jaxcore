@@ -22,24 +22,8 @@ const schema = {
 class MouseService extends Service {
 	constructor(defaults, store) {
 		super(schema, store, defaults);
-		// super(defaults);
-		// this.createStore('Mouse Store', true);
-		
 		this.log = createLogger('Mouse');
 		this.log('created');
-		
-		// this.setStates({
-		// 	id: {
-		// 		type: 'string',
-		// 		defaultValue: 'mouse'
-		// 	},
-		// 	connected: {
-		// 		type: 'boolean',
-		// 		defaultValue: false
-		// 	}
-		// }, defaults);
-		
-		// this.id = this.state.id
 	}
 	
 	connect() {
@@ -49,12 +33,16 @@ class MouseService extends Service {
 		this.emit('connect');
 	}
 	
-	disconnect(options) {
+	disconnect() {
 		this.log('disconnecting...');
+		this.setState({
+			connected: false
+		});
+		this.emit('disconnect');
 	}
 	
 	destroy() {
-		this.emit('teardown');
+		this.disconnect();
 		mouseInstance = null;
 	}
 	
@@ -68,16 +56,9 @@ class MouseService extends Service {
 	
 	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
 		if (!mouseInstance) {
-			console.log('CREATE MOUSE');
 			mouseInstance = new MouseService(serviceConfig, serviceStore);
 		}
 		callback(null, mouseInstance);
-	}
-	
-	static destroyInstance(serviceId, serviceConfig) {
-		if (mouseInstance) {
-			mouseInstance.destroy();
-		}
 	}
 }
 
@@ -88,7 +69,6 @@ MouseService.prototype.mouseToggle = robot.mouseToggle.bind(robot);
 MouseService.prototype.mouseClick = robot.mouseClick.bind(robot);
 MouseService.prototype.getMousePos = robot.getMousePos.bind(robot);
 MouseService.prototype.getScreenSize = robot.getScreenSize.bind(robot);
-
 
 module.exports = MouseService;
 

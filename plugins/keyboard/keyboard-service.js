@@ -18,23 +18,8 @@ const schema = {
 class KeyboardService extends Service {
 	constructor(defaults, store) {
 		super(schema, store, defaults);
-		// this.createStore('Keyboard Store', true);
-		
 		this.log = createLogger('Keyboard');
 		this.log('created');
-		
-		// this.setStates({
-		// 	id: {
-		// 		type: 'string',
-		// 		defaultValue: 'keyboard'
-		// 	},
-		// 	connected: {
-		// 		type: 'boolean',
-		// 		defaultValue: false
-		// 	}
-		// }, defaults);
-		
-		// this.id = this.state.id;
 	}
 	
 	
@@ -45,8 +30,12 @@ class KeyboardService extends Service {
 		this.emit('connect');
 	}
 	
-	disconnect(options) {
+	disconnect() {
 		this.log('disconnecting...');
+		this.setState({
+			connected: false
+		});
+		this.emit('disconnect');
 	}
 	
 	keyPress(k, modifiers) {
@@ -79,26 +68,19 @@ class KeyboardService extends Service {
 	}
 	
 	destroy() {
-		this.emit('teardown');
+		this.disconnect();
 		keyboardInstance = null;
 	}
 	
-	static id(config, store) {
+	static id() {
 		return 'keyboard';
 	}
 	
 	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
 		if (!keyboardInstance) {
-			console.log('CREATE KEYBOARD', 'serviceStore=', serviceStore);
 			keyboardInstance = new KeyboardService(serviceConfig, serviceStore);
 		}
 		callback(null, keyboardInstance);
-	}
-	
-	static destroyInstance(serviceId, serviceConfig) {
-		if (keyboardInstance) {
-			keyboardInstance.destroy();
-		}
 	}
 }
 

@@ -73,8 +73,13 @@ class VolumeService extends Service {
 		});
 	}
 	
-	disconnect(options) {
+	disconnect() {
 		this.log('disconnecting...');
+		this.stopMonitor();
+		this.setState({
+			connected: false
+		});
+		this.emit('disconnect');
 	}
 	
 	startMonitor() {
@@ -266,8 +271,8 @@ class VolumeService extends Service {
 	}
 	
 	destroy() {
-		this.emit('teardown');
-		this.stopMonitor();
+		this.disconnect();
+		volumeInstance = null;
 	}
 	
 	static id() {
@@ -276,17 +281,9 @@ class VolumeService extends Service {
 	
 	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
 		if (!volumeInstance) {
-			console.log('CREATE VOLUME');
 			volumeInstance = new VolumeService(serviceConfig, serviceStore);
 		}
 		callback(null, volumeInstance);
-	}
-	
-	static destroyInstance(serviceId, serviceConfig) {
-		if (volumeInstance) {
-			volumeInstance.destroy();
-			volumeInstance = null;
-		}
 	}
 }
 

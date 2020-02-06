@@ -18,18 +18,6 @@ const schema = {
 		type: 'number',
 		defaultValue: 123
 	},
-	// scrollX: {
-	// 	type: 'number'
-	// },
-	// scrollY: {
-	// 	type: 'number'
-	// },
-	// velocityX: {
-	// 	type: 'number'
-	// },
-	// velocityY: {
-	// 	type: 'number'
-	// },
 	scrollForce: {
 		type: 'number',
 		defaultValue: 0.01
@@ -100,12 +88,6 @@ class ScrollService extends Service {
 		});
 		
 		this._onScroll = (scrollX, scrollY, velocityX, velocityY) => {
-			// this.setState({
-			// 	scrollX,
-			// 	scrollY,
-			// 	velocityX,
-			// 	velocityY
-			// });
 			robot.scrollMouse(-scrollX, -scrollY);
 			this.emit('scroll', scrollX, scrollY, velocityX, velocityY);
 		};
@@ -113,23 +95,24 @@ class ScrollService extends Service {
 	}
 	
 	connect() {
-		// this.lastSetVolume = new Date();
 		this.setState({
 			connected: true
 		});
 		this.emit('connect');
 	}
 	
-	disconnect(options) {
+	disconnect() {
 		this.log('disconnecting...');
+		this.setState({
+			connected: false
+		});
+		this.emit('disconnect');
 	}
 	
 	scrollVertical(diff, time) {
 		let dir = diff > 0 ? 1 : -1;
 		let scrollForce, scrollFriction;
 		if (time > 170) {
-			// scrollForce = diff * this.state.scrollForce;
-			// scrollFriction = this.state.scrollFriction;
 			scrollForce = dir * Math.pow(Math.abs(diff * this.state.scrollForceFactorSlow), this.state.scrollSpeedSlow) * this.state.scrollForce;
 			scrollFriction = this.state.scrollFriction;
 		}
@@ -164,25 +147,29 @@ class ScrollService extends Service {
 	
 	startShuttleVertical(spinPosition) {
 		if (!this.state.shuttleVertical) {
-			this.state.shuttlePositionV = spinPosition;
-			this.state.shuttleVertical = true;
+			this.setState({
+				shuttlePositionV: spinPosition,
+				shuttleVertical: true
+			});
 		}
 	}
 	
 	stopShuttleVertical() {
-		this.state.shuttleVertical = false;
+		this.setState({shuttleVertical: false});
 		this.momentumScroll.stopShuttleVertical();
 	}
 	
 	startShuttleHorizontal(spinPosition) {
 		if (!this.state.shuttleHorizontal) {
-			this.state.shuttlePositionH = spinPosition;
-			this.state.shuttleHorizontal = true;
+			this.setState({
+				shuttlePositionH: spinPosition,
+				shuttleHorizontal: true
+			})
 		}
 	}
 	
 	stopShuttleHorizontal() {
-		this.state.shuttleHorizontal = false;
+		this.setState({shuttleHorizontal: false});
 		this.momentumScroll.stopShuttleHorizontal();
 	}
 	
@@ -217,8 +204,10 @@ class ScrollService extends Service {
 	}
 	
 	destroy() {
-		this.emit('teardown');
 		this.momentumScroll.removeListener('scroll', this._onScroll);
+		this.momentumScroll.removeAllListeners();
+		delete this.momentumScroll;
+		this.disconnect();
 		scrollInstance = null;
 	}
 	
@@ -228,16 +217,9 @@ class ScrollService extends Service {
 	
 	static getOrCreateInstance(serviceStore, serviceId, serviceConfig, callback) {
 		if (!scrollInstance) {
-			console.log('CREATE SCROLL');
 			scrollInstance = new ScrollService(serviceConfig, serviceStore);
 		}
 		callback(null, scrollInstance);
-	}
-	
-	static destroyInstance(serviceId, serviceConfig) {
-		if (scrollInstance) {
-			scrollInstance.destroy();
-		}
 	}
 }
 

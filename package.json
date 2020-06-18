@@ -1,8 +1,8 @@
 {
   "name": "jaxcore",
-  "version": "0.0.2",
-  "description": "Jaxcore - a real-time control and connectivity hub for IoT devices, computers, smart homes, and home theater equipment",
-  "author": "Dan Steinman",
+  "version": "0.0.3",
+  "description": "Jaxcore - a cybernetic control and connectivity library for network devices, computers, and more",
+  "author": "Jaxcore Software Inc.",
   "main": "index.js",
   "dependencies": {
     "async": "^3.1.0",

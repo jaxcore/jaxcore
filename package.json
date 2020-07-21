@@ -1,6 +1,6 @@
 {
   "name": "jaxcore",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Jaxcore - a cybernetic control and connectivity library for network devices, computers, and more",
   "author": "Jaxcore Software Inc.",
   "main": "index.js",
